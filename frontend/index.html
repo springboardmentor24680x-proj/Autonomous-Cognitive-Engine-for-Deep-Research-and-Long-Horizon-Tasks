@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous Cognitive Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .message { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .typing-indicator span { animation: blink 1.4s infinite; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink {
+            0%, 60%, 100% { opacity: 0.3; }
+            30% { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-80 bg-white border-r border-gray-200 flex flex-col">
+            <div class="p-4 border-b border-gray-200">
+                <h1 class="text-xl font-bold text-gray-800">🤖 Cognitive Agent</h1>
+                <p class="text-sm text-gray-500">Deep Research Assistant</p>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200">
+                <button onclick="switchTab('todos')" id="todosTab" class="flex-1 px-4 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600">📋 Tasks</button>
+                <button onclick="switchTab('files')" id="filesTab" class="flex-1 px-4 py-3 text-sm font-medium text-gray-600">📁 Files</button>
+                <button onclick="switchTab('calendar')" id="calendarTab" class="flex-1 px-4 py-3 text-sm font-medium text-gray-600">📅 Events</button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto p-4">
+                <div id="todosPanel">
+                    <div class="text-sm text-gray-500 mb-3">Active Tasks</div>
+                    <div id="todosList" class="space-y-2">
+                        <div class="text-sm text-gray-400 italic">No tasks yet</div>
+                    </div>
+                </div>
+                <div id="filesPanel" class="hidden">
+                    <div class="text-sm text-gray-500 mb-3">Virtual File System</div>
+                    <div id="filesList" class="space-y-2">
+                        <div class="text-sm text-gray-400 italic">No files yet</div>
+                    </div>
+                </div>
+                <div id="calendarPanel" class="hidden">
+                    <div class="text-sm text-gray-500 mb-3">Scheduled Events</div>
+                    <div id="calendarList" class="space-y-3">
+                        <div class="text-sm text-gray-400 italic">No events yet</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="p-4 border-t border-gray-200 bg-gray-50">
+                <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div><div class="font-bold text-lg" id="todoCount">0</div><div class="text-gray-500">Tasks</div></div>
+                    <div><div class="font-bold text-lg" id="fileCount">0</div><div class="text-gray-500">Files</div></div>
+                    <div><div class="font-bold text-lg" id="eventCount">0</div><div class="text-gray-500">Events</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="flex-1 flex flex-col">
+            <div class="bg-white border-b border-gray-200 p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">Chat Assistant</h2>
+                        <p class="text-sm text-gray-500">Powered by LangGraph + Gemini 2.0 Flash</p>
+                    </div>
+                    <button onclick="clearChat()" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">🗑️ Clear</button>
+                </div>
+            </div>
+
+            <div id="chatMessages" class="flex-1 overflow-y-auto p-6 space-y-4">
+                <div class="message flex gap-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white flex-shrink-0">🤖</div>
+                    <div class="flex-1 bg-white rounded-lg shadow-sm p-4 max-w-3xl">
+                        <div class="font-medium text-gray-800 mb-2">Welcome to Autonomous Cognitive Agent</div>
+                        <div class="text-gray-600 text-sm">
+                            I'm a real AI agent with planning, memory, and tool execution capabilities.
+                            <div class="mt-2 text-blue-600">Try: "Research quantum computing" or "Schedule meeting tomorrow at 2pm"</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white border-t border-gray-200 p-4">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex gap-3">
+                        <input type="text" id="userInput" placeholder="Type your message..." 
+                               class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               onkeypress="if(event.key==='Enter') sendMessage()">
+                        <button onclick="sendMessage()" id="sendBtn" 
+                                class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Modal -->
+    <div id="fileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg max-w-3xl w-full max-h-[80vh] flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 class="font-semibold" id="modalFileName">File</h3>
+                <button onclick="closeFileModal()" class="text-gray-500">✕</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4">
+                <pre id="modalFileContent" class="text-sm whitespace-pre-wrap font-mono"></pre>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:8000';
+        let state = null;
+        let session_id = localStorage.getItem("session_id");
+        if (!session_id) {
+            session_id = crypto.randomUUID();
+            localStorage.setItem("session_id", session_id);
+    }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            input.disabled = true;
+            document.getElementById('sendBtn').disabled = true;
+
+            addMessage('user', message);
+            input.value = '';
+            showTypingIndicator();
+
+            try {
+                const response = await fetch(`${API_URL}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                    session_id: session_id,
+                    message: message
+                    })
+                });
+
+                if (!response.ok) throw new Error('API request failed');
+
+                const data = await response.json();
+                hideTypingIndicator();
+
+                // Update state
+                state = {
+    todos: data.todos,
+    files: data.files,
+    calendar: data.calendar
+};
+
+
+                // Show tool usage
+                if (data.tool_calls && data.tool_calls.length > 0) {
+                    addMessage('system', `🔧 Tools used: ${data.tool_calls.join(', ')}`);
+                }
+
+                // Show response
+                addMessage('assistant', data.response);
+
+                // Update UI
+                updateTodosList();
+                updateFilesList();
+                updateCalendarList();
+                updateStats();
+
+            } catch (error) {
+                hideTypingIndicator();
+                addMessage('assistant', `Error: ${error.message}`);
+            }
+
+            input.disabled = false;
+            document.getElementById('sendBtn').disabled = false;
+            input.focus();
+        }
+
+        function addMessage(role, content) {
+            const div = document.getElementById('chatMessages');
+            const msg = document.createElement('div');
+            msg.className = 'message flex gap-3';
+
+            if (role === 'user') {
+                msg.innerHTML = `
+                    <div class="flex-1 flex justify-end">
+                        <div class="bg-blue-600 text-white rounded-lg shadow-sm p-4 max-w-3xl">
+                            <div class="text-sm whitespace-pre-wrap">${escapeHtml(content)}</div>
+                        </div>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white flex-shrink-0">👤</div>
+                `;
+            } else if (role === 'system') {
+                msg.innerHTML = `
+                    <div class="flex-1">
+                        <div class="bg-gray-100 text-gray-600 rounded-lg p-2 text-xs text-center">${escapeHtml(content)}</div>
+                    </div>
+                `;
+            } else {
+                msg.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white flex-shrink-0">🤖</div>
+                    <div class="flex-1 bg-white rounded-lg shadow-sm p-4 max-w-3xl">
+                        <div class="text-gray-700 text-sm whitespace-pre-wrap">${escapeHtml(content)}</div>
+                    </div>
+                `;
+            }
+
+            div.appendChild(msg);
+            div.scrollTop = div.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const div = document.getElementById('chatMessages');
+            const ind = document.createElement('div');
+            ind.id = 'typingIndicator';
+            ind.className = 'message flex gap-3';
+            ind.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white flex-shrink-0">🤖</div>
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <div class="typing-indicator flex gap-1">
+                        <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                        <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                        <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                    </div>
+                </div>
+            `;
+            div.appendChild(ind);
+            div.scrollTop = div.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const ind = document.getElementById('typingIndicator');
+            if (ind) ind.remove();
+        }
+
+        function switchTab(tab) {
+            ['todos', 'files', 'calendar'].forEach(t => {
+                document.getElementById(`${t}Panel`).classList.toggle('hidden', t !== tab);
+                const tabBtn = document.getElementById(`${t}Tab`);
+                if (t === tab) {
+                    tabBtn.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                    tabBtn.classList.remove('text-gray-600');
+                } else {
+                    tabBtn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                    tabBtn.classList.add('text-gray-600');
+                }
+            });
+        }
+
+        function updateTodosList() {
+            const list = document.getElementById('todosList');
+            if (!state || !state.todos || state.todos.length === 0) {
+                list.innerHTML = '<div class="text-sm text-gray-400 italic">No tasks yet</div>';
+                return;
+            }
+
+            list.innerHTML = state.todos.map(todo => `
+                <div class="p-3 rounded-lg border ${todo.status === 'complete' ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}">
+                    <div class="flex gap-2">
+                        <span>${todo.status === 'complete' ? '✅' : '⏳'}</span>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium ${todo.status === 'complete' ? 'line-through text-gray-500' : 'text-gray-700'}">
+                                ${escapeHtml(todo.task)}
+                            </div>
+                            <div class="text-xs text-gray-500">${todo.status}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateFilesList() {
+            const list = document.getElementById('filesList');
+            if (!state || !state.files || Object.keys(state.files).length === 0) {
+                list.innerHTML = '<div class="text-sm text-gray-400 italic">No files yet</div>';
+                return;
+            }
+
+            list.innerHTML = Object.keys(state.files).map(filename => `
+                <div class="p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50" onclick="viewFile('${filename}')">
+                    <div class="flex items-center gap-2">
+                        <span>📄</span>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">${escapeHtml(filename)}</div>
+                            <div class="text-xs text-gray-500">${state.files[filename].length} chars</div>
+                        </div>
+                        <span class="text-gray-400">→</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateCalendarList() {
+            const list = document.getElementById('calendarList');
+            if (!state || !state.calendar || state.calendar.length === 0) {
+                list.innerHTML = '<div class="text-sm text-gray-400 italic">No events yet</div>';
+                return;
+            }
+
+            list.innerHTML = state.calendar.map(event => `
+                <div class="p-3 rounded-lg border border-blue-200 bg-blue-50">
+                    <div class="flex gap-3">
+                        <span class="text-2xl">📅</span>
+                        <div class="flex-1">
+                            <div class="font-medium">${escapeHtml(event.title)}</div>
+                            <div class="text-sm text-gray-600 mt-1">📆 ${event.date} at ${event.time}</div>
+                            ${event.description ? `<div class="text-xs text-gray-500 mt-2">${escapeHtml(event.description)}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('todoCount').textContent = state?.todos?.length || 0;
+            document.getElementById('fileCount').textContent = state?.files ? Object.keys(state.files).length : 0;
+            document.getElementById('eventCount').textContent = state?.calendar?.length || 0;
+        }
+
+        function viewFile(filename) {
+            document.getElementById('modalFileName').textContent = filename;
+            document.getElementById('modalFileContent').textContent = state.files[filename];
+            document.getElementById('fileModal').classList.remove('hidden');
+        }
+
+        function closeFileModal() {
+            document.getElementById('fileModal').classList.add('hidden');
+        }
+
+        function clearChat() {
+            if (confirm('Clear chat? (State will be preserved)')) {
+                document.getElementById('chatMessages').innerHTML = '';
+                addMessage('assistant', 'Chat cleared. How can I help?');
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
