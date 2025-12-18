@@ -20,8 +20,10 @@ from langchain_core.messages import HumanMessage, AIMessage
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════════
+from dotenv import load_dotenv
+load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCUpWpkAE9hV8H4tizN5Pme0HESrPv8lBQ")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 app = FastAPI(title="Autonomous AI Agent", version="3.0.0")
@@ -711,7 +713,16 @@ async def chat(request: ChatRequest):
         state["messages"].append(HumanMessage(content=request.message))
         
         # Run the agent (assistant message is added INSIDE reasoning_node now)
-        result = agent.invoke(state)
+        result = agent.invoke(
+    state,
+    config={
+        "tags": ["chat", "autonomous-agent"],
+        "metadata": {
+            "session_id": request.session_id
+        }
+    }
+)
+
         
         # Update session with result
         sessions[request.session_id] = result
