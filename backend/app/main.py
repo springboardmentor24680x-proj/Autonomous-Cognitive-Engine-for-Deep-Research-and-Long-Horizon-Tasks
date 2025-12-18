@@ -20,8 +20,10 @@ from langchain_core.messages import HumanMessage, AIMessage
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════════
+from dotenv import load_dotenv
+load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCUpWpkAE9hV8H4tizN5Pme0HESrPv8lBQ")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 app = FastAPI(title="Autonomous AI Agent", version="3.0.0")
