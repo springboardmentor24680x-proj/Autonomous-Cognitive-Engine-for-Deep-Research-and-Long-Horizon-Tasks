@@ -1,239 +1,197 @@
-# test.py
 import os
+import json
 from dotenv import load_dotenv
-from typing import TypedDict, List, Dict, Any
-from datetime import datetime
+from typing import TypedDict, List, Dict
 
 from langgraph.graph import StateGraph
 from langgraph.checkpoint.memory import MemorySaver
-
-from source.vfs import VFS
-
+from langsmith import traceable
 import groq
 
-# ==============================
-# LOAD ENV VARIABLES
-# ==============================
+from src.vfs import VFS
+from src.subagents.web_search_agent import web_agent_app
+from src.subagents.summarizer_agent import summarizer_app
+
+# ======================================================
+# ENV SETUP
+# ======================================================
 load_dotenv()
+os.environ["LANGSMITH_TRACING"] = "true"
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY")
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 
-if not GROQ_API_KEY or not LANGSMITH_API_KEY or not TAVILY_API_KEY:
+if not GROQ_API_KEY or not LANGSMITH_API_KEY:
     raise ValueError("Missing API keys")
 
 client = groq.Client(api_key=GROQ_API_KEY)
 
-os.environ["LANGSMITH_API_KEY"] = LANGSMITH_API_KEY
-os.environ["LANGSMITH_TRACING"] = "true"
-os.environ["LANGCHAIN_PROJECT"] = "Cognibot-Autonomous-Agent"
-
-# ==============================
+# ======================================================
 # STATE
-# ==============================
+# ======================================================
 class State(TypedDict):
     input: str
-    messages: List[Dict[str, Any]]
+    messages: List[Dict[str, str]]
     vfs: Dict[str, str]
-    recent_files_changes: Dict[str, List[str]]
-    trace_id: str
-    route: str
+    delegated_result: str
 
-# ==============================
-# GROQ CALL WITH MEMORY
-# ==============================
-def call_groq_with_memory(state: State, prompt_override: str = None) -> str:
-    messages = []
-    for msg in state["messages"]:
-        messages.append({"role": msg["role"], "content": msg["text"]})
-    messages.append({
-        "role": "user",
-        "content": prompt_override if prompt_override else state["input"]
-    })
+# ======================================================
+# LLM CALL
+# ======================================================
+@traceable(name="groq_llm_call", run_type="llm")
+def call_llm(messages: List[Dict[str, str]]) -> str:
     resp = client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=messages,
-        max_tokens=1500
+        max_tokens=1200
     )
-    return resp.choices[0].message.content
+    return resp.choices[0].message.content.strip()
 
-# ==============================
-# VFS HELPERS
-# ==============================
-def write_file(state: State, filename: str, content: str):
+# ======================================================
+# TODO MANAGER (INTERNAL ONLY)
+# ======================================================
+@traceable(name="write_todos_tool", run_type="chain")
+def write_todos(state: State) -> State:
     vfs = VFS.from_dict(state["vfs"])
-    if filename in vfs.files:
-        vfs.edit_file(filename, content)
-        state["recent_files_changes"]["edited"].append(filename)
-    else:
-        vfs.write_file(filename, content)
-        state["recent_files_changes"]["created"].append(filename)
+    existing = vfs.read_file("intermediary_todos.txt", traced=True)
+
+    prompt = f"""
+Maintain an INTERNAL TODO list.
+
+Existing TODOs:
+{existing if existing else "(none)"}
+
+New instruction:
+{state["input"]}
+
+Rules:
+- Never delete existing tasks unless explicitly requested
+- Add new tasks if required
+- Bullet points only
+"""
+    todos = call_llm([{"role": "user", "content": prompt}])
+    vfs.write_file("intermediary_todos.txt", todos)
     state["vfs"] = vfs.to_dict()
-
-def read_file(state: State, filename: str):
-    return VFS.from_dict(state["vfs"]).read_file(filename)
-
-def ls_files(state: State):
-    return VFS.from_dict(state["vfs"]).ls()
-
-# ==============================
-# TOOLS
-# ==============================
-def write_todos_tool(state: State):
-    prompt = f"Break the following request into numbered TODO steps.\nRequest:\n{state['input']}"
-    todos = call_groq_with_memory(state, prompt)
-    write_file(state, "intermediary_todos.txt", todos)
-    state["messages"].append({"role": "assistant", "text": todos})
     return state
 
-def plan_todo_tool(state: State):
-    prev = read_file(state, "intermediary_todos.txt")
-    prompt = f"Create a phase-based plan from these TODOs:\n{prev}"
-    plan = call_groq_with_memory(state, prompt)
-    write_file(state, "full_output.txt", plan)
-    state["messages"].append({"role": "assistant", "text": plan})
-    return state
+# ======================================================
+# DELEGATION 
+# ======================================================
+@traceable(name="delegate_task_tool", run_type="chain")
+def delegate(state: State) -> State:
+    """
+    ALWAYS performs web search first to guarantee up-to-date answers.
+    LLM is used only to summarize web results.
+    """
 
-# ==============================
-# MILESTONE 3 – INTENT ROUTER
-# ==============================
-def classify_intent(user_input: str) -> str:
-    text = user_input.lower()
-    # Action-based tasks (internal LLM)
-    if any(word in text for word in ["invite", "schedule", "todo", "remind", "draft", "plan"]):
-        return "action"
-    # Research-based tasks
-    if any(word in text for word in ["research", "find", "analyze", "study"]):
-        return "research"
-    return "general"
+    delegated_text = ""
 
-def decide_delegation_tool(state: State):
-    intent = classify_intent(state["input"])
-
-    if intent == "action":
-        state["route"] = "internal"
-    elif intent == "research":
-        # fallback to existing rules
-        prompt = f"Decide task handling.\nTask:\n{state['input']}\nRules:\n- Needs internet/latest info → WEB\n- Needs summary → SUMMARY\n- Else → INTERNAL\nReturn only one word."
-        decision = call_groq_with_memory(state, prompt).upper()
-        if "WEB" in decision:
-            state["route"] = "web"
-        elif "SUMMARY" in decision:
-            state["route"] = "summary"
-        else:
-            state["route"] = "internal"
-    else:
-        state["route"] = "internal"
-    return state
-
-# ==============================
-# WEB SEARCH SUB-AGENT
-# ==============================
-from tavily import TavilyClient
-tavily = TavilyClient(api_key=TAVILY_API_KEY)
-
-def web_search_tool(state: State):
-    result = tavily.search(state["input"], max_results=5)
-    formatted = ""
-    for r in result["results"]:
-        formatted += f"- {r['title']}\n{r['content']}\nSource: {r['url']}\n\n"
-    write_file(state, "web_results.txt", formatted)
-    state["messages"].append({"role": "assistant", "text": formatted})
-    return state
-
-# ==============================
-# SUMMARY SUB-AGENT
-# ==============================
-def summarize_tool(state: State):
-    text = read_file(state, "web_results.txt")
-    prompt = f"Summarize the following information:\n{text}"
-    summary = call_groq_with_memory(state, prompt)
-    write_file(state, "summary.txt", summary)
-    state["messages"].append({"role": "assistant", "text": summary})
-    return state
-
-# ==============================
-# INTERNAL LLM TOOL
-# ==============================
-def internal_llm_tool(state: State):
-    response = call_groq_with_memory(state)
-    write_file(state, "internal_response.txt", response)
-    state["messages"].append({"role": "assistant", "text": response})
-    return state
-
-# ==============================
-# LANGGRAPH SETUP
-# ==============================
-graph = StateGraph(State)
-
-graph.add_node("todos", write_todos_tool)
-graph.add_node("plan", plan_todo_tool)
-graph.add_node("decide", decide_delegation_tool)
-graph.add_node("web", web_search_tool)
-graph.add_node("summary", summarize_tool)
-graph.add_node("internal", internal_llm_tool)
-
-graph.add_edge("__start__", "todos")
-graph.add_edge("todos", "plan")
-graph.add_edge("plan", "decide")
-
-graph.add_conditional_edges(
-    "decide",
-    lambda s: s["route"],
-    {
-        "web": "web",
-        "summary": "summary",
-        "internal": "internal",
+    # 🔹 Always use Tavily for real-world queries
+    web_state = {
+        "query": state["input"],
+        "result": ""
     }
-)
 
-graph.add_edge("web", "__end__")
-graph.add_edge("summary", "__end__")
-graph.add_edge("internal", "__end__")
+    web_state = web_agent_app.invoke(
+        web_state,
+        config={"configurable": {"thread_id": "web_search"}}
+    )
+
+    delegated_text = web_state.get("result", "")
+
+    # 🔹 Summarize web results if available
+    if delegated_text and delegated_text != "[No results found]":
+        summary_state = {
+            "text": delegated_text,
+            "summary": ""
+        }
+
+        summary_state = summarizer_app.invoke(
+            summary_state,
+            config={"configurable": {"thread_id": "summarizer"}}
+        )
+
+        state["delegated_result"] = summary_state.get("summary", "")
+    else:
+        state["delegated_result"] = ""
+
+    return state
+
+# ======================================================
+# ASSISTANT RESPONSE 
+# ======================================================
+@traceable(name="assistant_response_tool", run_type="chain")
+def assistant_response(state: State) -> State:
+    messages = state["messages"] + [
+        {"role": "system", "content": "You are Agent. Respond clearly and naturally."},
+        {
+            "role": "user",
+            "content": f"""
+User input:
+{state["input"]}
+
+Delegated result (if any):
+{state["delegated_result"]}
+"""
+        }
+    ]
+
+    reply = call_llm(messages)
+    state["messages"].append({"role": "assistant", "content": reply})
+    return state
+
+# ======================================================
+# GRAPH
+# ======================================================
+graph = StateGraph(State)
+graph.add_node("write_todos", write_todos)
+graph.add_node("delegate_task", delegate)
+graph.add_node("assistant", assistant_response)
+
+graph.add_edge("__start__", "write_todos")
+graph.add_edge("write_todos", "delegate_task")
+graph.add_edge("delegate_task", "assistant")
+graph.add_edge("assistant", "__end__")
 
 app = graph.compile(checkpointer=MemorySaver())
 
-# ==============================
-# RUNNER
-# ==============================
-def run_agent(state: State, user_input: str):
+# ======================================================
+# TURN FUNCTION 
+# ======================================================
+@traceable(name="LangGraph", run_type="chain")
+def run_turn(state: State, user_input: str) -> State:
     state["input"] = user_input
-    state["messages"].append({"role": "user", "text": user_input})
-    updated = app.invoke(
-        state,
-        config={"configurable": {"thread_id": state["trace_id"]}}
-    )
-    return updated
+    state["messages"].append({"role": "user", "content": user_input})
 
-# ==============================
+    new_state = app.invoke(
+        state,
+        config={"configurable": {"thread_id": "cognibot"}}
+    )
+
+    return new_state
+
+# ======================================================
 # CLI
-# ==============================
-if __name__ == "__main__":
-    print("=== Autonomous Cognitive Agent (Milestone 3) ===")
+# ======================================================
+def main():
+    print("=== Autonomous Cognitive Agent ===")
+    print("Type 'exit' to quit\n")
+
     state: State = {
         "input": "",
         "messages": [],
         "vfs": {},
-        "recent_files_changes": {"created": [], "edited": []},
-        "trace_id": f"run-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
-        "route": "",
+        "delegated_result": ""
     }
 
     while True:
-        cmd = input("\nEnter request: ").strip()
-        if cmd.lower() == "exit":
-            break
-        if cmd.startswith("show "):
-            fname = cmd.split(" ", 1)[1]
-            print(read_file(state, fname))
+        user = input("You: ").strip()
+        if not user:
             continue
-        state = run_agent(state, cmd)
-        print("\n--- Assistant Output ---")
-        for msg in reversed(state["messages"]):
-            if msg["role"] == "assistant":
-                print(msg["text"])
-                break
-        print("\nFiles in VFS:")
-        for f in ls_files(state):
-            print("-", f)
+        if user.lower() == "exit":
+            break
+
+        state = run_turn(state, user)
+        print("\nAssistant:", state["messages"][-1]["content"], "\n")
+if __name__ == "__main__":
+    main()
