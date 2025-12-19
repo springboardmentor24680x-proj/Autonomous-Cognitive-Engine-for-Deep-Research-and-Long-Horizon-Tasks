@@ -1,0 +1,47 @@
+[
+  {
+    "title": "Review meeting",
+    "date": "2024-12-20",
+    "time": "3:00 PM",
+    "participants": [
+      "John",
+      "Alice"
+    ]
+  },
+  {
+    "title": "Quick call",
+    "date": "2024-12-20",
+    "time": "2:00 PM",
+    "participants": []
+  },
+  {
+    "title": "Client Check-in",
+    "date": "2024-12-20",
+    "time": "10:00 AM"
+  },
+  {
+    "title": "Mouse Shopping",
+    "date": "2025-12-15",
+    "time": "11:00 AM"
+  },
+  {
+    "title": "Resume Review",
+    "date": "2025-12-20",
+    "time": "2:30 PM"
+  },
+  {
+    "title": "Lunch with Rohit",
+    "date": "2025-12-15",
+    "time": "12:00 PM"
+  },
+  {
+    "title": "lunch with ravi",
+    "date": "2025-12-15",
+    "time": "3:00 PM"
+  },
+  {
+    "title": "Mouse Shopping",
+    "date": "2025-12-16",
+    "time": "11:00 AM"
+  }
+]
