@@ -4,7 +4,7 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 # Import ONLY the setup_agent function
 from research_agent import setup_agent   # <-- rename your file to agent.py if needed
 from src.memory.vfs import ls
-from calendar_service import list_events
+from tools.calendar_tools import list_events
 
 # --------------------------------------------------
 # Streamlit Page Config
