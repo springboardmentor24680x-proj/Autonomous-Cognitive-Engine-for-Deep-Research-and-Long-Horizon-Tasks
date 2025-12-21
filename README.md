@@ -1,7 +1,8 @@
-A Springboard-Infosys InternShip Project
+A Springboard - Infosys Internship Project
 
  
  Overview
+ 
  The Autonomous Cognitive Engine is an AI system designed to perform deep research and long-horizon tasks autonomously.  
 It can:  
 - Break complex tasks into smaller subtasks 
@@ -10,7 +11,7 @@ It can:
 - Produce structured outputs with minimal human input
 
 
-Key Features
+Key Features:
 - Task Planning & TODO Management  
 - Persistent Memory using VFS  
 - Sub-Agent Delegation to:
@@ -22,9 +23,12 @@ Key Features
 - Chat Interface via CLI or Streamlit UI
 
   
-Architecture
+Architecture:
 User → Supervisor Agent → Memory (VFS) → Sub-Agents → Tools → Output
-Tech Stack
+
+
+Tech Stack:
+
 - Python  
 - LangChain  
 - LangGraph  
@@ -32,7 +36,7 @@ Tech Stack
 - OpenRouter API / ChatOpenAI
 
   
-Project Structure
+Project Structure:
 Autonomous-Cognitive-Engine/
 │
 ├── main.py # Supervisor agent & StateGraph
@@ -45,14 +49,14 @@ Autonomous-Cognitive-Engine/
 └── .gitignore
 
 
-Current Status
+Current Status:
 - Sub-agent delegation working  
 - Persistent memory implemented  
 - TODO management working  
 - CLI and Streamlit UI functional
 
    
-Future Work
+Future Work:
 - Add Planner & Verification Agents  
 - Integrate Vector Memory for semantic retrieval  
 - Enhance task automation and observability 
