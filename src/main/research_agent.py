@@ -33,7 +33,7 @@ def setup_agent():
     # Keeping your specific model name as requested
     groq_client = ChatGroq(
         api_key=os.getenv("GROQ_API_KEY"),
-        model="moonshotai/kimi-k2-instruct-0905"
+        model="meta-llama/llama-4-scout-17b-16e-instruct"
     )
 
     current_date = datetime.date.today().strftime("%Y-%m-%d")
@@ -89,8 +89,6 @@ def setup_agent():
 
     • DO NOT call write_file or edit_file.
     If the user asks a question about their plans, people, or data that you don't recall, ALWAYS use the ls and read_file tools to check your VFS files before answering 'I don't know'.
-    - When calling 'write_todos', every single item in the list MUST have both a 'content' key and a 'status' key.
-    - Valid status values are: 'pending', 'completed'.
 """
 
     # Build research sub-agent
