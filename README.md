@@ -4,7 +4,7 @@ A Springboard-Infosys InternShip Project
  Overview
  The Autonomous Cognitive Engine is an AI system designed to perform deep research and long-horizon tasks autonomously.  
 It can:  
-- Break complex tasks into smaller subtasks  
+- Break complex tasks into smaller subtasks 
 - Delegate work to specialized sub-agents  
 - Store results and instructions in a Virtual File System (VFS)  
 - Produce structured outputs with minimal human input
