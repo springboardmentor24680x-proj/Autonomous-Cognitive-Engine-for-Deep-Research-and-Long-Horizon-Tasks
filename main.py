@@ -42,6 +42,15 @@ class AgentState(TypedDict):
 vfs = VirtualFileSystem()
 
 # ------------------------------------------
+# SUB-AGENT IMPORTS 
+# ------------------------------------------
+from agents.summarizer_agent import summarize
+from agents.research_agent import research
+from agents.code_agent import write_code
+from agents.search_agent import search
+
+
+# ------------------------------------------
 # SYSTEM PROMPT
 # ------------------------------------------
 SYSTEM_PROMPT = """
@@ -112,6 +121,34 @@ llm = llm.bind_tools(TOOLS)
 # ------------------------------------------
 def agent_node(state: AgentState) -> AgentState:
     messages = state["messages"]
+    last_user_msg = messages[-1].content.lower()
+
+    # --------------------------------
+    # SUPERVISOR → SUB-AGENT ROUTING
+    # --------------------------------
+    if "summarize" in last_user_msg:
+        result = summarize(last_user_msg)
+        messages.append(AIMessage(content=result))
+        return state
+
+    if "research" in last_user_msg or "explain" in last_user_msg:
+        result = research(last_user_msg)
+        messages.append(AIMessage(content=result))
+        return state
+
+    if "code" in last_user_msg or "program" in last_user_msg:
+        result = write_code(last_user_msg)
+        messages.append(AIMessage(content=result))
+        return state
+
+    if "search" in last_user_msg or "find" in last_user_msg:
+        result = search(last_user_msg)
+        messages.append(AIMessage(content=result))
+        return state
+
+    # --------------------------------
+    # DEFAULT: NORMAL CHAT + TOOLS
+    # --------------------------------
     response = llm.invoke(messages)
     messages.append(response)
 
@@ -129,9 +166,9 @@ def agent_node(state: AgentState) -> AgentState:
                     )
                 )
 
-    # ------------------------------
-    # Save all chat messages to VFS as chat_history.json
-    # ------------------------------
+    # --------------------------------
+    # SAVE CHAT HISTORY
+    # --------------------------------
     chat_list = [
         {"role": "user", "content": m.content} if isinstance(m, HumanMessage)
         else {"role": "ai", "content": m.content}
@@ -140,6 +177,7 @@ def agent_node(state: AgentState) -> AgentState:
     vfs.write_file("chat_history.json", json.dumps(chat_list, indent=2))
 
     return state
+
 
 # ------------------------------------------
 # GRAPH

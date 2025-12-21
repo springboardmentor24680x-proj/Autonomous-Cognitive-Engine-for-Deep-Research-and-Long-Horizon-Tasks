@@ -1,25 +1,25 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
-# IMPORT FROM YOUR MAIN FILE
-from main import app, AgentState, SYSTEM_PROMPT, vfs
+# Import ONLY runtime objects from main
+from main import app, SYSTEM_PROMPT, vfs
 
 # ------------------------------------------
-# STREAMLIT PAGE CONFIG
+# PAGE CONFIG
 # ------------------------------------------
 st.set_page_config(
-    page_title="LangGraph Chatbot",
+    page_title="LangGraph AI Chatbot",
     page_icon="🤖",
     layout="centered"
 )
 
-st.title("🤖 LangGraph AI Chatbot")
+st.title("🤖 LangGraph Multi-Agent Chatbot")
 
 # ------------------------------------------
 # SESSION STATE INIT
 # ------------------------------------------
 if "state" not in st.session_state:
-    st.session_state.state: AgentState = {
+    st.session_state.state = {
         "messages": [SystemMessage(content=SYSTEM_PROMPT)],
         "todos": [],
         "vfs": {}
@@ -31,6 +31,7 @@ if "state" not in st.session_state:
 for msg in st.session_state.state["messages"]:
     if isinstance(msg, HumanMessage):
         st.chat_message("user").write(msg.content)
+
     elif isinstance(msg, AIMessage):
         st.chat_message("assistant").write(msg.content)
 
@@ -43,30 +44,34 @@ if user_input:
     # Show user message
     st.chat_message("user").write(user_input)
 
-    # Add user message to state
+    # Add user message
     st.session_state.state["messages"].append(
         HumanMessage(content=user_input)
     )
 
-    # Invoke LangGraph app
+    # Invoke LangGraph Supervisor
     st.session_state.state = app.invoke(st.session_state.state)
 
-    # Get last AI message
+    # Display last AI message
     last_msg = st.session_state.state["messages"][-1]
-
     if isinstance(last_msg, AIMessage):
         st.chat_message("assistant").write(last_msg.content)
 
 # ------------------------------------------
-# SIDEBAR: VFS FILE VIEWER
+# SIDEBAR — VIRTUAL FILE SYSTEM
 # ------------------------------------------
 st.sidebar.title("📁 Virtual File System")
 
 files = vfs.ls()
 if files:
-    selected = st.sidebar.selectbox("Files", files)
+    selected_file = st.sidebar.selectbox("Files", files)
+
     if st.sidebar.button("Read File"):
-        content = vfs.read_file(selected)
-        st.sidebar.text_area("File Content", content, height=300)
+        content = vfs.read_file(selected_file)
+        st.sidebar.text_area(
+            "File Content",
+            content,
+            height=300
+        )
 else:
-    st.sidebar.write("No files yet.")
+    st.sidebar.info("No files created yet.")
