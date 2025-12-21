@@ -13,7 +13,7 @@ from langchain_core.tools import tool
 from src.memory.vfs import write_file, read_file, ls, edit_file, clear_vfs
 
 # Calendar tools
-from calendar_service import add_event, list_events, delete_event
+from src.tools.calendar_tools import add_event, list_events, delete_event
 
 # Research sub-agent
 from subagents.research_subagent import build_research_agent
@@ -21,6 +21,8 @@ from subagents.research_subagent import build_research_agent
 #Summarization sub-agent
 from subagents.summarization_subagent import build_summarization_agent
 
+VFS = {}
+EVENTS = []
 def setup_agent():
     # Clear the virtual file system on startup
     clear_vfs()
@@ -87,6 +89,8 @@ def setup_agent():
 
     • DO NOT call write_file or edit_file.
     If the user asks a question about their plans, people, or data that you don't recall, ALWAYS use the ls and read_file tools to check your VFS files before answering 'I don't know'.
+    - When calling 'write_todos', every single item in the list MUST have both a 'content' key and a 'status' key.
+    - Valid status values are: 'pending', 'completed'.
 """
 
     # Build research sub-agent

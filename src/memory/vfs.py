@@ -6,7 +6,7 @@ VFS = {}
 def clear_vfs():
     """Clears all files from the VFS memory."""
     global VFS
-    VFS = {}
+    VFS.clear()
 
 def write_file(filename: str, content: str) -> str:
     """

@@ -1,77 +1,84 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-
-# Import ONLY the setup_agent function
-from research_agent import setup_agent   # <-- rename your file to agent.py if needed
-from src.memory.vfs import ls
-from tools.calendar_tools import list_events
-
-# --------------------------------------------------
+from src.memory.vfs import VFS
+from src.tools.calendar_tools import EVENTS
+from src.main import research_agent as ra
 # Streamlit Page Config
 # --------------------------------------------------
-st.set_page_config(
-    page_title="Deep Agent UI",
-    layout="wide"
-)
+st.set_page_config(page_title="Deep Agent UI", layout="wide")
 
 # --------------------------------------------------
 # Initialize Agent (Cached)
 # --------------------------------------------------
 @st.cache_resource
 def load_agent():
-    return setup_agent()
+    return ra.setup_agent()
 
 agent = load_agent()
 
+# --------------------------------------------------
+# Sidebar: Live Agent Storage (VFS & Calendar)
+# --------------------------------------------------
+with st.sidebar:
+    st.title("Agent State")
+    
+    # --- VFS Display ---
+    st.header("Virtual Files")
+    if not VFS:
+        st.info("No files in memory.")
+    else:
+        for filename, content in VFS.items():
+            with st.expander(f"{filename}"):
+                st.code(content, language="text")
+
+    st.divider()
+
+    # --- Calendar Display ---
+    st.header("Scheduled Events")
+    if not EVENTS:
+        st.info("No events found.")
+    else:
+        for i, event in enumerate(EVENTS):
+            st.markdown(f"**{i}. {event['title']}**")
+            st.caption(f"{event['date']} | {event['time']}")
+            st.divider()
 
 # --------------------------------------------------
-# Session State: Chat History
+# Main Chat UI
 # --------------------------------------------------
+st.title("Deep Agent: Todo & Calendar")
+
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        SystemMessage(
-            content="Hello! I can manage your todos, files, and calendar. What would you like to do?"
-        )
+        SystemMessage(content="Hello! I'm ready to manage your files and schedule.")
     ]
 
-
-# --------------------------------------------------
-# Render Chat Messages
-# --------------------------------------------------
+# Display Chat History
 for msg in st.session_state.messages:
-    if isinstance(msg, HumanMessage):
-        with st.chat_message("user"):
-            st.markdown(msg.content)
+    role = "user" if isinstance(msg, HumanMessage) else "assistant"
+    with st.chat_message(role):
+        st.markdown(msg.content)
 
-    elif isinstance(msg, AIMessage) or isinstance(msg, SystemMessage):
-        with st.chat_message("assistant"):
-            st.markdown(msg.content)
-
-
-# --------------------------------------------------
-# Chat Input
-# --------------------------------------------------
-user_input = st.chat_input(
-    "Example: 'Create a todo to buy milk' or 'Schedule meeting tomorrow at 5 PM'"
-)
-
-if user_input:
-    # Show user message
-    st.chat_message("user").markdown(user_input)
+# User Input
+if user_input := st.chat_input("What should I do?"):
+    # Add user message to UI
     st.session_state.messages.append(HumanMessage(content=user_input))
+    with st.chat_message("user"):
+        st.markdown(user_input)
 
-    with st.spinner("Agent is thinking..."):
+    with st.spinner("Processing..."):
         try:
-            result = agent.invoke({
-                "messages": [{"role": "user", "content": user_input}]
-            })
-
-            final_response = result["messages"][-1].content
-
-            st.chat_message("assistant").markdown(final_response)
-            st.session_state.messages.append(AIMessage(content=final_response))
-
+            # Run the agent
+            result = agent.invoke({"messages": [{"role": "user", "content": user_input}]})
+            ans = result["messages"][-1].content
+            
+            # Save and display AI response
+            st.session_state.messages.append(AIMessage(content=ans))
+            with st.chat_message("assistant"):
+                st.markdown(ans)
+            
+            # Force refresh to show new files/events in the sidebar immediately
+            st.rerun()
+            
         except Exception as e:
-            error_text = f"Error: {e}"
-            st.error(error_text)
-            st.session_state.messages.append(AIMessage(content=error_text))
+            st.error(f"Error: {e}")
