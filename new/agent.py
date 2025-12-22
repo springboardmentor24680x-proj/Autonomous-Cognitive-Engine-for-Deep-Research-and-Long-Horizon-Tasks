@@ -75,6 +75,53 @@
 
 #     state.append({"role": "assistant", "content": reply})
 #     return state
+# import os
+# from groq import Groq
+# from langsmith import traceable
+# from vfs import vfs
+# from todo import todo_manager
+
+# client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+# @traceable(name="groq_reasoning")
+# def groq_reason(prompt: str) -> str:
+#     res = client.chat.completions.create(
+#         model="llama-3.1-8b-instant",
+#         messages=[
+#             {"role": "system", "content": "You are a task planning autonomous agent."},
+#             {"role": "user", "content": prompt}
+#         ],
+#         temperature=0.3
+#     )
+#     return res.choices[0].message.content.strip()
+
+
+# @traceable(name="agent_step")
+# def agent_step(user_input, state):
+#     ui = user_input.lower()
+
+#     if ui.startswith("ls"):
+#         reply = "\n".join(vfs.ls()) or "No files"
+
+#     elif ui.startswith("read"):
+#         _, name = ui.split(maxsplit=1)
+#         reply = vfs.read(name)
+
+#     elif ui.startswith("write"):
+#         _, name, content = ui.split(maxsplit=2)
+#         reply = vfs.write(name, content)
+
+#     elif "todo" in ui or "plan" in ui:
+#         plan = groq_reason(user_input)
+#         tasks = [{"task": t, "done": False} for t in plan.split("\n") if t]
+#         todo_manager.add(tasks)
+#         reply = "Tasks added"
+
+#     else:
+#         reply = groq_reason(user_input)
+
+#     state.append({"role": "assistant", "content": reply})
+#     return state
 import os
 from groq import Groq
 from langsmith import traceable
