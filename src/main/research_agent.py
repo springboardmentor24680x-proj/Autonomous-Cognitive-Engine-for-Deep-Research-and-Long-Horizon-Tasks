@@ -8,7 +8,8 @@ load_dotenv()
 from langchain_groq import ChatGroq
 from deepagents import create_deep_agent
 from langchain_core.tools import tool
-
+from langchain_core.runnables import RunnableConfig
+from langchain_core.messages import HumanMessage
 # VFS tools
 from src.memory.vfs import write_file, read_file, ls, edit_file, clear_vfs
 
@@ -21,8 +22,6 @@ from subagents.research_subagent import build_research_agent
 #Summarization sub-agent
 from subagents.summarization_subagent import build_summarization_agent
 
-VFS = {}
-EVENTS = []
 def setup_agent():
     # Clear the virtual file system on startup
     clear_vfs()
@@ -33,84 +32,93 @@ def setup_agent():
     # Keeping your specific model name as requested
     groq_client = ChatGroq(
         api_key=os.getenv("GROQ_API_KEY"),
-        model="meta-llama/llama-4-scout-17b-16e-instruct"
+        model="moonshotai/kimi-k2-instruct-0905"
     )
 
     current_date = datetime.date.today().strftime("%Y-%m-%d")
 
     # SYSTEM PROMPT 
     system_prompt = f"""
+    You are a precise, rule-following AI Assistant specializing in organization, file management, and scheduling.
 
-    You are a versatile and intelligent AI Assistant specializing in organization, file management, and scheduling.
-
-    Your goal is to execute the appropriate tool action precisely.
+    Your job is to execute user requests by choosing the correct tool and using it EXACTLY as instructed.
 
     TODAY'S DATE: {current_date}
 
-    AVAILABLE TOOLS:
-
+    ────────────────────────────────
+    AVAILABLE TOOLS (ONLY THESE):
     - File Management: write_file, read_file, edit_file, ls
-
     - Scheduling: add_event, list_events, delete_event
-    ---
+    ────────────────────────────────
+
+    CRITICAL EXECUTION RULES (MANDATORY):
+    - You MUST call AT MOST ONE tool in a single response.
+    - You MUST NEVER call multiple tools in the same message.
+    - If a user request requires multiple actions, you MUST:
+    1. Perform ONLY the FIRST logical action.
+    2. Wait for the next turn to perform the next action.
+    - If no tool is required, respond in plain text.
+    - You MUST NEVER invent tools.
+    - You MUST ONLY use the tools explicitly listed above.
+    - File system access is ONLY via write_file, read_file, edit_file, ls.
+
+    ────────────────────────────────
     TODO MANAGEMENT RULES (STRICT):
 
-    ---
-    1. CREATE NEW TODO FILE (Only for the very first todo list in a category):
+    1. CREATE NEW TODO FILE (first todo in a category ONLY):
+    - If the user asks to CREATE or MAKE a todo list AND the file does not exist:
+    • You MUST call write_file.
+    • You MUST use the correct filename (e.g., todos_personal.txt, todos_work.txt).
+    • The file content MUST be plain text.
+    • Final response MUST be EXACTLY:
+        "Todo saved successfully to <filename>"
 
-    - If the user asks to CREATE or MAKE a todo list, and you confirm the file is new:
-
-    • You MUST call write_file to create the file.
-
-    • You MUST use the correct category filename (todos_personal.txt, todos_work.txt, etc.).
-
-    • Final response MUST be ONLY: "Todo saved successfully to <filename>"
-
-    2. ADD / EDIT / UPDATE / DELETE TODOS (For existing files):
-
-    - If the user asks to ADD, MODIFY, UPDATE, or DELETE a todo, you are manipulating an existing file.
-
-    • **SEQUENCE:** You MUST use the sequence: **read_file -> LLM Reasoning/Update -> edit_file**
-
-    • First, call read_file("<category file>") to get current contents.
-
-    • Then, update the entire content string.
-
-    • Finally, call edit_file("<category file>", "new, updated content").
-
-    - Final response MUST be ONLY: "Todo updated successfully"
-
+    2. ADD / EDIT / UPDATE / DELETE TODOS (existing file):
+    - You MUST follow this EXACT sequence:
+    1. Call read_file("<category file>")
+    2. Update the FULL content internally
+    3. Call edit_file("<category file>", "<updated content>")
+    - Final response MUST be EXACTLY:
+    "Todo updated successfully"
 
     3. READ / SHOW TODOS:
-
     - If the user asks to SHOW, READ, VIEW, or LIST todos:
+    • Use read_file (or multiple reads if needed)
+    • DO NOT call write_file or edit_file
 
-    • Use the rules for reading (read_file for specific, or multiple reads for general).
+    ────────────────────────────────
+    MEMORY & CONSISTENCY RULE:
+    - If the user asks about plans, events, or files you are unsure about,
+    you MUST first use ls or read_file before answering.
+    - NEVER guess or hallucinate stored data.
+    """
 
-    • DO NOT call write_file or edit_file.
-    If the user asks a question about their plans, people, or data that you don't recall, ALWAYS use the ls and read_file tools to check your VFS files before answering 'I don't know'.
-"""
+    tool_free_client = ChatGroq(
+        api_key=os.getenv("GROQ_API_KEY"),
+        model="moonshotai/kimi-k2-instruct-0905",
+        temperature=0.3
+    )
 
     # Build research sub-agent
-    research_agent = build_research_agent(groq_client)
+    research_agent = build_research_agent(tool_free_client)
     #Build summarize sub_agent
-    summarization_agent = build_summarization_agent(groq_client)
+    summarization_agent = build_summarization_agent(tool_free_client)
 
     # TASK DELEGATION TOOL
     @tool
     def research_task(description: str, subagent_type: str) -> str:
         """
         Delegate a task to a specialized sub-agent.
-        Allowed subagent_type: 'research' (for lookups and reports).
+        subagent_type: 'research' or 'summarization'
         """
         print(f"\n--- DEBUG: Main Agent is calling subagent_type: '{subagent_type}' ---")
         print(f"--- DEBUG: Description sent: '{description}' ---")
         normalized = subagent_type.lower()
-    
+
         if "research" in normalized:
             # Invoking the research sub-agent
             result = research_agent.invoke({"messages": [{"role": "user", "content": description}]},config={"run_name": "ResearchSubAgent"})
-            
+
             research_output = result["messages"][-1].content
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -129,6 +137,7 @@ def setup_agent():
                 write_file("research_notes.txt", entry)
 
             return "Research completed and saved to research_notes.txt"
+        
     #Summarization Sub-Agent
     @tool
     def summarization_task(description: str) -> str:
@@ -136,13 +145,10 @@ def setup_agent():
         Delegate summarization to the summarization sub-agent.
         """
         result = summarization_agent.invoke(
-            {"messages": [{"role": "user", "content": description}]},
-            config={
-                "run_name": "SummarizationSubAgent",
-                "tags": ["subagent", "summarization"]
-            }
+            {"messages": [{"role": "user", "content": description}]},config={"run_name": "SummarizationSubAgent"}
         )
         return result["messages"][-1].content
+
 
 
     # Create main agent
@@ -182,10 +188,12 @@ def main():
 
         try:
             # Execute agent logic
-            result = agent.invoke({
-                "messages": [{"role": "user", "content": user_input}]
-            })
-
+            # result = agent.invoke({
+            #     "messages": [{"role": "user", "content": user_input}]
+            # })
+            result = agent.invoke([
+            HumanMessage(content=user_input)
+            ])
             print("\nAgent:\n")
             print(result["messages"][-1].content)
         except Exception as e:

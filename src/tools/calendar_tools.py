@@ -5,6 +5,10 @@ EVENTS = []
 
 def add_event(title: str, date: str, time: str) -> str:
     """Adds a new calendar event. Inputs: title (str), date (YYYY-MM-DD), time (str)."""
+    for event in EVENTS:
+        if event["title"] == title and event["date"] == date and event["time"] == time:
+            return "Event already exists. Skipping duplicate."
+        
     EVENTS.append({
         "title": title,
         "date": date,

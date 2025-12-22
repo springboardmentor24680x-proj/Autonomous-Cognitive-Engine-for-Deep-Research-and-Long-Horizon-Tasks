@@ -1,18 +1,18 @@
-from langchain.agents import create_agent
-from langchain.chat_models import init_chat_model
+from langchain_core.messages import SystemMessage, HumanMessage
 
 SUMMARY_PROMPT = """
 You are a summarization sub-agent.
 
-Your ONLY task:
+Rules:
 - Summarize the provided content clearly and concisely
 - Do NOT add new information
 - Do NOT perform research
+- Preserve key facts and structure
 """
 
 def build_summarization_agent(groq_client):
-    return create_agent(
-        model=groq_client,
-        tools=[],
-        system_prompt=SUMMARY_PROMPT
+    return groq_client.bind(
+        messages=[
+            SystemMessage(content=SUMMARY_PROMPT)
+        ]
     )
