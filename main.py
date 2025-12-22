@@ -1,76 +1,82 @@
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
+from vfs import VFS
 
-# -------------------------------------------------
-# Load API Key from .env
-# -------------------------------------------------
+# ----------------------------
+# Load API Key
+# ----------------------------
 load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
 
-if not api_key:
-    print("❌ API Key not found! Check your .env file.")
-    exit()
+client = OpenAI(
+    api_key=os.getenv("GROK_API_KEY"),
+    base_url="https://api.x.ai/v1"   # 🔥 Grok endpoint
+)
 
-client = OpenAI(api_key=api_key)
+# ----------------------------
+# Initialize VFS
+# ----------------------------
+vfs = VFS()
 
-# -------------------------------------------------
-# To-Do List System
-# -------------------------------------------------
-todo_list = []
+# ----------------------------
+# AI Reply (Grok)
+# ----------------------------
+def ai_reply(message):
+    response = client.responses.create(
+        model="grok-2-latest",
+        input=message
+    )
+    return response.output_text
 
-def add_task(task):
-    todo_list.append(task)
-    return f"Task added: {task}"
+# ----------------------------
+# Agent Logic
+# ----------------------------
+def agent_handle(user_input):
+    text = user_input.lower()
 
-def view_tasks():
-    if not todo_list:
-        return "No tasks added yet."
-    return "\n".join(f"- {t}" for t in todo_list)
+    # ----- Write file -----
+    if text.startswith("write file"):
+        try:
+            _, _, rest = user_input.split(" ", 2)
+            filename, content = rest.split(" ", 1)
+            return vfs.write_file(filename, content)
+        except:
+            return "Usage: write file <filename> <content>"
 
-# -------------------------------------------------
-# AI Assistant Function
-# -------------------------------------------------
-def ask_ai(question):
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "user", "content": question}
-            ]
-        )
-        return response.choices[0].message["content"]
-    except Exception as e:
-        return f"Error: {str(e)}"
+    # ----- Read file -----
+    if text.startswith("read file"):
+        parts = user_input.split(" ")
+        if len(parts) < 3:
+            return "Usage: read file <filename>"
+        return vfs.read_file(parts[2])
 
-# -------------------------------------------------
-# Menu System
-# -------------------------------------------------
+    # ----- List files -----
+    if text == "list files":
+        return vfs.list_files()
+
+    # ----- Default: AI Chat -----
+    return ai_reply(user_input)
+
+# ----------------------------
+# Main Loop
+# ----------------------------
 def main():
-    print("\n--- AI + To-Do List Assistant ---")
+    print("\n✨ VFS Chat Agent (Grok) Started!")
     print("Commands:")
-    print(" add <task>      → Add new task")
-    print(" view            → View tasks")
-    print(" ask <question>  → Ask AI anything")
-    print(" exit            → Quit")
+    print("  write file <filename> <content>")
+    print("  read file <filename>")
+    print("  list files")
+    print("Type 'exit' to quit.\n")
 
     while True:
-        user_input = input("\nWhat do you want to do? ")
+        user = input("You: ")
 
-        if user_input.startswith("add "):
-            print(add_task(user_input[4:]))
-
-        elif user_input == "view":
-            print(view_tasks())
-
-        elif user_input.startswith("ask "):
-            print("\nAI:", ask_ai(user_input[4:]))
-
-        elif user_input == "exit":
-            print("Goodbye!")
+        if user.lower() == "exit":
+            print("Agent: Goodbye! 👋")
             break
 
-        else:
-            print("Invalid command. Try again.")
+        reply = agent_handle(user)
+        print("Agent:", reply, "\n")
 
-main()
+if __name__ == "__main__":
+    main()
