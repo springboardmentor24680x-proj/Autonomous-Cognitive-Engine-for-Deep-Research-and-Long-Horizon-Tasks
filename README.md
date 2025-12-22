@@ -45,18 +45,17 @@ LangSmith (Tracing)
 Project Structure
 
 Autonomous-Cognitive-Engine-for-Deep-Research/
-│
-├── src/            # Core agent logic & tools
-├── subagents/      # Research & summarization agents
-├── storage/        # Persistent memory / VFS data
-├── docs/           # Documentation & notes
-├── venv/           # Virtual environment
-│
-├── README.md
+├── src/                 # Core agent logic & execution
+├── subagents/           # Research & summarization sub-agents
+├── storage/             # Persistent memory / vector store
+├── venv/                # Virtual environment (ignored)
+├── __pychche__/         # Python cache (ignored)
+├── .gitignore
 ├── LICENSE
-└── .gitignore
+├── README.md
+└── requirements.txt
 
-Current Status
+
 
     ✔ Research & summarization delegation
     ✔ Persistent memory
