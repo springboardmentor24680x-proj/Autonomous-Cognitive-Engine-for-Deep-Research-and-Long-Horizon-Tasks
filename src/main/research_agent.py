@@ -39,9 +39,8 @@ def setup_agent():
 
     # SYSTEM PROMPT 
     system_prompt = f"""
-    You are a precise, rule-following AI Assistant specializing in organization, file management, and scheduling.
-
-    Your job is to execute user requests by choosing the correct tool and using it EXACTLY as instructed.
+    You are a precise, rule-following Supervisor Agent in a multi-agent system.
+    Your primary objective is to manage high-level orchestration across research, summarization, and file-based memory.
 
     TODAY'S DATE: {current_date}
 
@@ -49,49 +48,40 @@ def setup_agent():
     AVAILABLE TOOLS (ONLY THESE):
     - File Management: write_file, read_file, edit_file, ls
     - Scheduling: add_event, list_events, delete_event
+    - Specialized Sub-Agents: research_task, summarization_task
     ────────────────────────────────
 
     CRITICAL EXECUTION RULES (MANDATORY):
-    - You MUST call AT MOST ONE tool in a single response.
-    - You MUST NEVER call multiple tools in the same message.
-    - If a user request requires multiple actions, you MUST:
-    1. Perform ONLY the FIRST logical action.
-    2. Wait for the next turn to perform the next action.
-    - If no tool is required, respond in plain text.
-    - You MUST NEVER invent tools.
-    - You MUST ONLY use the tools explicitly listed above.
-    - File system access is ONLY via write_file, read_file, edit_file, ls.
+    1. ONE TOOL PER TURN: You MUST call AT MOST ONE tool in a single response.
+    2. ATOMIC ACTIONS: If a request requires multiple actions (e.g., Research -> Summarize -> Save), you MUST perform them one by one, waiting for the user to prompt the next step.
+    3. SEARCH BEFORE GUESSING: If a user asks about previously stored data, you MUST use 'ls' or 'read_file' before responding. Never guess file contents.
+    4. CONTEXT MANAGEMENT: To avoid token limit errors (10k TPM), be concise in your responses. If a tool output is too large, summarize it immediately.
+    5. NO HALLUCINATIONS: Never invent tool names or assume a file exists without checking the VFS.
+
+    ────────────────────────────────
+    SUB-AGENT DELEGATION RULES:
+    - RESEARCH: Use 'research_task' for market lookups, competitor analysis, or gathering new data.
+    - SUMMARIZATION: Use 'summarization_task' for condensing long reports, file contents, or research notes.
+    - ALWAYS pass the 'config' parameter when calling sub-agents to ensure LangSmith tracing visibility.
 
     ────────────────────────────────
     TODO MANAGEMENT RULES (STRICT):
-
-    1. CREATE NEW TODO FILE (first todo in a category ONLY):
-    - If the user asks to CREATE or MAKE a todo list AND the file does not exist:
-    • You MUST call write_file.
-    • You MUST use the correct filename (e.g., todos_personal.txt, todos_work.txt).
-    • The file content MUST be plain text.
-    • Final response MUST be EXACTLY:
-        "Todo saved successfully to <filename>"
-
-    2. ADD / EDIT / UPDATE / DELETE TODOS (existing file):
-    - You MUST follow this EXACT sequence:
-    1. Call read_file("<category file>")
-    2. Update the FULL content internally
-    3. Call edit_file("<category file>", "<updated content>")
-    - Final response MUST be EXACTLY:
-    "Todo updated successfully"
-
-    3. READ / SHOW TODOS:
-    - If the user asks to SHOW, READ, VIEW, or LIST todos:
-    • Use read_file (or multiple reads if needed)
-    • DO NOT call write_file or edit_file
+    - CREATE: If creating a new list, use write_file (filename: todos_<category>.txt). 
+      Response: "Todo saved successfully to <filename>"
+    - UPDATE: read_file -> modify internally -> edit_file. 
+      Response: "Todo updated successfully"
+    - VIEW: Use read_file only. Do not call write/edit.
 
     ────────────────────────────────
-    MEMORY & CONSISTENCY RULE:
-    - If the user asks about plans, events, or files you are unsure about,
-    you MUST first use ls or read_file before answering.
-    - NEVER guess or hallucinate stored data.
+    CHAINING PROTOCOL (Example):
+    User: "Research coffee risks and save a summary."
+    Turn 1: Call research_task.
+    User: (System Result)
+    Turn 2: Call summarization_task.
+    User: (System Result)
+    Turn 3: Call write_file.
     """
+
 
     tool_free_client = ChatGroq(
         api_key=os.getenv("GROQ_API_KEY"),
@@ -106,49 +96,64 @@ def setup_agent():
 
     # TASK DELEGATION TOOL
     @tool
-    def research_task(description: str, subagent_type: str) -> str:
+    def research_task(description: str) -> str:
         """
-        Delegate a task to a specialized sub-agent.
-        subagent_type: 'research' or 'summarization'
+        Perform research using the research sub-agent and store results.
         """
-        print(f"\n--- DEBUG: Main Agent is calling subagent_type: '{subagent_type}' ---")
-        print(f"--- DEBUG: Description sent: '{description}' ---")
-        normalized = subagent_type.lower()
+        print("\n--- DEBUG: Research sub-agent invoked ---")
+        print(f"--- Topic: {description} ---")
 
-        if "research" in normalized:
-            # Invoking the research sub-agent
-            result = research_agent.invoke({"messages": [{"role": "user", "content": description}]},config={"run_name": "ResearchSubAgent"})
-
-            research_output = result["messages"][-1].content
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-
-            entry = (
-                f"\n---\n"
-                f"Research Topic: {description}\n"
-                f"Time: {timestamp}\n\n"
-                f"{research_output}\n"
+        result = research_agent.invoke(
+            {"messages": [{"role": "user", "content": description}]},
+            config=RunnableConfig(
+                run_name="ResearchSubAgent",
+                tags=["subagent", "research"]
             )
+        )
 
-            # Check if file exists and append/edit, otherwise create new
-            existing = read_file("research_notes.txt")
-            if isinstance(existing, str) and not existing.startswith("File"):
-                edit_file("research_notes.txt", existing + entry)
-            else:
-                write_file("research_notes.txt", entry)
+        research_output = result["messages"][-1].content
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
-            return "Research completed and saved to research_notes.txt"
+        entry = (
+            f"\n---\n"
+            f"Research Topic: {description}\n"
+            f"Time: {timestamp}\n\n"
+            f"{research_output}\n"
+        )
+
+        existing = read_file("research_notes.txt")
+        if isinstance(existing, str) and not existing.startswith("File"):
+            edit_file("research_notes.txt", existing + entry)
+        else:
+            write_file("research_notes.txt", entry)
+
+        return "Research completed and saved to research_notes.txt"
+
         
     #Summarization Sub-Agent
     @tool
-    def summarization_task(description: str) -> str:
+    def summarize_file(filename: str, config: RunnableConfig) -> str: # 1. Accept parent config
         """
-        Delegate summarization to the summarization sub-agent.
+        Summarize a file and store the summary.
         """
-        result = summarization_agent.invoke(
-            {"messages": [{"role": "user", "content": description}]},config={"run_name": "SummarizationSubAgent"}
-        )
-        return result["messages"][-1].content
+        content = read_file(filename)
+        if isinstance(content, str) and content.startswith("File"):
+            return f"Error: {content}"
 
+        # 2. Pass 'input' key to match your ChatPromptTemplate("{input}")
+        # 3. Pass the 'config' directly to link the trace to the Supervisor
+        result = summarization_agent.invoke(
+            {"input": content}, 
+            config=config 
+        )
+
+        # 4. Extract content (result is a BaseMessage from the Groq client)
+        summary = result.content 
+        
+        summary_file = filename.replace(".txt", "_summary.txt")
+        write_file(summary_file, summary)
+
+        return f"Summary saved successfully to {summary_file}"
 
 
     # Create main agent
@@ -162,7 +167,7 @@ def setup_agent():
             list_events,
             delete_event,
             research_task, 
-            summarization_task
+            summarize_file
         ],
         system_prompt=system_prompt,
         model=groq_client,

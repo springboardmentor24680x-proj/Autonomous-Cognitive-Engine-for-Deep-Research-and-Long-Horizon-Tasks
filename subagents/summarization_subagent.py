@@ -1,4 +1,5 @@
 from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.prompts import ChatPromptTemplate
 
 SUMMARY_PROMPT = """
 You are a summarization sub-agent.
@@ -11,8 +12,10 @@ Rules:
 """
 
 def build_summarization_agent(groq_client):
-    return groq_client.bind(
-        messages=[
-            SystemMessage(content=SUMMARY_PROMPT)
-        ]
-    )
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", SUMMARY_PROMPT),
+        ("human", "{input}") 
+    ])
+
+    # Ensure the model is bound to the chain correctly
+    return prompt | groq_client

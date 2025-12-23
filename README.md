@@ -2,11 +2,11 @@
 
 A Springboard – Infosys Internship Project
 
-Overview
+## Overview
 
 The Autonomous Cognitive Engine is an LLM-driven system designed to perform deep research and long-horizon tasks autonomously. It breaks complex queries into actions, delegates work to sub-agents, stores memory persistently, and produces structured outputs with minimal human input.
 
-key Features
+## key Features
 
     * Task Planning & TODO Enforcement
 
@@ -22,7 +22,7 @@ key Features
 
     * LangSmith Tracing for observability
 
-Architecture
+## Architecture
 
 User → Supervisor Agent
         ↓
@@ -32,7 +32,7 @@ User → Supervisor Agent
         ↓
    Tools → Final Output
 
-Tech Stack
+## Tech Stack
 
     * Python
 
@@ -42,18 +42,19 @@ Tech Stack
 
 LangSmith (Tracing)
 
-Project Structure
+## Project Structure
 
 Autonomous-Cognitive-Engine-for-Deep-Research/
 ├── src/                 # Core agent logic & execution
 ├── subagents/           # Research & summarization sub-agents
 ├── storage/             # Persistent memory / vector store
 ├── venv/                # Virtual environment (ignored)
-├── __pychche__/         # Python cache (ignored)
+├── __pycache__/         # Python cache (ignored)
 ├── .gitignore
 ├── LICENSE
 ├── README.md
 └── requirements.txt
+
 
 
 
@@ -62,7 +63,7 @@ Autonomous-Cognitive-Engine-for-Deep-Research/
     ✔ Strict TODO management
     ✔ Observable sub-agent execution
 
-Future Work
+## Future Work
 
     * LangGraph StateGraph
 
