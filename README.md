@@ -31,9 +31,7 @@ Perfect for:
 - **Agent Framework**: LangGraph (by LangChain)
 - **LLM**: Google Gemini 1.5 Flash (`gemini-1.5-flash-002`)
 - **Frontend**: HTML + Tailwind CSS + Vanilla JavaScript
-- **State Management**: In-memory sessions (easily upgradable to Redis)
-
-## 📦 Project Structure
+- **State Management**: In-memory sessions 
 
 
 ## 📦 Project Structure
@@ -55,13 +53,14 @@ Perfect for:
 1. Clone the repository
 Bashgit clone https://github.com/yourusername/autonomous-cognitive-agent.git
 cd autonomous-cognitive-agent
+
 2. Create virtual environment
 Bashpython -m venv venv
-source venv/bin/activate    # Linux/Mac
-# or
 venv\Scripts\activate       # Windows
+
 3. Install dependencies
 Bashpip install -r requirements.txt
+
 4. Get your Gemini API Key
 
 Go to: https://aistudio.google.com/app/apikey
@@ -71,9 +70,11 @@ Add it to .env file:
 5. Run the backend server
 Bashcd backend/app
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
 6. Open the frontend
 Open frontend/index.html in your browser
 (or serve it with any static server)
+
 ## 🎯 Usage Examples
 Try saying:
 
