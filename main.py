@@ -1,265 +1,133 @@
 from langgraph.graph import StateGraph, END
-from typing import TypedDict, List, Dict, Any
+from typing import TypedDict, List, Any
 from dotenv import load_dotenv
 import os
-import json
 
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import (
-    SystemMessage,
-    HumanMessage,
-    AIMessage,
-    ToolMessage
-)
-from langchain_core.tools import tool
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
-# Import your VFS
 from vfs_tools import VirtualFileSystem
 
-# ------------------------------------------
-# ENV SETUP
-# ------------------------------------------
+# ---------------- ENV ----------------
 load_dotenv()
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 
-if not os.getenv("LANGCHAIN_API_KEY"):
-    raise Exception("Missing LANGCHAIN_API_KEY")
-
-API_KEY = os.getenv("OPENROUTER_API_KEY")
-if not API_KEY:
-    raise Exception("Missing OPENROUTER_API_KEY")
-
-# ------------------------------------------
-# STATE DEFINITION
-# ------------------------------------------
+# ---------------- STATE ----------------
 class AgentState(TypedDict):
     messages: List[Any]
-    todos: List[str]
-    vfs: Dict[str, str]
 
-# Initialize the VFS
 vfs = VirtualFileSystem()
 
-# ------------------------------------------
-# SUB-AGENT IMPORTS 
-# ------------------------------------------
-from agents.summarizer_agent import summarize
-from agents.research_agent import research
-from agents.code_agent import write_code
-from agents.search_agent import search
+# ---------------- LLM FACTORY ----------------
+def make_llm():
+    return ChatOpenAI(
+        model="gpt-4o-mini",
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.getenv("OPENROUTER_API_KEY"),
+    )
 
+# ---------------- SUPERVISOR ----------------
+def supervisor(state: AgentState) -> AgentState:
+    text = state["messages"][-1].content.lower()
 
-# ------------------------------------------
-# SYSTEM PROMPT
-# ------------------------------------------
-SYSTEM_PROMPT = """
-You are a helpful assistant.
-Reply naturally like a normal chatbot.
-"""
-
-# ------------------------------------------
-# TOOLS
-# ------------------------------------------
-@tool
-def ls(tool_input: str = "") -> List[str]:
-    """List all files in the virtual file system."""
-    return vfs.ls()
-
-@tool
-def write_file(tool_input: str) -> str:
-    """Write a file to the virtual file system."""
-    args = json.loads(tool_input)
-    filename = args["filename"]
-    content = args["content"]
-    vfs.write_file(filename, content)
-    return f"File '{filename}' written successfully."
-
-@tool
-def read_file(tool_input: str) -> str:
-    """Read a file from the virtual file system."""
-    args = json.loads(tool_input)
-    filename = args["filename"]
-    content = vfs.read_file(filename)
-    return content if content else f"File '{filename}' not found."
-
-@tool
-def edit_file(tool_input: str) -> str:
-    """Edit an existing file in the virtual file system."""
-    args = json.loads(tool_input)
-    filename = args["filename"]
-    content = args["content"]
-    vfs.edit_file(filename, content)
-    return f"File '{filename}' edited successfully."
-
-@tool
-def write_todos(tool_input: str) -> str:
-    """Store a list of TODO items."""
-    todos = json.loads(tool_input)
-    return json.dumps(todos)
-
-TOOLS = [
-    write_todos,
-    write_file,
-    read_file,
-    edit_file,
-    ls
-]
-
-# ------------------------------------------
-# LLM
-# ------------------------------------------
-llm = ChatOpenAI(
-    api_key=API_KEY,
-    base_url="https://openrouter.ai/api/v1",
-    model="gpt-4o-mini",
-)
-llm = llm.bind_tools(TOOLS)
-
-# ------------------------------------------
-# AGENT NODE
-# ------------------------------------------
-def agent_node(state: AgentState) -> AgentState:
-    messages = state["messages"]
-    last_user_msg = messages[-1].content.lower()
-
-    # --------------------------------
-    # SUPERVISOR → SUB-AGENT ROUTING
-    # --------------------------------
-    if "summarize" in last_user_msg:
-        result = summarize(last_user_msg)
-        messages.append(AIMessage(content=result))
-        return state
-
-    if "research" in last_user_msg or "explain" in last_user_msg:
-        result = research(last_user_msg)
-        messages.append(AIMessage(content=result))
-        return state
-
-    if "code" in last_user_msg or "program" in last_user_msg:
-        result = write_code(last_user_msg)
-        messages.append(AIMessage(content=result))
-        return state
-
-    if "search" in last_user_msg or "find" in last_user_msg:
-        result = search(last_user_msg)
-        messages.append(AIMessage(content=result))
-        return state
-
-    # --------------------------------
-    # DEFAULT: NORMAL CHAT + TOOLS
-    # --------------------------------
-    response = llm.invoke(messages)
-    messages.append(response)
-
-    if hasattr(response, "tool_calls") and response.tool_calls:
-        tool_map = {tool.name: tool for tool in TOOLS}
-        for call in response.tool_calls:
-            tool_fn = tool_map.get(call["name"])
-            if tool_fn:
-                tool_input = json.dumps(call["args"]) if call["args"] else ""
-                result = tool_fn.run(tool_input)
-                messages.append(
-                    ToolMessage(
-                        tool_call_id=call["id"],
-                        content=str(result)
-                    )
-                )
-
-    # --------------------------------
-    # SAVE CHAT HISTORY
-    # --------------------------------
-    chat_list = [
-        {"role": "user", "content": m.content} if isinstance(m, HumanMessage)
-        else {"role": "ai", "content": m.content}
-        for m in messages if isinstance(m, (HumanMessage, AIMessage))
-    ]
-    vfs.write_file("chat_history.json", json.dumps(chat_list, indent=2))
+    # Determine next node and store it in state
+    if "summarize" in text:
+        state["next_node"] = "summarizer"
+    elif "research" in text or "explain" in text:
+        state["next_node"] = "research"
+    elif "code" in text or "program" in text:
+        state["next_node"] = "code"
+    elif "search" in text or "find" in text:
+        state["next_node"] = "search"
+    else:
+        state["next_node"] = "research"
 
     return state
 
+# ---------------- AGENT NODES ----------------
+def summarizer_node(state: AgentState) -> AgentState:
+    llm = make_llm()
+    response = llm.invoke(state["messages"])
 
-# ------------------------------------------
-# GRAPH
-# ------------------------------------------
+    last_prompt = state["messages"][-1].content
+    vfs.write_file("summary.txt", last_prompt, response.content)
+
+    state["messages"].append(response)
+    return state
+
+def research_node(state: AgentState) -> AgentState:
+    llm = make_llm()
+    response = llm.invoke(state["messages"])
+
+    last_prompt = state["messages"][-1].content
+    vfs.write_file("research.txt", last_prompt, response.content)
+
+    state["messages"].append(response)
+    return state
+
+def code_node(state: AgentState) -> AgentState:
+    llm = make_llm()
+    response = llm.invoke(state["messages"])
+
+    last_prompt = state["messages"][-1].content
+    vfs.write_file("code.py", last_prompt, response.content)
+
+    state["messages"].append(response)
+    return state
+
+def search_node(state: AgentState) -> AgentState:
+    llm = make_llm()
+    response = llm.invoke(state["messages"])
+
+    last_prompt = state["messages"][-1].content
+    vfs.write_file("search.txt", last_prompt, response.content)
+
+    state["messages"].append(response)
+    return state
+
+# ---------------- GRAPH ----------------
 graph = StateGraph(AgentState)
-graph.add_node("agent", agent_node)
-graph.set_entry_point("agent")
-graph.add_edge("agent", END)
+
+graph.add_node("supervisor", supervisor)
+graph.add_node("summarizer", summarizer_node)
+graph.add_node("research", research_node)
+graph.add_node("code", code_node)
+graph.add_node("search", search_node)
+
+graph.set_entry_point("supervisor")
+
+graph.add_conditional_edges(
+    "supervisor",
+    lambda state: state["next_node"],
+    {
+        "summarizer": "summarizer",
+        "research": "research",
+        "code": "code",
+        "search": "search",
+    }
+)
+
+for node in ["summarizer", "research", "code", "search"]:
+    graph.add_edge(node, END)
+
 app = graph.compile()
 
-# ------------------------------------------
-# MAIN LOOP
-# ------------------------------------------
+# ---------------- MAIN LOOP ----------------
 if __name__ == "__main__":
     state: AgentState = {
-        "messages": [SystemMessage(content=SYSTEM_PROMPT)],
-        "todos": [],
-        "vfs": {}
+        "messages": [SystemMessage(content="You are a helpful AI assistant.")]
     }
 
-    print("Chatbot ready. Type 'exit' to quit.")
+    print("Agent ready. Type 'exit' to quit.")
 
     while True:
         user = input("\nYou: ")
-        if user.lower() in ["exit", "quit"]:
-            print("Exiting...")
+        if user.lower() in {"exit", "quit"}:
             break
 
-        # ------------------------------
-        # Handle VFS commands directly
-        # ------------------------------
-        parts = user.strip().split(maxsplit=1)
-        cmd = parts[0].lower()
-        args = parts[1] if len(parts) > 1 else ""
-
-        if cmd == "ls":
-            files = vfs.ls()
-            print("\n".join(files) if files else "No files in VFS.")
-            continue
-        elif cmd == "write_file":
-            if args:
-                try:
-                    filename, content = args.split(maxsplit=1)
-                    vfs.write_file(filename, content)
-                    print(f"File '{filename}' written successfully.")
-                except ValueError:
-                    print("Usage: write_file <filename> <content>")
-            else:
-                print("Usage: write_file <filename> <content>")
-            continue
-        elif cmd == "read_file":
-            if args:
-                content = vfs.read_file(args)
-                print(content if content else f"File '{args}' not found.")
-            else:
-                print("Usage: read_file <filename>")
-            continue
-        elif cmd == "edit_file":
-            if args:
-                try:
-                    filename, content = args.split(maxsplit=1)
-                    vfs.edit_file(filename, content)
-                    print(f"File '{filename}' edited successfully.")
-                except ValueError:
-                    print("Usage: edit_file <filename> <content>")
-            else:
-                print("Usage: edit_file <filename> <content>")
-            continue
-        elif cmd == "write_todos":
-            if args:
-                todos = args.split(",")  # comma separated
-                print(json.dumps(todos))
-            else:
-                print("Usage: write_todos todo1,todo2,...")
-            continue
-
-        # ------------------------------
-        # Send normal text to AI
-        # ------------------------------
         state["messages"].append(HumanMessage(content=user))
         state = app.invoke(state)
 
-        last_msg = state["messages"][-1]
-        if isinstance(last_msg, AIMessage):
-            print(last_msg.content)
+        print(state["messages"][-1].content)
+
