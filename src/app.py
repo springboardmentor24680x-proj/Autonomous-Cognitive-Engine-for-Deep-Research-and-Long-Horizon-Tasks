@@ -1,65 +1,43 @@
 import streamlit as st
-from agents.main_agent import MainAgent
+from agents.supervisor_agent import SupervisorAgent
+from memory.vfs import load_memory, clear_memory
 
-st.set_page_config(page_title="🤖 Real AI Chat", layout="wide")
+st.set_page_config(page_title="Autonomous Cognitive Agent", layout="wide")
+st.title(" Autonomous Cognitive Agent")
 
-# --- 1. Session State Initialization ---
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# --- 2. Sidebar Navigation & History ---
+# ---------- SIDEBAR ----------
 with st.sidebar:
-    st.header("📜 Chat History")
-    
-    # Display a list of past questions
-    if not st.session_state.messages:
-        st.info("No history yet. Start chatting!")
+    st.header("Chat History")
+
+    history = load_memory()
+
+    if not history:
+        st.info("No chat history yet.")
     else:
-        for i, msg in enumerate(st.session_state.messages):
+        for i, msg in enumerate(history):
             if msg["role"] == "user":
-                # Create a small preview of the question
-                st.text(f"Q{i//2 + 1}: {msg['content'][:30]}...")
+                st.markdown(f"**Q{i//2 + 1}:** {msg['content'][:40]}...")
 
     st.divider()
-    
-    # The "Clear" button to wipe memory
-    if st.button("🧹 Clear chat", use_container_width=True):
-        st.session_state.messages = []
+
+    if st.button("Clear Chat", use_container_width=True):
+        clear_memory()
         st.rerun()
 
-# --- 3. Main Chat Interface ---
-st.title("🤖 Real AI Chat")
-st.caption("Welcome to the Real AI Chat interface.Ask anything!")
-
-# Display message history in the main window
-for msg in st.session_state.messages:
+# ---------- MAIN CHAT ----------
+# Display full chat history
+for msg in load_memory():
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# --- 4. Chat Input & Delegation Logic ---
-if user_input := st.chat_input("Message the AI..."):
-    # Store and display user message
-    st.session_state.messages.append({"role": "user", "content": user_input})
+# ---------- INPUT ----------
+if user_input := st.chat_input("Ask something..."):
+    # Show user message immediately
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # Generate Assistant Response
+    # Generate assistant response
     with st.chat_message("assistant"):
-        with st.spinner("Delegating to sub-agents..."):
-            # Construct the history list for the LangGraph agent
-            # This is the "Memory" that keeps the conversation 'Real'
-            chat_context = [f"{m['role']}: {m['content']}" for m in st.session_state.messages[:-1]]
-            
-            # Invoke the MainAgent (The Orchestrator)
-            result = MainAgent.invoke({
-                "input": user_input,
-                "history": chat_context
-            })
-            
-            # Extract the final synthesized output
-            full_reply = result.get("output", "I'm sorry, I couldn't process that.")
-            
-            st.markdown(full_reply)
-            
-            # Save the response to session memory
-            st.session_state.messages.append({"role": "assistant", "content": full_reply})
+        with st.spinner("Thinking..."):
+            result = SupervisorAgent.invoke({"input": user_input})
+            st.markdown(result["output"])

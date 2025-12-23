@@ -8,7 +8,7 @@ from agno.models.groq import Groq
 # -----------------------
 # Streamlit App Setup
 # -----------------------
-st.title("AI Startup Trend Analysis Agent 📈")
+st.title("AI Startup Trend Analysis Agent ")
 st.caption(
     "Get the latest trend analysis and startup opportunities based on your topic of interest in a click!"
 )
