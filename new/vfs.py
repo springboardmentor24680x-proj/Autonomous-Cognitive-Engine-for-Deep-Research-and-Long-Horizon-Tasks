@@ -1,45 +1,20 @@
 
-# class VFS:
-#     def __init__(self):
-#         self.files = {}
-
-#     def ls(self):
-#         return list(self.files.keys())
-
-#     def read(self, name):
-#         return self.files.get(name, "File not found")
-
-#     def write(self, name, content):
-#         self.files[name] = content
-#         return f"Written {name}"
-
-#     def edit(self, name, content):
-#         if name not in self.files:
-#             return "File not found"
-#         self.files[name] = content
-#         return f"Updated {name}"
-
-
-# vfs = VFS()
 class VFS:
-    def __init__(self):
-        self.files = {}
+    def ls(self, state):
+        return list(state["files"].keys())
 
-    def ls(self):
-        return list(self.files.keys())
+    def read(self, state, name):
+        return state["files"].get(name, "❌ File not found")
 
-    def read(self, name):
-        return self.files.get(name, "File not found")
+    def write(self, state, name, content):
+        state["files"][name] = content
+        return f" Written file: {name}"
 
-    def write(self, name, content):
-        self.files[name] = content
-        return f"Written {name}"
-
-    def edit(self, name, content):
-        if name not in self.files:
-            return "File not found"
-        self.files[name] = content
-        return f"Updated {name}"
+    def edit(self, state, name, content):
+        if name not in state["files"]:
+            return " File not found"
+        state["files"][name] = content
+        return f" Updated file: {name}"
 
 
 vfs = VFS()
