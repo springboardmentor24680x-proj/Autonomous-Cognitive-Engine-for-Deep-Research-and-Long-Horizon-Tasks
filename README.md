@@ -35,19 +35,24 @@ Perfect for:
 
 
 ## 📦 Project Structure
+
+```
+autonomous-cognitive-agent/
 ├── backend/
 │   └── app/
-│       ├── main.py          # FastAPI server & endpoints
-│       ├── agent.py         # LangGraph workflow & reasoning
-│       ├── tools.py         # All tool implementations
-│       ├── utils.py         # State, prompts, Gemini client
-│     
+│       ├── main.py              # FastAPI server, endpoints, and session handling
+│       ├── agent.py             # LangGraph workflow, reasoning node, and agent logic
+│       ├── tools.py             # All tool implementations (todos, calendar, files, etc.)
+│       ├── utils.py             # State management, prompts, Gemini client, and helpers
+│      
 ├── frontend/
-│   ├── index.html           # Main UI
-│   ├── script.js            # Frontend logic
-│   └── styles.css           # Custom styling
-├── .env                     # Environment variables
-└── requirements.txt
+│   ├── index.html               # Main chat interface and UI
+│   ├── script.js                # Frontend JavaScript logic (chat, state sync, UI updates)
+│   └── styles.css               # Custom styling for the frontend
+├── .env                         # Environment variables (e.g., GEMINI_API_KEY)
+├── requirements.txt             # Python dependencies
+
+```
 
 ## ⚙️ Setup & Installation
 1. Clone the repository
