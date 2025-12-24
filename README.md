@@ -18,6 +18,8 @@ The system acts as a stateful AI agent that can:
 This project focuses on building the core cognitive architecture using LangGraph, LangChain, and Large Language Models (LLMs).
 
 Tech Stack
+
+
 Core Technologies
 
 •Python 3.10+
