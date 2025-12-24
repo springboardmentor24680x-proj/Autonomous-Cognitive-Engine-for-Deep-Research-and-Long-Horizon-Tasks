@@ -1,32 +1,46 @@
 # Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
 
-\# Autonomous Cognitive Engine for Deep Research and Long-Horizon Tasks
-
-
-
 \## 📌 Project Overview
 
-This project implements an autonomous cognitive agent capable of handling long-horizon tasks such as planning, file operations, and task management.
+This project implements an autonomous cognitive agent capable of handling deep research and long-horizon reasoning tasks using LLM-based agents, memory, tools, and workflow graphs.
 
 
 
 \## 📁 Project Structure
 
-milestone2/
+\## 🚀 Milestones
 
-│
 
-├── agent.py              # Core agent logic
 
-├── UI.py                 # Command-line user interface
+\### Milestone 1
 
-├── tools/
+\- Basic agent setup
 
-│   └── vfs\_tools.py      # Virtual file system utilities
+\- Task input handling
 
-├── files/                # Agent-managed files
+\- To-do list management
 
-├── requirements.txt      # Dependencies
 
-└── .env                  # Environment variables (ignored)
+
+\### Milestone 2
+
+\- Multi-agent workflow
+
+\- Tool integration (VFS tools)
+
+\- Memory \& reasoning graph
+
+\- Environment variable management
+
+
+
+\## 🛠️ Setup Instructions
+
+```bash
+
+python -m venv .venv
+
+.venv\\Scripts\\activate
+
+pip install -r requirements.txt
 
