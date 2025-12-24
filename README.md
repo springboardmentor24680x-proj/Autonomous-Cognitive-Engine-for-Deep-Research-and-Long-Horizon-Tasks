@@ -43,7 +43,7 @@ User → Supervisor Agent
 LangSmith (Tracing)
 
 ## Project Structure
-
+```
 Autonomous-Cognitive-Engine-for-Deep-Research/
 ├── src/                 # Core agent logic & execution
 ├── subagents/           # Research & summarization sub-agents
@@ -54,7 +54,7 @@ Autonomous-Cognitive-Engine-for-Deep-Research/
 ├── LICENSE
 ├── README.md
 └── requirements.txt
-
+```
 
 
 

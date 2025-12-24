@@ -43,43 +43,29 @@ def setup_agent():
     Your primary objective is to manage high-level orchestration across research, summarization, and file-based memory.
 
     TODAY'S DATE: {current_date}
+    TOOLS AVAILABLE:
+    - Files: write_file, read_file, edit_file, ls
+    - Calendar: add_event, list_events, delete_event
+    - Sub-agents: research_task, summarization_task
 
-    ────────────────────────────────
-    AVAILABLE TOOLS (ONLY THESE):
-    - File Management: write_file, read_file, edit_file, ls
-    - Scheduling: add_event, list_events, delete_event
-    - Specialized Sub-Agents: research_task, summarization_task
-    ────────────────────────────────
+    RULES:
+    1. Use tools for ALL research, summarization, file access, and scheduling.
+    2. Never summarize or research inline.
+    3. One tool call per turn.
+    4. Always check files with ls/read_file before using them.
+    5. Do not assume data or file existence.
 
-    CRITICAL EXECUTION RULES (MANDATORY):
-    1. ONE TOOL PER TURN: You MUST call AT MOST ONE tool in a single response.
-    2. ATOMIC ACTIONS: If a request requires multiple actions (e.g., Research -> Summarize -> Save), you MUST perform them one by one, waiting for the user to prompt the next step.
-    3. SEARCH BEFORE GUESSING: If a user asks about previously stored data, you MUST use 'ls' or 'read_file' before responding. Never guess file contents.
-    4. CONTEXT MANAGEMENT: To avoid token limit errors (10k TPM), be concise in your responses. If a tool output is too large, summarize it immediately.
-    5. NO HALLUCINATIONS: Never invent tool names or assume a file exists without checking the VFS.
+    SUB-AGENT RULES:
+    - Use research_task for any market, competitor, or risk research.
+    - Use summarization_task for any summarization or document combining.
+    - Always pass config when invoking sub-agents.
 
-    ────────────────────────────────
-    SUB-AGENT DELEGATION RULES:
-    - RESEARCH: Use 'research_task' for market lookups, competitor analysis, or gathering new data.
-    - SUMMARIZATION: Use 'summarization_task' for condensing long reports, file contents, or research notes.
-    - ALWAYS pass the 'config' parameter when calling sub-agents to ensure LangSmith tracing visibility.
+    SUMMARIZATION FLOW (MANDATORY):
+    - read_file all required files
+    - call summarization_task on combined text
+    - write_file to save output
 
-    ────────────────────────────────
-    TODO MANAGEMENT RULES (STRICT):
-    - CREATE: If creating a new list, use write_file (filename: todos_<category>.txt). 
-      Response: "Todo saved successfully to <filename>"
-    - UPDATE: read_file -> modify internally -> edit_file. 
-      Response: "Todo updated successfully"
-    - VIEW: Use read_file only. Do not call write/edit.
-
-    ────────────────────────────────
-    CHAINING PROTOCOL (Example):
-    User: "Research coffee risks and save a summary."
-    Turn 1: Call research_task.
-    User: (System Result)
-    Turn 2: Call summarization_task.
-    User: (System Result)
-    Turn 3: Call write_file.
+    Failure to follow these rules is an error.
     """
 
 
@@ -130,31 +116,44 @@ def setup_agent():
         return "Research completed and saved to research_notes.txt"
 
         
-    #Summarization Sub-Agent
     @tool
-    def summarize_file(filename: str, config: RunnableConfig) -> str: # 1. Accept parent config
+    def summarization_task(text: str, config: RunnableConfig) -> str: 
         """
-        Summarize a file and store the summary.
+        Summarize text using the summarization sub-agent.
         """
-        content = read_file(filename)
+        # config is automatically injected by the main agent.
+        # Passing it here links the sub-agent run to the parent trace.
+        result = summarization_agent.invoke(
+            {"input": text},
+            config=config
+        )
+        
+        # If using StrOutputParser, 'result' is already a string.
+        # If not, use 'result.content'.
+        return result
+
+    @tool
+    def summarize_file(filename: str, config: RunnableConfig) -> str: # Add config here
+        """
+        Read a file, delegate summarization, and save result.
+        """
+        # Sanitize filename (remove leading slashes for VFS)
+        clean_filename = filename.lstrip('/')
+        content = read_file(clean_filename)
+        
         if isinstance(content, str) and content.startswith("File"):
             return f"Error: {content}"
 
-        # 2. Pass 'input' key to match your ChatPromptTemplate("{input}")
-        # 3. Pass the 'config' directly to link the trace to the Supervisor
-        result = summarization_agent.invoke(
-            {"input": content}, 
-            config=config 
+        # Delegate to the other tool using the same config
+        summary = summarization_task.invoke(
+            {"text": content},
+            config=config
         )
 
-        # 4. Extract content (result is a BaseMessage from the Groq client)
-        summary = result.content 
-        
-        summary_file = filename.replace(".txt", "_summary.txt")
+        summary_file = clean_filename.replace(".txt", "_summary.txt")
         write_file(summary_file, summary)
 
         return f"Summary saved successfully to {summary_file}"
-
 
     # Create main agent
     agent = create_deep_agent(
@@ -167,6 +166,7 @@ def setup_agent():
             list_events,
             delete_event,
             research_task, 
+            summarization_task,
             summarize_file
         ],
         system_prompt=system_prompt,
