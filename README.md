@@ -1,7 +1,7 @@
 # Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
 > A powerful, stateful, fully autonomous AI agent built with LangGraph, FastAPI, and Google Gemini.
 
-## 🚀 Overview
+## 1. Overview
 
 This project implements a **fully autonomous cognitive agent** that can understand natural language, reason step-by-step, plan actions, and execute multiple tools — all while maintaining memory and context across conversations.
 
@@ -15,7 +15,7 @@ Perfect for:
 - Demonstrating advanced AI agent architectures
 - Learning how autonomous agents work under the hood
 
-## ✨ Features
+## 2. Features
 
 - **Natural Language Control** — Just talk to it like a real assistant
 - **Task Management** — Create, update, complete, and delete tasks
@@ -25,7 +25,7 @@ Perfect for:
 - **Rich Narration** — Detailed, friendly explanations of every action taken
 - **Professional UI** — Clean sidebar showing tasks, files, events, and live stats
 
-## 🛠️ Tech Stack
+## 3. Tech Stack
 
 - **Backend**: FastAPI (Python)
 - **Agent Framework**: LangGraph (by LangChain)
@@ -34,7 +34,7 @@ Perfect for:
 - **State Management**: In-memory sessions 
 
 
-## 📦 Project Structure
+## 4. Project Structure
 
 ```
 autonomous-cognitive-agent/
@@ -54,7 +54,7 @@ autonomous-cognitive-agent/
 
 ```
 
-## ⚙️ Setup & Installation
+## 5. Setup & Installation
 1. Clone the repository
 Bashgit clone https://github.com/yourusername/autonomous-cognitive-agent.git
 cd autonomous-cognitive-agent
@@ -80,7 +80,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 Open frontend/index.html in your browser
 (or serve it with any static server)
 
-## 🎯 Usage Examples
+## 6. Usage Examples
 Try saying:
 
 "Plan a trip to Goa next week"
