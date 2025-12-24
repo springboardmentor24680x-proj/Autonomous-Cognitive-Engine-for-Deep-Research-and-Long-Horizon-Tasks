@@ -46,7 +46,6 @@ async def chat(request: ChatRequest):
         # Update session with result
         sessions[request.session_id] = result
        
-        # ✅ FIX 4: Format messages correctly for frontend
         formatted_messages = []
         for msg in result["messages"]:
             formatted_messages.append({
@@ -54,7 +53,6 @@ async def chat(request: ChatRequest):
                 "content": msg.content
             })
        
-        # ✅ The last message IS the assistant response (added in reasoning_node)
         last_assistant_response = ""
         for msg in reversed(result["messages"]):
             if msg.type == "ai":
@@ -62,7 +60,7 @@ async def chat(request: ChatRequest):
                 break
        
         return ChatResponse(
-            response=last_assistant_response, # ✅ This is the rich narration
+            response=last_assistant_response, 
             messages=formatted_messages,
             todos=result["todos"],
             files=result["files"],

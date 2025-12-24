@@ -10,7 +10,7 @@ from .tools import ToolExecutor
 # ═══════════════════════════════════════════════════════════════════════════════
 # LLM REASONING ENGINE - FIXED WITH NARRATION LAYER
 # ═══════════════════════════════════════════════════════════════════════════════
-#  FIX 3: Updated system prompt with strict narration rules
+
 PLANNING_PROMPT = """You are an autonomous AI agent that helps users manage tasks, schedule events, and organize information.
 ## YOUR CAPABILITIES
 You can execute these tools by returning JSON tool calls:
@@ -227,19 +227,15 @@ def reasoning_node(state: AgentState) -> AgentState:
                     "summary": f"Error: {str(e)}"
                 })
    
-    # ─────────────────────────────────────────────────────────────────────────
-    # ✅ FIX 2: Store tool results in context for potential follow-up
-    # ─────────────────────────────────────────────────────────────────────────
+   
     state["context"]["last_tool_results"] = tool_results
    
     # ─────────────────────────────────────────────────────────────────────────
-    # STEP 4: Generate narration response (✅ FIX 3: Rich, specific response)
+    # STEP 4: Generate narration response 
     # ─────────────────────────────────────────────────────────────────────────
     assistant_response = get_narration_response(state, user_input, tool_results)
    
-    # ─────────────────────────────────────────────────────────────────────────
-    # ✅ FIX 1: Add assistant message INSIDE the reasoning node
-    # ─────────────────────────────────────────────────────────────────────────
+   
     state["messages"].append(AIMessage(content=assistant_response))
    
     return state

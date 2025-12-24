@@ -41,7 +41,7 @@ def get_or_create_session(session_id: str) -> AgentState:
                 "last_location": None,
                 "last_meeting_id": None,
                 "last_topic": None,
-                "last_tool_results": [], # ✅ FIX 2: Store tool results
+                "last_tool_results": [], #  FIX 2: Store tool results
                 "user_preferences": {}
             }
         }
