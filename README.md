@@ -19,8 +19,9 @@ Features:
 
 
 
-Architecture:
+## Architecture
 
+```text
 
 User Input
     │
