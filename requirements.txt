@@ -1,0 +1,16 @@
+# Core dependencies
+streamlit==1.30.0
+python-dotenv==1.0.1
+typing-extensions==4.8.0
+
+# LangGraph / LangSmith / LangChain
+langsmith==0.2.0
+langgraph==0.1.0
+langchain-groq==0.1.2
+
+# LLM API clients
+groq==0.2.1
+tavily==0.1.5
+
+# Optional / utilities
+uuid==1.30
