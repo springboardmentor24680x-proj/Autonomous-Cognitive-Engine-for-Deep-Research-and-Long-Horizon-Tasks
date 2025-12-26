@@ -55,9 +55,7 @@ Autonomous-Cognitive-Engine-for-Deep-Research/
 ├── README.md
 └── requirements.txt
 ```
-
-
-
+## Progress
     ✔ Research & summarization delegation
     ✔ Persistent memory
     ✔ Strict TODO management

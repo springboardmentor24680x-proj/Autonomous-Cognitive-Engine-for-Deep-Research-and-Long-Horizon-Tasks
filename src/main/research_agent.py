@@ -11,7 +11,7 @@ from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
 from langchain_core.messages import HumanMessage
 # VFS tools
-from src.memory.vfs import write_file, read_file, ls, edit_file, clear_vfs
+from src.memory.vfs import write_file, read_file, ls, edit_file,clear_vfs
 
 # Calendar tools
 from src.tools.calendar_tools import add_event, list_events, delete_event
@@ -55,6 +55,17 @@ def setup_agent():
     4. Always check files with ls/read_file before using them.
     5. Do not assume data or file existence.
 
+    TODO MANAGEMENT (STRICT - TOOL ONLY):
+
+    - If the user asks to create or add a WORK todo:
+    → You MUST call create_work_todo
+    → You MUST NOT explain or summarize
+    → You MUST NOT call write_file directly
+    → The task text must be passed exactly
+
+    - After create_work_todo succeeds:
+    → Respond ONLY with confirmation
+
     SUB-AGENT RULES:
     - Use research_task for any market, competitor, or risk research.
     - Use summarization_task for any summarization or document combining.
@@ -65,7 +76,7 @@ def setup_agent():
     - call summarization_task on combined text
     - write_file to save output
 
-    Failure to follow these rules is an error.
+    Failure to use a tool when an action is requested is a system violation.
     """
 
 
@@ -167,13 +178,25 @@ def setup_agent():
             delete_event,
             research_task, 
             summarization_task,
-            summarize_file
+            summarize_file,
+            # create_work_todo
         ],
         system_prompt=system_prompt,
         model=groq_client,
     )
 
-    return agent
+    class AgentWrapper:
+        def __init__(self, agent):
+            self.agent = agent
+
+        def invoke(self, input, **kwargs):
+            # Allow tests to pass list[HumanMessage]
+            if isinstance(input, list):
+                return self.agent.invoke({"messages": input}, **kwargs)
+            return self.agent.invoke(input, **kwargs)
+
+    return AgentWrapper(agent)
+
 
 def main():
     # Initialize the agent

@@ -1,3 +1,6 @@
+from langchain_core.tools import tool
+import streamlit as st
+
 # ----------------------------
 # In-memory VFS
 # ----------------------------
@@ -7,6 +10,11 @@ def clear_vfs():
     """Clears all files from the VFS memory."""
     global VFS
     VFS.clear()
+
+# if "VFS" not in st.session_state:
+#     st.session_state["VFS"] = {}
+
+# VFS = st.session_state["VFS"]
 
 def write_file(filename: str, content: str) -> str:
     """

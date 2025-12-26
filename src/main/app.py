@@ -3,6 +3,8 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from src.memory.vfs import VFS
 from src.tools.calendar_tools import EVENTS
 from src.main import research_agent as ra
+from src.main.research_agent import setup_agent
+
 # Streamlit Page Config
 # --------------------------------------------------
 st.set_page_config(page_title="Deep Agent UI", layout="wide")
