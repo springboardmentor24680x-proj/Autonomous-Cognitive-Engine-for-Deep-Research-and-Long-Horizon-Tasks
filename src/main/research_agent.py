@@ -76,6 +76,12 @@ def setup_agent():
     - call summarization_task on combined text
     - write_file to save output
 
+    STRICT EXECUTION PROTOCOL:
+    - You are a Manager. Managers do not do work; they DELEGATE.
+    - NEVER respond with "Done", "I've summarized it", or "Task complete" unless you have JUST received a successful result from a tool.
+    - If a user asks to summarize a file, your ONLY valid response is a call to 'summarize_file'.
+    - Providing a text response instead of a tool call is a CRITICAL FAILURE.
+    
     Failure to use a tool when an action is requested is a system violation.
     """
 
@@ -93,19 +99,16 @@ def setup_agent():
 
     # TASK DELEGATION TOOL
     @tool
-    def research_task(description: str) -> str:
-        """
-        Perform research using the research sub-agent and store results.
-        """
+    def research_task(description: str, config: RunnableConfig) -> str:
+
+        """Perform research and store results. Returns a BRIEF summary to keep context small."""
+
         print("\n--- DEBUG: Research sub-agent invoked ---")
         print(f"--- Topic: {description} ---")
 
         result = research_agent.invoke(
             {"messages": [{"role": "user", "content": description}]},
-            config=RunnableConfig(
-                run_name="ResearchSubAgent",
-                tags=["subagent", "research"]
-            )
+            config=config
         )
 
         research_output = result["messages"][-1].content
@@ -124,48 +127,63 @@ def setup_agent():
         else:
             write_file("research_notes.txt", entry)
 
-        return "Research completed and saved to research_notes.txt"
-
-        
+        #Condensed version for the Supervisor's chat history
+        summary_text = (research_output[:500] + "...") if len(research_output) > 500 else research_output
+        return f"Research completed. Highlights: {summary_text} [Full data saved to research_notes.txt]"        
+    
     @tool
     def summarization_task(text: str, config: RunnableConfig) -> str: 
-        """
-        Summarize text using the summarization sub-agent.
-        """
-        # config is automatically injected by the main agent.
-        # Passing it here links the sub-agent run to the parent trace.
+        
+        """Summarize text using the summarization sub-agent."""
+        # Use the sub-agent directly
         result = summarization_agent.invoke(
             {"input": text},
             config=config
         )
-        
-        # If using StrOutputParser, 'result' is already a string.
-        # If not, use 'result.content'.
-        return result
+        # Handle both String and Message return types
+        return result if isinstance(result, str) else result.content
 
     @tool
-    def summarize_file(filename: str, config: RunnableConfig) -> str: # Add config here
-        """
-        Read a file, delegate summarization, and save result.
-        """
-        # Sanitize filename (remove leading slashes for VFS)
+    def summarize_file(filename: str, config: RunnableConfig) -> str:
+        """Read a file, delegate summarization, and save result."""
+        print(f"\n--- DEBUG: summarize_file called for {filename} ---")
         clean_filename = filename.lstrip('/')
         content = read_file(clean_filename)
         
         if isinstance(content, str) and content.startswith("File"):
             return f"Error: {content}"
 
-        # Delegate to the other tool using the same config
-        summary = summarization_task.invoke(
-            {"text": content},
+        # FIX: Call the logic directly or ensure result is a string
+        # If you call summarization_task.invoke(), LangChain might wrap the output
+        summary = summarization_agent.invoke(
+            {"input": content},
             config=config
         )
+        
+        summary_text = summary if isinstance(summary, str) else summary.content
 
         summary_file = clean_filename.replace(".txt", "_summary.txt")
-        write_file(summary_file, summary)
+        write_file(summary_file, summary_text)
 
         return f"Summary saved successfully to {summary_file}"
 
+    @tool
+    def create_work_todo(task_text: str) -> str:
+        """
+        Creates or appends a task to the work todo list (todos_work.txt).
+        Use this ONLY for work-related tasks.
+        """
+        filename = "todos_work.txt"
+        existing_content = read_file(filename)
+        
+        # Check if file exists or is empty
+        if isinstance(existing_content, str) and "not found" in existing_content:
+            write_file(filename, f"WORK TODO LIST:\n- {task_text}")
+        else:
+            edit_file(filename, f"{existing_content}\n- {task_text}")
+            
+        return f"Successfully added '{task_text}' to {filename}"
+    
     # Create main agent
     agent = create_deep_agent(
         tools=[
@@ -179,7 +197,7 @@ def setup_agent():
             research_task, 
             summarization_task,
             summarize_file,
-            # create_work_todo
+            create_work_todo
         ],
         system_prompt=system_prompt,
         model=groq_client,
