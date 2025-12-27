@@ -1,133 +1,129 @@
+#main.py
+
 from langgraph.graph import StateGraph, END
-from typing import TypedDict, List, Any
-from dotenv import load_dotenv
-import os
+from langchain_core.messages import HumanMessage, AIMessage
+from langsmith import traceable
 
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-
+from state import AgentState
+from llm_factory import make_llm
 from vfs_tools import VirtualFileSystem
+from tavily import TavilyClient
 
-# ---------------- ENV ----------------
-load_dotenv()
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 
-# ---------------- STATE ----------------
-class AgentState(TypedDict):
-    messages: List[Any]
-
+# ---------------- VFS (shared instance) ----------------
 vfs = VirtualFileSystem()
 
-# ---------------- LLM FACTORY ----------------
-def make_llm():
-    return ChatOpenAI(
-        model="gpt-4o-mini",
-        base_url="https://openrouter.ai/api/v1",
-        api_key=os.getenv("OPENROUTER_API_KEY"),
+
+# ---------------- External Clients ----------------
+tavily = TavilyClient()
+
+
+# ---------------- GRAPH NODES ----------------
+
+@traceable(name="web_search_node")
+def web_search_node(state: AgentState) -> AgentState:
+    """
+    Performs a real web search using Tavily and stores results in VFS + state.
+    """
+    query = state["messages"][-1].content
+
+    results = tavily.search(
+        query=query,
+        max_results=5,
+        include_answer=True
     )
 
-# ---------------- SUPERVISOR ----------------
-def supervisor(state: AgentState) -> AgentState:
-    text = state["messages"][-1].content.lower()
+    answer = results.get("answer", "No answer found.")
+    sources = results.get("results", [])
 
-    # Determine next node and store it in state
-    if "summarize" in text:
-        state["next_node"] = "summarizer"
-    elif "research" in text or "explain" in text:
-        state["next_node"] = "research"
-    elif "code" in text or "program" in text:
-        state["next_node"] = "code"
-    elif "search" in text or "find" in text:
-        state["next_node"] = "search"
-    else:
-        state["next_node"] = "research"
+    sources_text = ""
+    for r in sources:
+        sources_text += f"- {r['title']}\n  {r['url']}\n\n"
+
+    content = f"{answer}\n\nSources:\n{sources_text}"
+
+    # Persist search results
+    vfs.write_file("search.txt", query, content)
+
+    # Update state
+    state["search_results"] = content
+    state["messages"].append(AIMessage(content=content))
 
     return state
 
-# ---------------- AGENT NODES ----------------
+
+@traceable(name="summarizer_node")
 def summarizer_node(state: AgentState) -> AgentState:
+    """
+    Summarizes search results (or fallback content) using the LLM.
+    """
     llm = make_llm()
-    response = llm.invoke(state["messages"])
 
-    last_prompt = state["messages"][-1].content
-    vfs.write_file("summary.txt", last_prompt, response.content)
+    content_to_summarize = (
+        state.get("search_results")
+        or state["messages"][-1].content
+    )
+
+    prompt = HumanMessage(
+        content=f"Summarize the following information:\n\n{content_to_summarize}"
+    )
+
+    response = llm.invoke([prompt])
+
+    # Persist summary
+    vfs.write_file("summary.txt", prompt.content, response.content)
 
     state["messages"].append(response)
     return state
 
+
+@traceable(name="research_node")
 def research_node(state: AgentState) -> AgentState:
+    """
+    Handles non-web research queries (fallback node).
+    """
     llm = make_llm()
-    response = llm.invoke(state["messages"])
 
-    last_prompt = state["messages"][-1].content
-    vfs.write_file("research.txt", last_prompt, response.content)
+    prompt = HumanMessage(
+        content=state["messages"][-1].content
+    )
 
-    state["messages"].append(response)
+    response = llm.invoke([prompt])
+    state["messages"].append_attach(response)
+
     return state
 
-def code_node(state: AgentState) -> AgentState:
-    llm = make_llm()
-    response = llm.invoke(state["messages"])
 
-    last_prompt = state["messages"][-1].content
-    vfs.write_file("code.py", last_prompt, response.content)
+# ---------------- GRAPH DEFINITION ----------------
 
-    state["messages"].append(response)
-    return state
-
-def search_node(state: AgentState) -> AgentState:
-    llm = make_llm()
-    response = llm.invoke(state["messages"])
-
-    last_prompt = state["messages"][-1].content
-    vfs.write_file("search.txt", last_prompt, response.content)
-
-    state["messages"].append(response)
-    return state
-
-# ---------------- GRAPH ----------------
 graph = StateGraph(AgentState)
 
-graph.add_node("supervisor", supervisor)
-graph.add_node("summarizer", summarizer_node)
+graph.add_node("web_search", web_search_node)
+graph.add_node("summarize", summarizer_node)
 graph.add_node("research", research_node)
-graph.add_node("code", code_node)
-graph.add_node("search", search_node)
 
-graph.set_entry_point("supervisor")
+# Current flow: always do web search → summarize
+graph.set_entry_point("web_search")
+graph.add_edge("web_search", "summarize")
+graph.add_edge("summarize", END)
 
-graph.add_conditional_edges(
-    "supervisor",
-    lambda state: state["next_node"],
-    {
-        "summarizer": "summarizer",
-        "research": "research",
-        "code": "code",
-        "search": "search",
-    }
-)
+# ---------------- COMPILE AGENT ----------------
 
-for node in ["summarizer", "research", "code", "search"]:
-    graph.add_edge(node, END)
+SummarizationAgent = graph.compile()
 
-app = graph.compile()
 
-# ---------------- MAIN LOOP ----------------
+# ---------------- LOCAL TEST ----------------
+
 if __name__ == "__main__":
-    state: AgentState = {
-        "messages": [SystemMessage(content="You are a helpful AI assistant.")]
-    }
+    initial_state = AgentState(
+        messages=[HumanMessage(content="Latest Nvidia updates")]
+    )
 
-    print("Agent ready. Type 'exit' to quit.")
+    final_state = SummarizationAgent.invoke(initial_state)
 
-    while True:
-        user = input("\nYou: ")
-        if user.lower() in {"exit", "quit"}:
-            break
+    print("=== SEARCH RESULTS ===")
+    print(vfs.read_file("search.txt"))
 
-        state["messages"].append(HumanMessage(content=user))
-        state = app.invoke(state)
-
-        print(state["messages"][-1].content)
+    print("\n=== SUMMARY ===")
+    print(vfs.read_file("summary.txt"))
 
