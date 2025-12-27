@@ -8,7 +8,6 @@ The **Autonomous Cognitive Engine** is an LLM-driven multi-agent system designed
 
 The system decomposes complex user queries into structured TODOs, delegates execution to specialized sub-agents, persists memory across runs, and produces traceable, well-structured outputs.
 
----
 
 ##  Key Features
 
