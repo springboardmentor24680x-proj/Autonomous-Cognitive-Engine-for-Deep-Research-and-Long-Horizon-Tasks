@@ -56,25 +56,7 @@ Final Structured Output
 
 ##  Project Structure
 
-Autonomous-Cognitive-Engine-for-Deep-Research/
-├── main.py # Supervisor & graph entry point
-├── ui.py # Streamlit UI
-├── research_graph.py # Research sub-agent graph
-├── summarizer_graph.py # Summarization sub-agent graph
-├── web_search_graph.py # Web search delegation
-├── llm_factory.py # Centralized LLM configuration
-├── vfs_tools.py # Persistent Virtual File System
-├── state.py # Shared agent state
-├── shared_resources.py # Shared tools and utilities
-├── venv/ # Virtual environment (ignored)
-├── pycache/ # Python cache (ignored)
-├── .gitignore
-├── LICENSE
-├── README.md
-└── requirements.txt
-
-
----
+<pre> ```text Autonomous-Cognitive-Engine-for-Deep-Research/ ├── main.py # Supervisor & graph entry point ├── ui.py # Streamlit UI ├── research_graph.py # Research sub-agent graph ├── summarizer_graph.py # Summarization sub-agent graph ├── web_search_graph.py # Web search delegation ├── llm_factory.py # Centralized LLM configuration ├── vfs_tools.py # Persistent Virtual File System ├── state.py # Shared agent state ├── shared_resources.py # Shared tools and utilities ├── venv/ # Virtual environment (ignored) ├── __pycache__/ # Python cache (ignored) ├── .gitignore ├── LICENSE ├── README.md └── requirements.txt ``` </pre>
 
 ##  Current Progress
 
