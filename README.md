@@ -39,7 +39,7 @@ Tool Execution
 ↓
 Final Structured Output
 
-yaml
+
 
 
 ---
@@ -73,8 +73,6 @@ Autonomous-Cognitive-Engine-for-Deep-Research/
 ├── README.md
 └── requirements.txt
 
-yaml
-Copy code
 
 ---
 
@@ -90,11 +88,11 @@ Copy code
 
 ##  Future Work
 
-- 🔹 Dedicated **Planner Agent**
-- 🔹 **Verification / Critic Agent**
-- 🔹 Advanced **LangGraph StateGraph routing**
-- 🔹 Long-term vector-based memory
-- 🔹 Additional tool integrations (calendar, APIs)
+-  Dedicated **Planner Agent**
+-  **Verification / Critic Agent**
+-  Advanced **LangGraph StateGraph routing**
+-  Long-term vector-based memory
+-  Additional tool integrations (calendar, APIs)
 
 ---
 
