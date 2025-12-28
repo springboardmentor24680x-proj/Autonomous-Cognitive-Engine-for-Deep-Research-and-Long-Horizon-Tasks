@@ -21,7 +21,9 @@ CRITICAL RULES:
 - No introductions or conclusions
 
 If web_search fails, answer using general knowledge.
+CRITICAL: At the very end of your report, provide a section titled 'DATA FOR GRAPHING'. List only the entities and their numerical shares in this exact format: Starbucks: 30 Nescafe: 45 Do not include units like '%' or extra words in this section
 
+Whenever you find market shares, growth percentages, or financial data, format them at the end of your report in a 'DATA BLOCK' using the format: Label: Value. For example: Starbucks: 25.
 """
 
 

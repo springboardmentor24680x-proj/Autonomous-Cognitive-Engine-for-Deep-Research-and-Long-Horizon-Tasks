@@ -1,7 +1,12 @@
 import os
 import datetime
 from dotenv import load_dotenv
-
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import pandas as pd
+import re
+import io
 # 1. Load environment variables IMMEDIATELY so sub-agents can see the API key
 load_dotenv()
 
@@ -11,7 +16,7 @@ from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
 from langchain_core.messages import HumanMessage
 # VFS tools
-from src.memory.vfs import write_file, read_file, ls, edit_file,clear_vfs
+from src.memory.vfs import write_file, read_file, ls, edit_file,clear_vfs,VFS
 
 # Calendar tools
 from src.tools.calendar_tools import add_event, list_events, delete_event
@@ -82,6 +87,10 @@ def setup_agent():
     - If a user asks to summarize a file, your ONLY valid response is a call to 'summarize_file'.
     - Providing a text response instead of a tool call is a CRITICAL FAILURE.
     
+    - VISUALIZATION: If the user mentions "trends", "shares", "comparison", or "graph", 
+      first call 'research_task', then call 'create_market_share_chart' using the research file as source.
+      
+      VISUALIZATION FEEDBACK: When you create a chart, inform the user that it is now visible in the 'Virtual Files' sidebar. Do not offer to 'show' the image in the chat, as it is already displayed in the UI
     Failure to use a tool when an action is requested is a system violation.
     """
 
@@ -184,6 +193,60 @@ def setup_agent():
             
         return f"Successfully added '{task_text}' to {filename}"
     
+    @tool
+    def create_market_share_chart(source_file: str) -> str:
+        """
+        Parses a research file for market data and generates a clean visualization.
+        Filters out system metadata like 'Time', 'Topic', and 'Data Block'.
+        """
+        content = read_file(source_file)
+        
+        # 1. Improved Regex to find "Label: Number"
+        matches = re.findall(r"([a-zA-Z\s]+):\s*(\d+(?:\.\d+)?)", content)
+        
+        if not matches:
+            return "No structured data found in file to visualize."
+
+        # 2. Filter out system metadata that ruins the chart
+        excluded_keys = {'time', 'topic', 'research topic', 'data block', 'date'}
+        labels = []
+        values = []
+
+        for label, val in matches:
+            clean_label = label.strip()
+            # Only keep the label if it's not system metadata
+            if clean_label.lower() not in excluded_keys and len(clean_label) > 1:
+                labels.append(clean_label)
+                values.append(float(val))
+
+        if not labels:
+            return "No valid market data found after filtering system metadata."
+
+        # 3. Create a Bar Chart (Recommended for readability)
+        # Pie charts get messy with more than 5 categories
+        plt.figure(figsize=(10, 6))
+        bars = plt.bar(labels, values, color='skyblue')
+        
+        # Add value labels on top of bars
+        for bar in bars:
+            yval = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width()/2, yval + 0.5, f'{yval}%', ha='center', va='bottom')
+
+        plt.xticks(rotation=45, ha='right')
+        plt.ylabel('Share / Value')
+        plt.title(f"Market Analysis: {source_file.lstrip('/')}")
+        plt.tight_layout() # CRITICAL: Prevents labels from being cut off
+
+        # 4. Save to Buffer and VFS
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close()
+        
+        clean_output_name = source_file.replace(".txt", "_chart.png").lstrip('/')
+        VFS[clean_output_name] = buf.getvalue() 
+        
+        return f"SUCCESS: Clean chart saved to VFS as {clean_output_name}"
+
     # Create main agent
     agent = create_deep_agent(
         tools=[
@@ -197,7 +260,8 @@ def setup_agent():
             research_task, 
             summarization_task,
             summarize_file,
-            create_work_todo
+            create_work_todo,
+            create_market_share_chart
         ],
         system_prompt=system_prompt,
         model=groq_client,
