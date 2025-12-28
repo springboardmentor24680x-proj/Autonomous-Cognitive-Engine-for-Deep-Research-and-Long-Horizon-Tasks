@@ -1,13 +1,19 @@
+import os
 from langchain_core.tools import tool
-
-# Mocked search result
-SEARCH_RESULT = """
-Model Context Protocol (MCP) is an open standard developed by Anthropic.
-It standardizes how AI models exchange context with tools, databases,
-and external systems, enabling better interoperability and context sharing.
-"""
+from tavily import TavilyClient
 
 @tool
 def web_search(query: str) -> str:
-    """Search the web for a topic and return results."""
-    return SEARCH_RESULT
+    """
+    Search the web for real-time information, news, or deep research data.
+    Use this when you need data from 2024 or 2025.
+    """
+    client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
+    
+    # We use 'search' with 'include_answer' for a quick summary 
+    # or 'advanced' for deeper research.
+    response = client.search(query=query, search_depth="advanced", max_results=5)
+    
+    # Format the results into a clean string for the agent
+    context = [f"Source: {obj['url']}\nContent: {obj['content']}" for obj in response['results']]
+    return "\n\n---\n\n".join(context)

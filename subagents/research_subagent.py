@@ -2,7 +2,7 @@ from langchain.chat_models import init_chat_model
 from langchain.agents import create_agent
 from src.tools.web_search import web_search
 from langchain_core.tools import tool
-
+from src.tools.web_search import web_search
 
 # @tool
 # def web_search(query: str) -> str:
@@ -28,9 +28,19 @@ Whenever you find market shares, growth percentages, or financial data, format t
 
 
 
-def build_research_agent(groq_client):
+def build_research_agent(groq_client, tools=None):
+    """
+    Updated to use the non-deprecated create_agent as 
+    suggested by your environment's warning.
+    """
+    # If no tools are passed, we default to the web_search tool
+    if tools is None:
+        tools = [web_search]
+
+    # Passing groq_client as the model and tools as the toolset.
+    # We use RESEARCH_PROMPT as the system_prompt parameter.
     return create_agent(
         model=groq_client,
-        tools=[web_search],
-        system_prompt=RESEARCH_PROMPT,
+        tools=tools,
+        system_prompt=RESEARCH_PROMPT
     )

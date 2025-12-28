@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import re
 import io
+from src.tools.web_search import web_search
 # 1. Load environment variables IMMEDIATELY so sub-agents can see the API key
 load_dotenv()
 
@@ -16,7 +17,7 @@ from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
 from langchain_core.messages import HumanMessage
 # VFS tools
-from src.memory.vfs import write_file, read_file, ls, edit_file,clear_vfs,VFS
+from src.memory.vfs import write_file, read_file, ls, edit_file,clear_vfs,delete_file,VFS
 
 # Calendar tools
 from src.tools.calendar_tools import add_event, list_events, delete_event
@@ -91,6 +92,12 @@ def setup_agent():
       first call 'research_task', then call 'create_market_share_chart' using the research file as source.
       
       VISUALIZATION FEEDBACK: When you create a chart, inform the user that it is now visible in the 'Virtual Files' sidebar. Do not offer to 'show' the image in the chat, as it is already displayed in the UI
+
+      WEB RESEARCH PROTOCOL:
+    - For any query requiring current events (2024-2025), pricing, or market shares, 
+      always use 'research_task' which now has live web access via Tavily.
+    - If the user asks a direct question about a recent event, you may use 'web_search' directly.
+
     Failure to use a tool when an action is requested is a system violation.
     """
 
@@ -102,7 +109,8 @@ def setup_agent():
     )
 
     # Build research sub-agent
-    research_agent = build_research_agent(tool_free_client)
+    # research_agent = build_research_agent(tool_free_client)
+    research_agent = build_research_agent(tool_free_client, tools=[web_search])
     #Build summarize sub_agent
     summarization_agent = build_summarization_agent(tool_free_client)
 
@@ -250,10 +258,12 @@ def setup_agent():
     # Create main agent
     agent = create_deep_agent(
         tools=[
+            web_search,
             write_file,
             read_file,
             ls,
             edit_file,
+            delete_file,
             add_event,
             list_events,
             delete_event,

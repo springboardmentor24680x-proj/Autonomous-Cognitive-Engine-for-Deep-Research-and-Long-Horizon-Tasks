@@ -45,3 +45,11 @@ def ls(*args, **kwargs) -> str:
     if not VFS:
         return "No files in VFS."
     return "Files: " + ", ".join(VFS.keys())
+
+def delete_file(filename: str) -> str:
+    """Removes a file from the Virtual File System."""
+    clean_name = filename.lstrip('/')
+    if clean_name in VFS:
+        del VFS[clean_name]
+        return f"SUCCESS: {clean_name} has been deleted."
+    return f"ERROR: File {clean_name} not found."
