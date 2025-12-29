@@ -204,48 +204,43 @@ def setup_agent():
     @tool
     def create_market_share_chart(source_file: str) -> str:
         """
-        Parses a research file for market data and generates a clean visualization.
-        Filters out system metadata like 'Time', 'Topic', and 'Data Block'.
+        Parses a research file specifically for the 'DATA FOR GRAPHING' section
+        to avoid plotting timestamps and metadata.
         """
         content = read_file(source_file)
         
-        # 1. Improved Regex to find "Label: Number"
-        matches = re.findall(r"([a-zA-Z\s]+):\s*(\d+(?:\.\d+)?)", content)
+        # 1. ONLY extract data from the designated block
+        if "DATA FOR GRAPHING" in content:
+            relevant_text = content.split("DATA FOR GRAPHING")[-1]
+        elif "DATA BLOCK" in content:
+            relevant_text = content.split("DATA BLOCK")[-1]
+        else:
+            relevant_text = content
+
+        # 2. Extract Label: Value pairs
+        matches = re.findall(r"([a-zA-Z\s]+):\s*(\d+(?:\.\d+)?)", relevant_text)
         
         if not matches:
-            return "No structured data found in file to visualize."
+            return "No valid data found in the Graphing section."
 
-        # 2. Filter out system metadata that ruins the chart
-        excluded_keys = {'time', 'topic', 'research topic', 'data block', 'date'}
-        labels = []
-        values = []
+        labels = [m[0].strip() for m in matches]
+        values = [float(m[1]) for m in matches]
 
-        for label, val in matches:
-            clean_label = label.strip()
-            # Only keep the label if it's not system metadata
-            if clean_label.lower() not in excluded_keys and len(clean_label) > 1:
-                labels.append(clean_label)
-                values.append(float(val))
-
-        if not labels:
-            return "No valid market data found after filtering system metadata."
-
-        # 3. Create a Bar Chart (Recommended for readability)
-        # Pie charts get messy with more than 5 categories
+        # 3. Create a Bar Chart (Much cleaner for brand names than a Pie Chart)
         plt.figure(figsize=(10, 6))
         bars = plt.bar(labels, values, color='skyblue')
         
-        # Add value labels on top of bars
+        # Add values on top of bars
         for bar in bars:
             yval = bar.get_height()
-            plt.text(bar.get_x() + bar.get_width()/2, yval + 0.5, f'{yval}%', ha='center', va='bottom')
+            plt.text(bar.get_x() + bar.get_width()/2, yval + 0.5, f'{int(yval)}', ha='center', va='bottom')
 
         plt.xticks(rotation=45, ha='right')
-        plt.ylabel('Share / Value')
+        plt.ylabel('Store Count / Share')
         plt.title(f"Market Analysis: {source_file.lstrip('/')}")
-        plt.tight_layout() # CRITICAL: Prevents labels from being cut off
+        plt.tight_layout() # This ensures names like 'Third Wave Coffee' don't get cut off
 
-        # 4. Save to Buffer and VFS
+        # 4. Save to VFS
         buf = io.BytesIO()
         plt.savefig(buf, format='png')
         plt.close()
