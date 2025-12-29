@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous Cognitive Engine</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            
+            /* CHOOSE ONE OF THESE BACKGROUND OPTIONS: */
+            
+            /* Option 1: Your Custom Image (replace with your image URL) */
+            background-color: #000000;
+            background-image: 
+                linear-gradient(rgba(255, 0, 255, 1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 0, 255, 1) 1px, transparent 1px),
+                linear-gradient(rgba(255, 0, 255, 0.3) 2px, transparent 2px),
+                linear-gradient(90deg, rgba(255, 0, 255, 0.3) 2px, transparent 2px);
+            background-size: 40px 40px, 40px 40px, 40px 40px, 40px 40px;
+            background-position: 0 0, 0 0, -1px -1px, -1px -1px;
+            
+            /* Option 2: Local Image (put image in static/backgrounds/ folder) */
+            /* background: url('/static/backgrounds/your-image.jpg') center/cover no-repeat; */
+            
+            /* Option 3: Animated Gradient */
+            /* background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite; */
+            
+            /* Option 4: Dark Theme */
+            /* background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 50%, #2d2d2d 100%); */
+            
+            /* Option 5: Nature Theme */
+            /* background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); */
+            
+            /* Option 6: Cyberpunk Theme */
+            /* background: linear-gradient(135deg, #ff006e 0%, #8338ec 50%, #3a86ff 100%); */
+            
+            /* Fallback color - PURE BLACK */
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Animation for animated gradient (uncomment if using Option 3) */
+        /*
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        */
+
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 20px;
+            box-shadow: 
+                0 0 30px rgba(255, 0, 255, 0.3),
+                0 20px 40px rgba(0,0,0,0.5),
+                inset 0 0 0 1px rgba(255, 0, 255, 0.2);
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            overflow: hidden;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+        }
+
+        .sidebar {
+            background: rgba(20, 20, 20, 0.9);
+            border-right: 1px solid rgba(255, 0, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+            color: #fff;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 0, 255, 0.3);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            color: #ff00ff;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: #cc99ff;
+        }
+
+        .sidebar-section {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 0, 255, 0.2);
+        }
+
+        .sidebar-section h3 {
+            font-size: 14px;
+            color: #ff00ff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px rgba(255, 0, 255, 0.3);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+        }
+
+        .file-list, .todo-list, .agent-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .file-item, .todo-item, .agent-item {
+            padding: 5px 0;
+            font-size: 12px;
+            color: #cc99ff;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 5px 8px;
+            border: 1px solid transparent;
+        }
+
+        .file-item:hover, .todo-item:hover, .agent-item:hover {
+            background: rgba(255, 0, 255, 0.1);
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            color: #ff00ff;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 0, 255, 0.3);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .chat-header h2 {
+            font-size: 20px;
+            color: #ff00ff;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: rgba(0, 0, 0, 0.4);
+            height: 0;
+            min-height: 0;
+            max-height: calc(90vh - 200px);
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+        }
+
+        .message.user .message-avatar {
+            background: #007bff;
+        }
+
+        .message.agent .message-avatar {
+            background: #28a745;
+        }
+
+        .message-content {
+            flex: 1;
+            max-width: 70%;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .message-bubble {
+            padding: 16px 20px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
+        
+        .message-bubble h1, .message-bubble h2, .message-bubble h3 {
+            margin: 16px 0 8px 0;
+            color: #ff00ff;
+            font-weight: 600;
+            text-shadow: 0 0 5px rgba(255, 0, 255, 0.3);
+        }
+        
+        .message-bubble h1 { font-size: 20px; }
+        .message-bubble h2 { font-size: 18px; }
+        .message-bubble h3 { font-size: 16px; }
+        
+        .message-bubble ul, .message-bubble ol {
+            margin: 12px 0;
+            padding-left: 24px;
+        }
+        
+        .message-bubble li {
+            margin: 6px 0;
+            line-height: 1.5;
+        }
+        
+        .message-bubble p {
+            margin: 12px 0;
+        }
+        
+        .message-bubble strong {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .message-bubble em {
+            font-style: italic;
+            color: #34495e;
+        }
+        
+        .message-bubble code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+        }
+        
+        .message-bubble pre {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #ff00ff 0%, #cc00cc 100%);
+            color: white;
+            margin-left: auto;
+            border: 1px solid rgba(255, 0, 255, 0.5);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+        }
+
+        .message.agent .message-bubble {
+            background: rgba(0, 0, 0, 0.7);
+            color: #cccccc;
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.2);
+        }
+
+        .message-meta {
+            font-size: 11px;
+            color: #6c757d;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        /* Enhanced Content Formatting */
+        .formatted-content {
+            line-height: 1.6;
+        }
+
+        .content-paragraph {
+            margin-bottom: 16px;
+        }
+
+        .content-h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 20px 0 16px 0;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+
+        .content-h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #34495e;
+            margin: 18px 0 14px 0;
+            border-left: 4px solid #3498db;
+            padding-left: 12px;
+        }
+
+        .content-h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 16px 0 12px 0;
+        }
+
+        .content-h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #34495e;
+            margin: 14px 0 10px 0;
+        }
+
+        .highlight {
+            font-weight: 700;
+            color: #2980b9;
+            background: linear-gradient(120deg, #a8e6cf 0%, #dcedc1 100%);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .emphasis {
+            font-style: italic;
+            color: #8e44ad;
+        }
+
+        .content-divider {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, #3498db, #9b59b6);
+            margin: 24px 0;
+            border-radius: 1px;
+        }
+
+        .numbered-list, .bullet-list {
+            margin: 12px 0;
+            padding-left: 24px;
+        }
+
+        .numbered-list li, .bullet-list li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .bullet-list {
+            list-style-type: disc;
+        }
+
+        .numbered-list {
+            list-style-type: decimal;
+        }
+
+        .inline-code {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .icon {
+            display: inline-block;
+            margin-right: 6px;
+            font-size: 16px;
+        }
+
+        .icon.research { color: #3498db; }
+        .icon.save { color: #27ae60; }
+        .icon.document { color: #f39c12; }
+        .icon.check { color: #2ecc71; }
+
+        /* Enhanced Table Styling */
+        .formatted-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .formatted-content th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .formatted-content td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .formatted-content tr:last-child td {
+            border-bottom: none;
+        }
+
+        .formatted-content tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        /* Budget and Planning Specific Styles */
+        .budget-category {
+            background: #e8f5e8;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 4px 0;
+            border-left: 4px solid #27ae60;
+        }
+
+        .planning-step {
+            background: #e3f2fd;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 4px 0;
+            border-left: 4px solid #2196f3;
+        }
+
+        .cost-highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #856404;
+        }
+
+        .message.agent .message-meta {
+            text-align: left;
+        }
+
+        .thinking {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 18px;
+            font-size: 14px;
+            color: #856404;
+        }
+
+        .thinking-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .thinking-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #856404;
+            animation: thinking 1.4s infinite ease-in-out;
+        }
+
+        .thinking-dot:nth-child(1) { animation-delay: -0.32s; }
+        .thinking-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes thinking {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 0, 255, 0.3);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .input-container {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .input-field {
+            flex: 1;
+            min-height: 44px;
+            max-height: 120px;
+            padding: 12px 16px;
+            border: 2px solid rgba(255, 0, 255, 0.4);
+            border-radius: 22px;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            font-family: inherit;
+            background: rgba(0, 0, 0, 0.7);
+            color: #cccccc;
+        }
+
+        .input-field:focus {
+            border-color: #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+        }
+
+        .input-field::placeholder {
+            color: #999999;
+        }
+
+        .send-button {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff00ff 0%, #cc00cc 100%);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: #0056b3;
+        }
+
+        .send-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+        }
+
+        .tools-used {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 8px;
+            padding: 4px 8px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: inline-block;
+            border: 1px solid #e9ecef;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .chat-messages {
+                -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>🤖 Cognitive Engine</h1>
+                <p>Autonomous AI Assistant</p>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>Status</h3>
+                <div class="status-indicator">
+                    <div class="status-dot" id="status-dot"></div>
+                    <span id="status-text">Connected</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>📁 Virtual Files</h3>
+                <div class="file-list" id="file-list">
+                    <div class="file-item">Loading...</div>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>📋 TODOs</h3>
+                <div class="todo-list" id="todo-list">
+                    <div class="todo-item">Loading...</div>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>🤖 Sub-Agents</h3>
+                <div class="agent-list" id="agent-list">
+                    <div class="agent-item">Loading...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="chat-header">
+                <h2>💬 Chat with Agent</h2>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <div class="message agent">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            Hello! I'm your Autonomous Cognitive Engine. I can help you with research, planning, file management, and complex multi-step tasks. What would you like to work on today?
+                        </div>
+                        <div class="message-meta">Just now</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <div class="input-container">
+                    <textarea 
+                        id="message-input" 
+                        class="input-field" 
+                        placeholder="Ask me anything... I can research, plan, manage files, and delegate tasks!"
+                        rows="1"
+                    ></textarea>
+                    <button id="send-button" class="send-button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Socket.IO
+        const socket = io();
+        
+        // DOM elements
+        const messagesContainer = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        
+        // State
+        let isThinking = false;
+        
+        // Socket event handlers
+        socket.on('connect', () => {
+            updateStatus('connected', 'Connected');
+            loadSidebarData();
+        });
+        
+        socket.on('disconnect', () => {
+            updateStatus('disconnected', 'Disconnected');
+        });
+        
+        socket.on('thinking', (data) => {
+            showThinking();
+        });
+        
+        socket.on('response', (data) => {
+            hideThinking();
+            addMessage('agent', data.message, data.tools_used);
+            loadSidebarData(); // Refresh sidebar after agent action
+        });
+        
+        socket.on('error', (data) => {
+            hideThinking();
+            addErrorMessage(data.message);
+        });
+        
+        // UI functions
+        function updateStatus(status, text) {
+            statusText.textContent = text;
+            statusDot.style.background = status === 'connected' ? '#28a745' : '#dc3545';
+        }
+        
+        function formatMessage(content) {
+            // Enhanced markdown-like formatting for sophisticated content
+            let formatted = content
+                // Headers (process largest first to avoid conflicts)
+                .replace(/^#### (.*$)/gm, '<h4 class="content-h4">$1</h4>')
+                .replace(/^### (.*$)/gm, '<h3 class="content-h3">$1</h3>')
+                .replace(/^## (.*$)/gm, '<h2 class="content-h2">$1</h2>')
+                .replace(/^# (.*$)/gm, '<h1 class="content-h1">$1</h1>')
+                // Bold text (enhanced)
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="highlight">$1</strong>')
+                // Italic text
+                .replace(/\*(.*?)\*/g, '<em class="emphasis">$1</em>')
+                // Horizontal rules
+                .replace(/^---$/gm, '<hr class="content-divider">')
+                // Code blocks
+                .replace(/```([\s\S]*?)```/g, '<pre class="code-block">$1</pre>')
+                // Inline code
+                .replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
+                // Numbered lists
+                .replace(/^\d+\.\s+(.*$)/gm, '<li class="numbered-item">$1</li>')
+                // Bullet lists
+                .replace(/^[-*]\s+(.*$)/gm, '<li class="bullet-item">$1</li>')
+                // Tables (simple pipe format)
+                .replace(/\|(.+)\|/g, function(match, content) {
+                    const cells = content.split('|').map(cell => cell.trim());
+                    return '<tr>' + cells.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+                })
+                // Emojis and special markers
+                .replace(/🔍/g, '<span class="icon research">🔍</span>')
+                .replace(/💾/g, '<span class="icon save">💾</span>')
+                .replace(/📄/g, '<span class="icon document">📄</span>')
+                .replace(/✓/g, '<span class="icon check">✓</span>')
+                // Cost highlighting
+                .replace(/\$[\d,]+/g, '<span class="cost-highlight">$&</span>')
+                // Line breaks and paragraphs
+                .replace(/\n\n/g, '</p><p class="content-paragraph">')
+                .replace(/\n/g, '<br>');
+            
+            // Wrap in paragraphs
+            formatted = '<div class="formatted-content"><p class="content-paragraph">' + formatted + '</p></div>';
+            
+            // Clean up empty paragraphs
+            formatted = formatted.replace(/<p class="content-paragraph"><\/p>/g, '');
+            
+            // Handle lists properly
+            formatted = formatted.replace(/(<li class="numbered-item">.*?<\/li>)/gs, function(match) {
+                return '<ol class="numbered-list">' + match.replace(/class="numbered-item"/g, '') + '</ol>';
+            });
+            
+            formatted = formatted.replace(/(<li class="bullet-item">.*?<\/li>)/gs, function(match) {
+                return '<ul class="bullet-list">' + match.replace(/class="bullet-item"/g, '') + '</ul>';
+            });
+            
+            // Merge consecutive lists
+            formatted = formatted.replace(/<\/ol><ol class="numbered-list">/g, '');
+            formatted = formatted.replace(/<\/ul><ul class="bullet-list">/g, '');
+            
+            // Wrap table rows in table element
+            if (formatted.includes('<tr>')) {
+                formatted = formatted.replace(/(<tr>.*?<\/tr>)/gs, function(match) {
+                    return '<table>' + match + '</table>';
+                });
+                // Merge consecutive tables
+                formatted = formatted.replace(/<\/table><table>/g, '');
+            }
+            
+            return formatted;
+        }
+        
+        function addMessage(sender, content, toolsUsed = 0) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatar = sender === 'user' ? '👤' : '🤖';
+            const timestamp = new Date().toLocaleTimeString();
+            
+            // Format agent messages for better readability
+            const formattedContent = sender === 'agent' ? formatMessage(content) : content;
+            
+            let toolsInfo = '';
+            if (sender === 'agent' && toolsUsed > 0) {
+                toolsInfo = `<div class="tools-used">🛠️ Used ${toolsUsed} tools</div>`;
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">
+                    <div class="message-bubble">${formattedContent}</div>
+                    <div class="message-meta">${timestamp}</div>
+                    ${toolsInfo}
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        function addErrorMessage(error) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'message agent';
+            errorDiv.innerHTML = `
+                <div class="message-avatar">⚠️</div>
+                <div class="message-content">
+                    <div class="error-message">Error: ${error}</div>
+                    <div class="message-meta">${new Date().toLocaleTimeString()}</div>
+                </div>
+            `;
+            messagesContainer.appendChild(errorDiv);
+            scrollToBottom();
+        }
+        
+        function showThinking() {
+            if (isThinking) return;
+            isThinking = true;
+            
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.className = 'message agent';
+            thinkingDiv.id = 'thinking-message';
+            thinkingDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="thinking">
+                        <span>Agent is thinking</span>
+                        <div class="thinking-dots">
+                            <div class="thinking-dot"></div>
+                            <div class="thinking-dot"></div>
+                            <div class="thinking-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(thinkingDiv);
+            scrollToBottom();
+        }
+        
+        function hideThinking() {
+            isThinking = false;
+            const thinkingMessage = document.getElementById('thinking-message');
+            if (thinkingMessage) {
+                thinkingMessage.remove();
+            }
+        }
+        
+        function scrollToBottom() {
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
+        }
+        
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || isThinking) return;
+            
+            addMessage('user', message);
+            socket.emit('chat_message', { message });
+            
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            sendButton.disabled = true;
+        }
+        
+        // Load sidebar data
+        async function loadSidebarData() {
+            try {
+                // Load VFS files
+                const filesResponse = await fetch('/api/vfs/files');
+                const filesData = await filesResponse.json();
+                updateFileList(filesData.files || []);
+                
+                // Load TODOs
+                const todosResponse = await fetch('/api/todos');
+                const todosData = await todosResponse.json();
+                updateTodoList(todosData.todos || []);
+                
+                // Load sub-agents
+                const agentsResponse = await fetch('/api/sub-agents');
+                const agentsData = await agentsResponse.json();
+                updateAgentList(agentsData.agents || []);
+                
+            } catch (error) {
+                console.error('Error loading sidebar data:', error);
+            }
+        }
+        
+        function updateFileList(files) {
+            const fileList = document.getElementById('file-list');
+            if (files.length === 0) {
+                fileList.innerHTML = '<div class="file-item">No files yet</div>';
+            } else {
+                fileList.innerHTML = files.map(file => 
+                    `<div class="file-item" onclick="viewFile('${file}')">📄 ${file}</div>`
+                ).join('');
+            }
+        }
+        
+        function updateTodoList(todos) {
+            const todoList = document.getElementById('todo-list');
+            if (todos.length === 0) {
+                todoList.innerHTML = '<div class="todo-item">No TODOs</div>';
+            } else {
+                todoList.innerHTML = todos.map(todo => 
+                    `<div class="todo-item">📋 ${todo.task}</div>`
+                ).join('');
+            }
+        }
+        
+        function updateAgentList(agents) {
+            const agentList = document.getElementById('agent-list');
+            if (agents.length === 0) {
+                agentList.innerHTML = '<div class="agent-item">No sub-agents</div>';
+            } else {
+                agentList.innerHTML = agents.map(agent => 
+                    `<div class="agent-item">🤖 ${agent.name}</div>`
+                ).join('');
+            }
+        }
+        
+        async function viewFile(filename) {
+            try {
+                const response = await fetch(`/api/vfs/file/${filename}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addMessage('agent', `📄 **${filename}** (${data.size} chars)\n\n${data.content}`);
+                } else {
+                    addErrorMessage(`Could not read file: ${data.error}`);
+                }
+            } catch (error) {
+                addErrorMessage(`Error reading file: ${error.message}`);
+            }
+        }
+        
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        messageInput.addEventListener('input', () => {
+            // Auto-resize textarea
+            messageInput.style.height = 'auto';
+            messageInput.style.height = messageInput.scrollHeight + 'px';
+            
+            // Enable/disable send button
+            sendButton.disabled = !messageInput.value.trim() || isThinking;
+        });
+        
+        // Load initial data
+        loadSidebarData();
+    </script>
+</body>
+</html>
