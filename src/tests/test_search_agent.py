@@ -5,7 +5,6 @@ def test_search_agent(monkeypatch):
     def mock_web_search(query):
         return f"Mocked search result for: {query}"
 
-    # ✅ Patch where web_search is USED
     monkeypatch.setattr(
         "agents.search_agent.web_search",
         mock_web_search
