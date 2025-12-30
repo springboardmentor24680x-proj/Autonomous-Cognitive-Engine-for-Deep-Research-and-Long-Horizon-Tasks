@@ -5,6 +5,8 @@ import streamlit as st
 # In-memory VFS
 # ----------------------------
 VFS = {}
+def normalize_filename(filename: str) -> str:
+    return filename.lstrip("/")
 
 def clear_vfs():
     """Clears all files from the VFS memory."""
@@ -20,6 +22,7 @@ def write_file(filename: str, content: str) -> str:
     """
     Appends content to a file in the VFS.
     """
+    filename = normalize_filename(filename)
     if filename in VFS:
         VFS[filename] += "\n" + content
     else:
@@ -29,12 +32,14 @@ def write_file(filename: str, content: str) -> str:
 
 def read_file(filename: str) -> str:
     """Reads and returns the content of the file from the VFS. Input: filename (str)."""
+    filename = normalize_filename(filename)
     if filename in VFS:
         return VFS[filename]
     return f"File '{filename}' not found."
 
 def edit_file(filename: str, new_content: str) -> str:
     """Updates the content of an existing file in the VFS. Inputs: filename (str), new_content (str)."""
+    filename = normalize_filename(filename)
     if filename not in VFS:
         return f"File '{filename}' does not exist."
     VFS[filename] = new_content

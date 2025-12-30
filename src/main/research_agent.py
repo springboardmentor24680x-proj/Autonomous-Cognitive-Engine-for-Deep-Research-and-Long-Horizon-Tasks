@@ -53,6 +53,7 @@ def setup_agent():
     - Files: write_file, read_file, edit_file, ls
     - Calendar: add_event, list_events, delete_event
     - Sub-agents: research_task, summarization_task
+    - Visualization: create_visualization
 
     RULES:
     1. Use tools for ALL research, summarization, file access, and scheduling.
@@ -88,8 +89,12 @@ def setup_agent():
     - If a user asks to summarize a file, your ONLY valid response is a call to 'summarize_file'.
     - Providing a text response instead of a tool call is a CRITICAL FAILURE.
     
-    - VISUALIZATION: If the user mentions "trends", "shares", "comparison", or "graph", 
-      first call 'research_task', then call 'create_market_share_chart' using the research file as source.
+    VISUALIZATION HARD GATE (MANDATORY):
+    - The agent MUST NOT create any visualization unless the user explicitly uses words like:
+    "create", "generate", "draw", or "visualize" AND specifies a chart type.
+    - Phrases such as "data for graphing", "numerical breakdown", or "values for charts"
+    do NOT authorize visualization.
+    - If visualization is not explicitly requested, creating one is a CRITICAL FAILURE.
       
       VISUALIZATION FEEDBACK: When you create a chart, inform the user that it is now visible in the 'Virtual Files' sidebar. Do not offer to 'show' the image in the chat, as it is already displayed in the UI
 
@@ -201,54 +206,189 @@ def setup_agent():
             
         return f"Successfully added '{task_text}' to {filename}"
     
+    # @tool
+    # def create_market_share_chart(source_file: str) -> str:
+    #     """
+    #     Parses a research file specifically for the 'DATA FOR GRAPHING' section
+    #     to avoid plotting timestamps and metadata.
+    #     """
+    #     content = read_file(source_file)
+        
+    #     # 1. ONLY extract data from the designated block
+    #     if "DATA FOR GRAPHING" in content:
+    #         relevant_text = content.split("DATA FOR GRAPHING")[-1]
+    #     elif "DATA BLOCK" in content:
+    #         relevant_text = content.split("DATA BLOCK")[-1]
+    #     else:
+    #         relevant_text = content
+
+    #     # 2. Extract Label: Value pairs
+    #     matches = re.findall(r"([a-zA-Z\s]+):\s*(\d+(?:\.\d+)?)", relevant_text)
+        
+    #     if not matches:
+    #         return "No valid data found in the Graphing section."
+
+    #     labels = [m[0].strip() for m in matches]
+    #     values = [float(m[1]) for m in matches]
+
+    #     # 3. Create a Bar Chart (Much cleaner for brand names than a Pie Chart)
+    #     plt.figure(figsize=(10, 6))
+    #     bars = plt.bar(labels, values, color='skyblue')
+        
+    #     # Add values on top of bars
+    #     for bar in bars:
+    #         yval = bar.get_height()
+    #         plt.text(bar.get_x() + bar.get_width()/2, yval + 0.5, f'{int(yval)}', ha='center', va='bottom')
+
+    #     plt.xticks(rotation=45, ha='right')
+    #     plt.ylabel('Store Count / Share')
+    #     plt.title(f"Market Analysis: {source_file.lstrip('/')}")
+    #     plt.tight_layout() # This ensures names like 'Third Wave Coffee' don't get cut off
+
+    #     # 4. Save to VFS
+    #     buf = io.BytesIO()
+    #     plt.savefig(buf, format='png')
+    #     plt.close()
+        
+    #     clean_output_name = source_file.replace(".txt", "_chart.png").lstrip('/')
+    #     VFS[clean_output_name] = buf.getvalue() 
+        
+    #     return f"SUCCESS: Clean chart saved to VFS as {clean_output_name}"
+
     @tool
-    def create_market_share_chart(source_file: str) -> str:
+    def create_visualization(
+        source_file: str,
+        chart_type: str,
+        title: str = ""
+    ) -> str:
         """
-        Parses a research file specifically for the 'DATA FOR GRAPHING' section
-        to avoid plotting timestamps and metadata.
+        Unified visualization tool with strict validation.
+        Reads data ONLY from 'DATA FOR GRAPHING' section and
+        prevents invalid chart-data combinations.
         """
+
+        import re
+        import io
+        import matplotlib.pyplot as plt
+
+        # ---------- FILE READ ----------
         content = read_file(source_file)
-        
-        # 1. ONLY extract data from the designated block
+
+        if isinstance(content, str) and content.startswith("File"):
+            return f"Error: {content}"
+
+        # ---------- DATA BLOCK EXTRACTION ----------
         if "DATA FOR GRAPHING" in content:
-            relevant_text = content.split("DATA FOR GRAPHING")[-1]
+            relevant_text = content.split("DATA FOR GRAPHING")[-1].strip()
         elif "DATA BLOCK" in content:
-            relevant_text = content.split("DATA BLOCK")[-1]
+            relevant_text = content.split("DATA BLOCK")[-1].strip()
         else:
-            relevant_text = content
+            return (
+                "Visualization failed: No 'DATA FOR GRAPHING' section found. "
+                "Ensure the research output includes a dedicated graphing block."
+            )
 
-        # 2. Extract Label: Value pairs
-        matches = re.findall(r"([a-zA-Z\s]+):\s*(\d+(?:\.\d+)?)", relevant_text)
-        
-        if not matches:
-            return "No valid data found in the Graphing section."
+        if not relevant_text:
+            return "Visualization failed: Graphing data section is empty."
 
-        labels = [m[0].strip() for m in matches]
-        values = [float(m[1]) for m in matches]
+        chart_type = chart_type.lower()
 
-        # 3. Create a Bar Chart (Much cleaner for brand names than a Pie Chart)
-        plt.figure(figsize=(10, 6))
-        bars = plt.bar(labels, values, color='skyblue')
-        
-        # Add values on top of bars
-        for bar in bars:
-            yval = bar.get_height()
-            plt.text(bar.get_x() + bar.get_width()/2, yval + 0.5, f'{int(yval)}', ha='center', va='bottom')
+        # ---------- LINE / AREA ----------
+        if chart_type in {"line", "area"}:
+            matches = re.findall(r"(\d{4})\s*:\s*(\d+(?:\.\d+)?)", relevant_text)
 
-        plt.xticks(rotation=45, ha='right')
-        plt.ylabel('Store Count / Share')
-        plt.title(f"Market Analysis: {source_file.lstrip('/')}")
-        plt.tight_layout() # This ensures names like 'Third Wave Coffee' don't get cut off
+            if not matches:
+                return (
+                    "Invalid data for line/area chart. "
+                    "Expected format: Year: Value (e.g., 2023: 120)"
+                )
 
-        # 4. Save to VFS
+            x = [int(m[0]) for m in matches]
+            y = [float(m[1]) for m in matches]
+            x, y = zip(*sorted(zip(x, y)))
+
+            plt.figure(figsize=(10, 6))
+            if chart_type == "line":
+                plt.plot(x, y, marker="o", linewidth=2)
+            else:
+                plt.fill_between(x, y, alpha=0.6)
+
+            plt.xlabel("Year")
+            plt.ylabel("Value")
+
+        # ---------- BAR / HORIZONTAL BAR / PIE ----------
+        elif chart_type in {"bar", "horizontal_bar", "pie"}:
+            matches = re.findall(r"([a-zA-Z\s]+):\s*(\d+(?:\.\d+)?)", relevant_text)
+
+            if not matches:
+                return (
+                    "Invalid data for bar/pie chart. "
+                    "Expected format: Label: Value (e.g., Online: 40)"
+                )
+
+            labels = [m[0].strip() for m in matches]
+            values = [float(m[1]) for m in matches]
+
+            plt.figure(figsize=(10, 6))
+
+            if chart_type == "bar":
+                plt.bar(labels, values)
+                plt.xticks(rotation=45, ha="right")
+
+            elif chart_type == "horizontal_bar":
+                plt.barh(labels, values)
+
+            else:  # pie
+                plt.pie(values, labels=labels, autopct="%1.1f%%")
+
+            plt.ylabel("Value")
+
+        # ---------- SCATTER ----------
+        elif chart_type == "scatter":
+            # Guard against categorical data misuse
+            if ":" in relevant_text:
+                return (
+                    "Invalid chart choice: Scatter plots require numeric X,Y pairs. "
+                    "Use 'pie' or 'bar' for category-value data."
+                )
+
+            matches = re.findall(r"([\d\.]+)\s*,\s*([\d\.]+)", relevant_text)
+
+            if not matches:
+                return (
+                    "Invalid data for scatter plot. "
+                    "Expected format: X, Y (numeric pairs)."
+                )
+
+            x = [float(m[0]) for m in matches]
+            y = [float(m[1]) for m in matches]
+
+            plt.figure(figsize=(8, 6))
+            plt.scatter(x, y)
+            plt.xlabel("X")
+            plt.ylabel("Y")
+
+        # ---------- UNSUPPORTED ----------
+        else:
+            return (
+                f"Unsupported chart type: '{chart_type}'. "
+                "Supported types: line, area, bar, horizontal_bar, pie, scatter."
+            )
+
+        # ---------- FINALIZE ----------
+        final_title = title if title else f"{chart_type.title()} Visualization"
+        plt.title(final_title)
+        plt.tight_layout()
+
         buf = io.BytesIO()
-        plt.savefig(buf, format='png')
+        plt.savefig(buf, format="png")
         plt.close()
-        
-        clean_output_name = source_file.replace(".txt", "_chart.png").lstrip('/')
-        VFS[clean_output_name] = buf.getvalue() 
-        
-        return f"SUCCESS: Clean chart saved to VFS as {clean_output_name}"
+
+        output_name = source_file.replace(".txt", f"_{chart_type}.png").lstrip("/")
+        VFS[output_name] = buf.getvalue()
+
+        return f"SUCCESS: {chart_type} chart saved to VFS as {output_name}"
+
 
     # Create main agent
     agent = create_deep_agent(
@@ -266,7 +406,7 @@ def setup_agent():
             summarization_task,
             summarize_file,
             create_work_todo,
-            create_market_share_chart
+            create_visualization
         ],
         system_prompt=system_prompt,
         model=groq_client,
