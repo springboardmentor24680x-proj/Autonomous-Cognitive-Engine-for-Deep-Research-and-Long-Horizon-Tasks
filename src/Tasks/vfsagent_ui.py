@@ -28,7 +28,7 @@ if "last_ai_msg_id" not in st.session_state:
 # Sidebar Controls
 # -------------------------------
 with st.sidebar:
-    if st.button("🧹 Clear chat"):
+    if st.button(" Clear chat"):
         st.session_state.chat_history = []
         st.session_state.agent_state = None
         st.session_state.last_ai_msg_id = None
