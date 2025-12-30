@@ -1,9 +1,9 @@
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage
 from state import AgentState
-from llm_factory import make_llm
-from vfs_tools import VirtualFileSystem
-from shared_resources import vfs
+from tools.llm_factory import make_llm
+from memory.vfs import VirtualFileSystem
+from tools.shared_resources import vfs
 
 
 vfs = VirtualFileSystem()

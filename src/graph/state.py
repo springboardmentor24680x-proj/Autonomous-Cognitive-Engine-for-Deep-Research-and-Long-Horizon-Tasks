@@ -1,13 +1,7 @@
-from typing import TypedDict, List, Optional
-from langchain_core.messages import BaseMessage
-
+# src/graph/state.py
+from typing import TypedDict, List, Any
 
 class AgentState(TypedDict):
-    # Conversation history
-    messages: List[BaseMessage]
-
-    # Web search output (if any)
-    search_results: Optional[str]
-
-    # Router decision flag
-    needs_web: Optional[bool]
+    messages: List[Any]
+    search_results: str
+    next_node: str

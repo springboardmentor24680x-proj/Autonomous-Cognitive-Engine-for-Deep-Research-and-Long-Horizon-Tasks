@@ -1,21 +1,10 @@
+# src/app.py
 import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage
-from langsmith import traceable
 
-from src.graph.state_graph import app          # compiled LangGraph
-from src.graph.state import AgentState
-from src.memory.vfs import VirtualFileSystem
+from core_app import create_initial_state, invoke_chat, vfs
 
-# ----------------- Shared VFS -----------------
-# IMPORTANT: must match the one used in graph
-vfs = VirtualFileSystem()
-
-# ----------------- Agent Runner -----------------
-@traceable(name="chat_turn")
-def run_agent(state: AgentState):
-    return app.invoke(state)
-
-# ----------------- Streamlit Page Config -----------------
+# ---------------- Page Config ----------------
 st.set_page_config(
     page_title="LangGraph AI Chatbot",
     layout="wide"
@@ -23,13 +12,9 @@ st.set_page_config(
 
 st.title("LangGraph Multi-Agent Chatbot")
 
-# ----------------- Initialize Session State -----------------
+# ---------------- Session State ----------------
 if "state" not in st.session_state:
-    st.session_state.state = AgentState(
-        messages=[],
-        search_results=None,
-        needs_web=None,
-    )
+    st.session_state.state = create_initial_state()
 
 if "displayed_ai" not in st.session_state:
     st.session_state.displayed_ai = []
@@ -37,14 +22,14 @@ if "displayed_ai" not in st.session_state:
 if "vfs_files" not in st.session_state:
     st.session_state.vfs_files = vfs.ls()
 
-# ----------------- Main Chat Display -----------------
+# ---------------- Display Chat ----------------
 for msg in st.session_state.state["messages"]:
     if isinstance(msg, HumanMessage):
         st.chat_message("user").write(msg.content)
     elif isinstance(msg, AIMessage):
         st.chat_message("assistant").write(msg.content)
 
-# ----------------- Sidebar: Virtual File System -----------------
+# ---------------- Sidebar: VFS ----------------
 with st.sidebar:
     st.title("Virtual File System")
 
@@ -60,31 +45,25 @@ with st.sidebar:
     else:
         st.info("No files created yet.")
 
-# ----------------- Chat Input -----------------
+# ---------------- Chat Input ----------------
 user_input = st.chat_input("Type your query here...")
 
 if user_input:
-    # Append user message
-    st.session_state.state["messages"].append(
-        HumanMessage(content=user_input)
-    )
-
     st.chat_message("user").write(user_input)
 
-    # Run agent
-    st.session_state.state = run_agent(st.session_state.state)
+    st.session_state.state = invoke_chat(
+        st.session_state.state,
+        user_input
+    )
 
-    # Display only new AI messages
     for msg in st.session_state.state["messages"]:
         if isinstance(msg, AIMessage) and msg not in st.session_state.displayed_ai:
             st.chat_message("assistant").write(msg.content)
 
-    # Track displayed AI messages
     st.session_state.displayed_ai = [
-        m for m in st.session_state.state["messages"] if isinstance(m, AIMessage)
+        m for m in st.session_state.state["messages"]
+        if isinstance(m, AIMessage)
     ]
 
-    # Refresh VFS
     st.session_state.vfs_files = vfs.ls()
-
     st.rerun()

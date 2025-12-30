@@ -1,6 +1,6 @@
 from tavily import TavilyClient
 from langchain_core.messages import AIMessage
-from vfs_tools import vfs
+from memory.vfs import vfs
 
 tavily = TavilyClient()
 

@@ -1,6 +1,10 @@
-from llm_factory import make_llm
-from vfs_tools import vfs
+from tools.llm_factory import make_llm
+from memory.vfs import VirtualFileSystem
+
 from langchain_core.messages import AIMessage
+
+vfs = VirtualFileSystem()
+
 
 class ResearchAgent:
     @staticmethod
