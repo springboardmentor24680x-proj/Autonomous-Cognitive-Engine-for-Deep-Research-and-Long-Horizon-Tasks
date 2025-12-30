@@ -1,3 +1,16 @@
 __pycache__/
 .env
 .env.*
+
+# Virtual environment
+.venv/
+
+# Environment variables
+.env
+
+# Generated text files
+*.txt
+
+# Python cache
+__pycache__/
+*.pyc
