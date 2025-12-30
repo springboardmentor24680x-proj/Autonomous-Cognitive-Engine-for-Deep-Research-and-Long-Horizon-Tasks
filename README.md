@@ -41,32 +41,32 @@ The approach focuses on maintaining clear boundaries between components while al
 
 ## 5. Setup (Windows Only)
 
-### Step 1: Clone the Repository
+-### Step 1: Clone the Repository
 git clone https://github.com/springboardmentor24680x-proj/Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks.git
 cd Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
 git checkout intern-divyadharshini
-###Step 2: Create a Virtual Environment:python -m venv .venv
-###Step 3: Activate the Virtual Environment:.venv\Scripts\activate
-##Step 4: Install Dependencies:pip install -r requirements.txt
-Step 5: Configure Environment Variables
+-###Step 2: Create a Virtual Environment:python -m venv .venv
+-###Step 3: Activate the Virtual Environment:.venv\Scripts\activate
+-##Step 4: Install Dependencies:pip install -r requirements.txt
+-###Step 5: Configure Environment Variables
 Create a .env file in the root directory and add the required API keys and configuration values.
 
 ---
 
 ##6. Usage
-1.Execute the main agent script to start the system:python agents/agent.py
-2.Add and manage tasks using the task management module.
-3.Perform file operations such as reading, writing, and editing using VFS tools.
-4.Extend the system by adding new agents or tools following the existing modular structure.
+-1.Execute the main agent script to start the system:python agents/agent.py
+-2.Add and manage tasks using the task management module.
+-3.Perform file operations such as reading, writing, and editing using VFS tools.
+-4.Extend the system by adding new agents or tools following the existing modular structure.
 
 ---
 
 ##7. Limitations / Troubleshooting
-1.Large files or datasets should not be pushed to GitHub.
-2.Always ensure work is done on the assigned branch and not on the main branch.
-3.Missing or incorrect environment variables may cause execution failures.
-4.Dependency issues can be resolved by reinstalling packages from requirements.txt.
-5.Performance may vary based on system resources and API usage limits.
-6.Review terminal logs and error messages for debugging issues.
+-1.Large files or datasets should not be pushed to GitHub.
+-2.Always ensure work is done on the assigned branch and not on the main branch.
+-3.Missing or incorrect environment variables may cause execution failures.
+-4.Dependency issues can be resolved by reinstalling packages from requirements.txt.
+-5.Performance may vary based on system resources and API usage limits.
+-6.Review terminal logs and error messages for debugging issues.
 
 ---
