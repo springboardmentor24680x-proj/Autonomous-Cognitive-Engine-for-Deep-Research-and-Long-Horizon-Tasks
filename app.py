@@ -1,151 +1,68 @@
-# import sys
-# import os
-# sys.path.append(os.path.abspath("."))
-
-# import streamlit as st
-# from dotenv import load_dotenv
-# from src.graph.state_graph import build_graph
-
-
-# load_dotenv()
-
-# st.set_page_config("Autonomous Cognitive Engine", layout="wide")
-
-# # -------- INIT STATE --------
-# if "agent_state" not in st.session_state:
-#     st.session_state.agent_state = {
-#         "messages": [
-#             {
-#                 "role": "assistant",
-#                 "content": "Hello! I automatically remember important things.",
-#             }
-#         ],
-#         "todos": [],
-#         "files": {},
-#     }
-
-# state = st.session_state.agent_state
-
-# # -------- SIDEBAR --------
-# with st.sidebar:
-#     st.title("📝 TODOS")
-#     for t in state["todos"]:
-#         st.write(("✅" if t["done"] else "⬜"), t["task"])
-
-#     st.divider()
-#     st.title("🧠 VFS Memory")
-#     for f in state["files"]:
-#         st.write(f)
-
-# # -------- CHAT --------
-# st.title("Autonomous Cognitive Engine")
-
-# for msg in state["messages"]:
-#     with st.chat_message(msg["role"]):
-#         st.markdown(msg["content"])
-
-# if user_input := st.chat_input("What should I do?"):
-#     state["messages"].append({"role": "user", "content": user_input})
-
-#     with st.chat_message("user"):
-#         st.markdown(user_input)
-
-#     with st.spinner("Thinking..."):
-#         st.session_state.agent_state = agent_step(user_input, state)
-#         st.rerun()
 import sys
 import os
-
-# Ensure src is importable
-sys.path.append(os.path.abspath("."))
-
-import streamlit as st
 from dotenv import load_dotenv
-
-from src.graph.state_graph import build_graph
-
-# -------------------------------------------------
-# ENV SETUP
-# -------------------------------------------------
 load_dotenv()
 
-st.set_page_config(
-    page_title="Autonomous Cognitive Engine",
-    layout="wide"
-)
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+if ROOT_DIR not in sys.path:
+    sys.path.append(ROOT_DIR)
 
-# -------------------------------------------------
-# INIT GRAPH
-# -------------------------------------------------
-graph = build_graph()
+from src.memory.vfs import append_file
 
-# -------------------------------------------------
-# INIT STATE
-# -------------------------------------------------
-if "agent_state" not in st.session_state:
-    st.session_state.agent_state = {
-        "messages": [
-            {
-                "role": "assistant",
-                "content": "Hello! I automatically remember important things and complete tasks autonomously."
-            }
-        ],
-        "todos": [],
-        "files": {},
-        "current_task": ""
-    }
+import streamlit as st
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
-state = st.session_state.agent_state
+from src.memory.vfs import VFS
+from src.tools.calendar_tools import EVENTS
+from src.main.research_agent import setup_agent
 
-# -------------------------------------------------
-# SIDEBAR
-# -------------------------------------------------
+st.set_page_config(page_title="Deep Agent UI", layout="wide")
+
+@st.cache_resource
+def load_agent():
+    return setup_agent()
+
+agent = load_agent()
+
+# ---------------- Sidebar ----------------
 with st.sidebar:
-    st.title("📝 TODO LIST")
+    st.title("Agent State")
 
-    if state["todos"]:
-        for t in state["todos"]:
-            st.write(("✅" if t["done"] else "⬜"), t["task"])
+    st.header("Virtual Files")
+    if not VFS:
+        st.info("No files in memory.")
     else:
-        st.caption("No tasks yet")
+        for name, content in VFS.items():
+            with st.expander(name):
+                st.code(content)
 
     st.divider()
-
-    st.title("🧠 VFS MEMORY")
-    if state["files"]:
-        for f in state["files"]:
-            st.write(f)
+    st.header("Scheduled Events")
+    if not EVENTS:
+        st.info("No events found.")
     else:
-        st.caption("Memory empty")
+        for e in EVENTS:
+            st.markdown(f"**{e['title']}**")
+            st.caption(f"{e['date']} | {e['time']}")
 
-# -------------------------------------------------
-# MAIN CHAT UI
-# -------------------------------------------------
-st.title("Autonomous Cognitive Engine")
+# ---------------- Chat ----------------
+st.title("Deep Agent: Todo & Calendar")
 
-for msg in state["messages"]:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        SystemMessage(content="Hello! I'm ready to manage your files and schedule.")
+    ]
 
-# -------------------------------------------------
-# USER INPUT
-# -------------------------------------------------
+for msg in st.session_state.messages:
+    role = "user" if isinstance(msg, HumanMessage) else "assistant"
+    with st.chat_message(role):
+        st.markdown(msg.content)
+
 if user_input := st.chat_input("What should I do?"):
-    # Add user message
-    state["messages"].append({
-        "role": "user",
-        "content": user_input
-    })
+    st.session_state.messages.append(HumanMessage(content=user_input))
 
-    state["current_task"] = user_input
-
-    with st.chat_message("user"):
-        st.markdown(user_input)
-
-    # -------------------------------------------------
-    # EXECUTE AUTONOMOUS GRAPH
-    # -------------------------------------------------
-    with st.spinner("Thinking autonomously..."):
-        final_state = graph.invoke(state)
-        st.session_state.agent_state = final_state
+    with st.spinner("Processing..."):
+        result = agent.invoke(st.session_state.messages[-5:])
+        ans = result["messages"][-1].content
+        st.session_state.messages.append(AIMessage(content=ans))
         st.rerun()

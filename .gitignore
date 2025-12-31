@@ -1,4 +1,4 @@
-# Environment & Secrets
+# Secrets
 .env
 .env.*
 *.env
@@ -7,20 +7,14 @@
 venv/
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
 
 # Streamlit
-.streamlit/secrets.toml
-
-# OS
-.DS_Store
-Thumbs.db
+.streamlit/
 
 # IDE
 .vscode/
 .idea/
 
-# Logs & Cache
-*.log
-.cache/
+# OS
+.DS_Store
+Thumbs.db

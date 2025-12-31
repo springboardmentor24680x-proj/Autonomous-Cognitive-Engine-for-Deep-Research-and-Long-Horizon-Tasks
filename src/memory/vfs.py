@@ -1,24 +1,19 @@
-class VFS:
-    def _ensure(self, state):
-        if "files" not in state:
-            state["files"] = {}
+# src/memory/vfs.py
 
-    def ls(self, state):
-        self._ensure(state)
-        return list(state["files"].keys())
+VFS = {}
 
-    def read(self, state, name):
-        self._ensure(state)
-        return state["files"].get(name, "❌ File not found")
+def write_file(filename: str, content: str):
+    VFS[filename] = content
 
-    def write(self, state, name, content):
-        self._ensure(state)
-        state["files"][name] = content
-        return f"✅ Written file: {name}"
+def append_file(filename: str, content: str):
+    old = VFS.get(filename, "")
+    if old:
+        VFS[filename] = old + "\n" + content
+    else:
+        VFS[filename] = content
 
-    def edit(self, state, name, content):
-        self._ensure(state)
-        if name not in state["files"]:
-            return "❌ File not found"
-        state["files"][name] = content
-        return f"✏️ Updated file: {name}"
+def read_file(filename: str):
+    return VFS.get(filename, "")
+
+def list_files():
+    return list(VFS.keys())
