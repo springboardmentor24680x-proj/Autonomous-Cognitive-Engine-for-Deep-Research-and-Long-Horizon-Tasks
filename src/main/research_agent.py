@@ -58,7 +58,8 @@ def setup_agent():
     RULES:
     1. Use tools for ALL research, summarization, file access, and scheduling.
     2. Never summarize or research inline.
-    3. One tool call per turn.
+    3. One logical operation per turn.
+   (Multi-step tool chains are allowed when required.)
     4. Always check files with ls/read_file before using them.
     5. Do not assume data or file existence.
 
@@ -89,14 +90,31 @@ def setup_agent():
     - If a user asks to summarize a file, your ONLY valid response is a call to 'summarize_file'.
     - Providing a text response instead of a tool call is a CRITICAL FAILURE.
     
+    HARD TOOL ENFORCEMENT (CRITICAL):
+
+    - If a user request requires ANY of the following:
+    reading files, writing files, summarizing,
+    extracting data, creating charts, or scheduling events
+
+    THEN:
+    - You MUST respond with a TOOL CALL
+    - You MUST NOT respond with natural language
+    - You MUST NOT describe or explain results inline
+
+    If a tool cannot be used, respond with exactly one sentence explaining why.
+
     VISUALIZATION HARD GATE (MANDATORY):
-    - The agent MUST NOT create any visualization unless the user explicitly uses words like:
-    "create", "generate", "draw", or "visualize" AND specifies a chart type.
-    - Phrases such as "data for graphing", "numerical breakdown", or "values for charts"
-    do NOT authorize visualization.
-    - If visualization is not explicitly requested, creating one is a CRITICAL FAILURE.
-      
-      VISUALIZATION FEEDBACK: When you create a chart, inform the user that it is now visible in the 'Virtual Files' sidebar. Do not offer to 'show' the image in the chat, as it is already displayed in the UI
+
+    - The agent MUST NOT create any visualization unless the user explicitly uses
+    one of these verbs: "create", "generate", "draw", or "visualize"
+    AND explicitly names a chart type (bar, pie, line, scatter, area).
+
+    - Words such as "trends", "shares", "comparison", "graph",
+    "data for graphing", "numerical breakdown", or "values for charts"
+    DO NOT authorize visualization.
+
+    - If visualization is not explicitly requested, calling create_visualization
+    is a CRITICAL FAILURE.
 
       WEB RESEARCH PROTOCOL:
     - For any query requiring current events (2024-2025), pricing, or market shares, 
