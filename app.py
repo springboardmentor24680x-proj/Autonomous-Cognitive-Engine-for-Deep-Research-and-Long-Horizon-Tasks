@@ -1,22 +1,21 @@
+
 import sys
 import os
 from dotenv import load_dotenv
+import streamlit as st
+
 load_dotenv()
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
 
-from src.memory.vfs import append_file
-
-import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-
 from src.memory.vfs import VFS
 from src.tools.calendar_tools import EVENTS
-from src.main.research_agent import setup_agent
+from src.main.supervisor_agent import setup_agent
 
-st.set_page_config(page_title="Deep Agent UI", layout="wide")
+st.set_page_config(page_title="Autonomous Cognitive Engine", layout="wide")
 
 @st.cache_resource
 def load_agent():
@@ -24,33 +23,31 @@ def load_agent():
 
 agent = load_agent()
 
-# ---------------- Sidebar ----------------
+# ---------- SIDEBAR ----------
 with st.sidebar:
-    st.title("Agent State")
-
-    st.header("Virtual Files")
+    st.header(" Virtual File System")
     if not VFS:
-        st.info("No files in memory.")
+        st.info("No files stored.")
     else:
         for name, content in VFS.items():
             with st.expander(name):
                 st.code(content)
 
     st.divider()
-    st.header("Scheduled Events")
+    st.header("Calendar Events")
     if not EVENTS:
-        st.info("No events found.")
+        st.info("No scheduled events.")
     else:
         for e in EVENTS:
             st.markdown(f"**{e['title']}**")
             st.caption(f"{e['date']} | {e['time']}")
 
-# ---------------- Chat ----------------
-st.title("Deep Agent: Todo & Calendar")
+# ---------- CHAT ----------
+st.title(" Autonomous Cognitive Engine")
 
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        SystemMessage(content="Hello! I'm ready to manage your files and schedule.")
+        SystemMessage(content="I am an autonomous agent with memory and sub-agents.")
     ]
 
 for msg in st.session_state.messages:
@@ -58,11 +55,12 @@ for msg in st.session_state.messages:
     with st.chat_message(role):
         st.markdown(msg.content)
 
-if user_input := st.chat_input("What should I do?"):
+if user_input := st.chat_input("Enter a task..."):
     st.session_state.messages.append(HumanMessage(content=user_input))
 
-    with st.spinner("Processing..."):
-        result = agent.invoke(st.session_state.messages[-5:])
-        ans = result["messages"][-1].content
-        st.session_state.messages.append(AIMessage(content=ans))
+    with st.spinner("Thinking..."):
+        result = agent.invoke(st.session_state.messages[-6:])
+        reply = result["messages"][-1].content
+        st.session_state.messages.append(AIMessage(content=reply))
         st.rerun()
+

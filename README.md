@@ -49,6 +49,7 @@ Final Structured Output
 ---
 
 ## Project Structure
+```
 Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks/
 ├── src/ # Core supervisor agent and execution logic
 ├── subagents/ # Research and summarization agents
@@ -60,7 +61,7 @@ Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks/
 ├── LICENSE
 ├── .gitignore
 └── venv/ # Virtual environment (ignored)
-
+```
 ---
 
 ## Current Progress

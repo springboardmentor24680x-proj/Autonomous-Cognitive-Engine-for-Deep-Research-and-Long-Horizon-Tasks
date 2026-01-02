@@ -1,20 +1,22 @@
-from groq import Groq
+
+
+
+
 import os
+from groq import Groq
 from langsmith import traceable
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-EVENT_PROMPT = """
-Extract calendar events if present.
-
+PROMPT = """
+Extract calendar events.
 Return STRICT JSON:
 {
   "title": "...",
   "date": "...",
   "time": "..."
 }
-
-If no event exists, return NONE.
+If none, return NONE.
 """
 
 @traceable(name="event_extraction")
@@ -22,11 +24,9 @@ def extract_event(text: str):
     res = client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[
-            {"role": "system", "content": EVENT_PROMPT},
-            {"role": "user", "content": text},
+            {"role": "system", "content": PROMPT},
+            {"role": "user", "content": text}
         ],
-        temperature=0,
+        temperature=0
     )
-
-    content = res.choices[0].message.content.strip()
-    return content
+    return res.choices[0].message.content.strip()

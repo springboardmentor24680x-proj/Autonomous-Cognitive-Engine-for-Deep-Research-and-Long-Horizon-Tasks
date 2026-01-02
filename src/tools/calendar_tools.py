@@ -1,3 +1,7 @@
+
+
+
+
 EVENTS = []
 
 def add_event(title: str, date: str, time: str):
@@ -6,4 +10,4 @@ def add_event(title: str, date: str, time: str):
         "date": date,
         "time": time
     })
-    return f"Event '{title}' scheduled on {date} at {time}"
+    return f" Event '{title}' scheduled on {date} at {time}"

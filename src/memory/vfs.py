@@ -1,4 +1,7 @@
-# src/memory/vfs.py
+
+
+
+
 
 VFS = {}
 
@@ -7,10 +10,7 @@ def write_file(filename: str, content: str):
 
 def append_file(filename: str, content: str):
     old = VFS.get(filename, "")
-    if old:
-        VFS[filename] = old + "\n" + content
-    else:
-        VFS[filename] = content
+    VFS[filename] = old + ("\n" if old else "") + content
 
 def read_file(filename: str):
     return VFS.get(filename, "")
