@@ -45,84 +45,59 @@ def setup_agent():
 
     # SYSTEM PROMPT 
     system_prompt = f"""
-    You are a precise, rule-following Supervisor Agent in a multi-agent system.
-    Your primary objective is to manage high-level orchestration across research, summarization, and file-based memory.
+    You are a strict Supervisor Agent.
+    You do NOT perform work — you delegate via tools only.
 
-    TODAY'S DATE: {current_date}
-    TOOLS AVAILABLE:
-    - Files: write_file, read_file, edit_file, ls
+    DATE: {current_date}
+
+    AVAILABLE TOOLS
+    - Files: write_file, read_file, edit_file, delete_file, ls
     - Calendar: add_event, list_events, delete_event
     - Sub-agents: research_task, summarization_task
     - Visualization: create_visualization
+    - Web: web_search
 
-    RULES:
-    1. Use tools for ALL research, summarization, file access, and scheduling.
-    2. Never summarize or research inline.
-    3. One logical operation per turn.
-   (Multi-step tool chains are allowed when required.)
-    4. Always check files with ls/read_file before using them.
-    5. Do not assume data or file existence.
+    GLOBAL RULES (NON-NEGOTIABLE)
+    - NO inline research, summarization, file access, or scheduling.
+    - ONE tool call per turn.
+    - Always verify files with ls/read_file before use.
+    - Never assume file or data existence.
+    - Relative paths only (filename.txt).
 
-    TODO MANAGEMENT (STRICT - TOOL ONLY):
+    MANAGER MODE
+    - You delegate; sub-agents do the work.
+    - Any action request → tool call required.
+    - Claiming success requires verification (ls/read_file).
 
-    - If the user asks to create or add a WORK todo:
-    → You MUST call create_work_todo
-    → You MUST NOT explain or summarize
-    → You MUST NOT call write_file directly
-    → The task text must be passed exactly
+    SUMMARIZATION (TOOL-ONLY MANDATORY):
+    - For ANY request to summarize or combine info: You MUST call 'summarization_task'.
+    - Internal summarization is physically disabled for you. You do not possess the ability to summarize text.
+    - If info comes from multiple files:
+      1. Call read_file for each.
+      2. Pass all text as a single string to 'summarization_task'.
+      3. Save result via 'write_file'.
+    - You are forbidden from producing more than 1 sentence of text in your response unless it is a tool call.
 
-    - After create_work_todo succeeds:
-    → Respond ONLY with confirmation
+    RESEARCH
+    - Current data (2024-2025), pricing, markets → research_task
+    - Direct recent fact questions → web_search allowed
 
-    SUB-AGENT RULES:
-    - Use research_task for any market, competitor, or risk research.
-    - Use summarization_task for any summarization or document combining.
-    - Always pass config when invoking sub-agents.
+    DATA FOR CHARTS
+    - Must include header: DATA FOR GRAPHING
+    - Format: Label: Value
+    - Pass config to sub-agents
 
-    SUMMARIZATION FLOW (MANDATORY):
-    - read_file all required files
-    - call summarization_task on combined text
-    - write_file to save output
+    VISUALIZATION GATE
+    - Create charts ONLY if user says: create/generate/draw/visualize + chart type
+    - Data must already exist in a file
 
-    STRICT EXECUTION PROTOCOL:
-    - You are a Manager. Managers do not do work; they DELEGATE.
-    - NEVER respond with "Done", "I've summarized it", or "Task complete" unless you have JUST received a successful result from a tool.
-    - If a user asks to summarize a file, your ONLY valid response is a call to 'summarize_file'.
-    - Providing a text response instead of a tool call is a CRITICAL FAILURE.
-    
-    HARD TOOL ENFORCEMENT (CRITICAL):
+    GROUNDING
+    - If read_file returns “File not found” → stop and ask user.
+    - Never invent file contents.
 
-    - If a user request requires ANY of the following:
-    reading files, writing files, summarizing,
-    extracting data, creating charts, or scheduling events
-
-    THEN:
-    - You MUST respond with a TOOL CALL
-    - You MUST NOT respond with natural language
-    - You MUST NOT describe or explain results inline
-
-    If a tool cannot be used, respond with exactly one sentence explaining why.
-
-    VISUALIZATION HARD GATE (MANDATORY):
-
-    - The agent MUST NOT create any visualization unless the user explicitly uses
-    one of these verbs: "create", "generate", "draw", or "visualize"
-    AND explicitly names a chart type (bar, pie, line, scatter, area).
-
-    - Words such as "trends", "shares", "comparison", "graph",
-    "data for graphing", "numerical breakdown", or "values for charts"
-    DO NOT authorize visualization.
-
-    - If visualization is not explicitly requested, calling create_visualization
-    is a CRITICAL FAILURE.
-
-      WEB RESEARCH PROTOCOL:
-    - For any query requiring current events (2024-2025), pricing, or market shares, 
-      always use 'research_task' which now has live web access via Tavily.
-    - If the user asks a direct question about a recent event, you may use 'web_search' directly.
-
-    Failure to use a tool when an action is requested is a system violation.
+    Violating any rule is a system failure.
     """
+
 
 
     tool_free_client = ChatGroq(
@@ -139,13 +114,22 @@ def setup_agent():
 
     # TASK DELEGATION TOOL
     @tool
-    def research_task(description: str, config: RunnableConfig) -> str:
+    def research_task(description: str, filename: str = None, config: RunnableConfig = None) -> str:
+        """
+        Perform research and store results. 
+        - description: The research query.
+        - filename: (Optional) Specific file to save to. Defaults to research_notes.txt.
+        """
+        # 1. Logic for default filename
+        target_file = filename if filename else "research_notes.txt"
+        
+        # Ensure filename has .txt extension
+        if not target_file.endswith(".txt"):
+            target_file += ".txt"
 
-        """Perform research and store results. Returns a BRIEF summary to keep context small."""
+        print(f"\n--- DEBUG: Researching: {description} -> Saving to: {target_file} ---")
 
-        print("\n--- DEBUG: Research sub-agent invoked ---")
-        print(f"--- Topic: {description} ---")
-
+        # 2. Invoke the sub-agent
         result = research_agent.invoke(
             {"messages": [{"role": "user", "content": description}]},
             config=config
@@ -161,15 +145,15 @@ def setup_agent():
             f"{research_output}\n"
         )
 
-        existing = read_file("research_notes.txt")
+        # 3. Save logic (Smart append/write)
+        existing = read_file(target_file)
         if isinstance(existing, str) and not existing.startswith("File"):
-            edit_file("research_notes.txt", existing + entry)
+            edit_file(target_file, existing + entry)
         else:
-            write_file("research_notes.txt", entry)
+            write_file(target_file, entry)
 
-        #Condensed version for the Supervisor's chat history
         summary_text = (research_output[:500] + "...") if len(research_output) > 500 else research_output
-        return f"Research completed. Highlights: {summary_text} [Full data saved to research_notes.txt]"        
+        return f"Research completed. Data saved to {target_file}. Summary: {summary_text}"
     
     @tool
     def summarization_task(text: str, config: RunnableConfig) -> str: 
@@ -224,55 +208,6 @@ def setup_agent():
             
         return f"Successfully added '{task_text}' to {filename}"
     
-    # @tool
-    # def create_market_share_chart(source_file: str) -> str:
-    #     """
-    #     Parses a research file specifically for the 'DATA FOR GRAPHING' section
-    #     to avoid plotting timestamps and metadata.
-    #     """
-    #     content = read_file(source_file)
-        
-    #     # 1. ONLY extract data from the designated block
-    #     if "DATA FOR GRAPHING" in content:
-    #         relevant_text = content.split("DATA FOR GRAPHING")[-1]
-    #     elif "DATA BLOCK" in content:
-    #         relevant_text = content.split("DATA BLOCK")[-1]
-    #     else:
-    #         relevant_text = content
-
-    #     # 2. Extract Label: Value pairs
-    #     matches = re.findall(r"([a-zA-Z\s]+):\s*(\d+(?:\.\d+)?)", relevant_text)
-        
-    #     if not matches:
-    #         return "No valid data found in the Graphing section."
-
-    #     labels = [m[0].strip() for m in matches]
-    #     values = [float(m[1]) for m in matches]
-
-    #     # 3. Create a Bar Chart (Much cleaner for brand names than a Pie Chart)
-    #     plt.figure(figsize=(10, 6))
-    #     bars = plt.bar(labels, values, color='skyblue')
-        
-    #     # Add values on top of bars
-    #     for bar in bars:
-    #         yval = bar.get_height()
-    #         plt.text(bar.get_x() + bar.get_width()/2, yval + 0.5, f'{int(yval)}', ha='center', va='bottom')
-
-    #     plt.xticks(rotation=45, ha='right')
-    #     plt.ylabel('Store Count / Share')
-    #     plt.title(f"Market Analysis: {source_file.lstrip('/')}")
-    #     plt.tight_layout() # This ensures names like 'Third Wave Coffee' don't get cut off
-
-    #     # 4. Save to VFS
-    #     buf = io.BytesIO()
-    #     plt.savefig(buf, format='png')
-    #     plt.close()
-        
-    #     clean_output_name = source_file.replace(".txt", "_chart.png").lstrip('/')
-    #     VFS[clean_output_name] = buf.getvalue() 
-        
-    #     return f"SUCCESS: Clean chart saved to VFS as {clean_output_name}"
-
     @tool
     def create_visualization(
         source_file: str,
