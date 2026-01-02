@@ -8,7 +8,8 @@ The system demonstrates how modern LLM frameworks can be orchestrated into a **s
 - Persistent memory
 - Long-horizon task execution
 The project evolves incrementally—from a **single LLM-powered agent** to a **fully coordinated multi-agent system** with delegated responsibilities and persistent memory.
----
+
+
 ## 🎯 System Objectives
 The primary objectives of this project are:
 
@@ -17,8 +18,6 @@ The primary objectives of this project are:
 - Demonstrate tool-enabled reasoning with clear separation of execution
 - Implement a scalable **multi-agent architecture** with task delegation
 - Build a modular system extensible with new agents and tools
-
----
 
 ## 🛠️ Technology Stack
 
@@ -35,7 +34,6 @@ The primary objectives of this project are:
 ### Storage & Memory
 - **Virtual File System (VFS)** – Persistent structured memory for long-term context retention
 
----
 ## 🧩 System Architecture Overview
 The system follows a **Supervisor–Worker multi-agent architecture**.
 
@@ -46,8 +44,6 @@ The system follows a **Supervisor–Worker multi-agent architecture**.
 - Persistent state across sessions
 
 A central **Supervisor Agent** coordinates multiple specialized agents, while shared memory ensures contextual continuity across all agents.
-
----
 
 ## Initial Agent: AI To-Do List Agent
 
@@ -66,8 +62,6 @@ A central **Supervisor Agent** coordinates multiple specialized agents, while sh
  -	Prompt-driven reasoning using an LLM
  -	Conversational interaction loop
  -	In-memory task management
-
----
 
 ## 🧠 Persistent Memory & Virtual File System (VFS)
 
@@ -144,12 +138,9 @@ The **Supervisor Agent** functions as the central controller and orchestrator of
 
 ### Response & Memory Node
 
- This function handles a single step of a conversation with an AI assistant. It takes the current user input, generates a reply using a language model, updates the conversation memory with both the user’s message and the AI’s response, and then returns the AI’s response. 
+ This function handles a single step of a conversation with an AI assistant. It takes the current user input, generates a reply using a language model, updates the conversation memory with both the user’s message and the AI’s response, and then returns the AI’s response.Essentially, it manages context, ensures the conversation history is stored, and produces a context-aware reply.
 
  ![alt text](image.png)
-
- Essentially, it manages context, ensures the conversation history is stored, and produces a context-aware reply.
----
 
 ## 🔍 Search Agent
 
@@ -172,9 +163,8 @@ The **Supervisor Agent** functions as the central controller and orchestrator of
  The search_node acts as the interface to the search system, using a SearchState to ensure type-safe data handling.
 
  ![alt text](image-1.png)
-
+ 
  This function takes a state object containing a search query, performs a web search using that query, and returns the search results in a dictionary under the key "result".
----
 
 ## ✂️ Summarizer Agent
 
@@ -244,7 +234,7 @@ This workflow illustrates how all components work together in a controlled pipel
 
 **Workflow Diagram Placeholder:** 
 
-Input → Supervisor → Search → Reasoning → Summarization → Memory → Output
+ Input → Supervisor → Search → Reasoning → Summarization → Memory → Output
 ---
 
 ##  Conclusion
