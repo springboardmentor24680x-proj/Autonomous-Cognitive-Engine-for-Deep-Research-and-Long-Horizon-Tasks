@@ -45,60 +45,119 @@ def setup_agent():
 
     # SYSTEM PROMPT 
     system_prompt = f"""
-    You are a strict Supervisor Agent.
-    You do NOT perform work — you delegate via tools only.
+   You are a STRICT SUPERVISOR AGENT.
+
+    You DO NOT perform research, summarization, visualization, file edits, or scheduling yourself.
+    You ONLY delegate work via tools.
 
     DATE: {current_date}
 
+    ────────────────────────
     AVAILABLE TOOLS
-    - Files: write_file, read_file, edit_file, delete_file, ls
-    - Calendar: add_event, list_events, delete_event
-    - Sub-agents: research_task, summarization_task
-    - Visualization: create_visualization
-    - Web: web_search
+    ────────────────────────
+    FILES:
+    - write_file
+    - read_file
+    - edit_file
+    - delete_file
+    - ls
 
-    GLOBAL RULES (NON-NEGOTIABLE)
-    - NO inline research, summarization, file access, or scheduling.
-    - ONE tool call per turn.
-    - Always verify files with ls/read_file before use.
-    - Never assume file or data existence.
-    - Relative paths only (filename.txt).
+    CALENDAR:
+    - add_event
+    - list_events
+    - delete_event
 
-    MANAGER MODE
-    - You delegate; sub-agents do the work.
-    - Any action request → tool call required.
-    - Claiming success requires verification (ls/read_file).
+    SUB-AGENTS:
+    - research_task
+    - summarization_task
 
-    SUMMARIZATION (TOOL-ONLY MANDATORY):
-    - For ANY request to summarize or combine info: You MUST call 'summarization_task'.
-    - Internal summarization is physically disabled for you. You do not possess the ability to summarize text.
-    - If info comes from multiple files:
-      1. Call read_file for each.
-      2. Pass all text as a single string to 'summarization_task'.
-      3. Save result via 'write_file'.
-    - You are forbidden from producing more than 1 sentence of text in your response unless it is a tool call.
+    VISUALIZATION:
+    - create_visualization
 
-    RESEARCH
-    - Current data (2024-2025), pricing, markets → research_task
-    - Direct recent fact questions → web_search allowed
+    WEB:
+    - web_search
 
-    DATA FOR CHARTS
-    - Must include header: DATA FOR GRAPHING
-    - Format: Label: Value
-    - Pass config to sub-agents
+    ────────────────────────
+    GLOBAL EXECUTION RULES (NON-NEGOTIABLE)
+    ────────────────────────
+    1. NEVER call 'create_visualization' unless the user EXPLICITLY names a chart type (e.g., bar, pie) and uses a verb like 'create'.
+    2. ONE TOOL CALL PER TURN — NO EXCEPTIONS.
+    3. You MUST NEVER call multiple tools in the same response.
+    4. You MUST NEVER perform inline reasoning, research, or summarization.
+    5. Every action (read, write, summarize, visualize, schedule) REQUIRES a tool call.
+    6. Never assume files, data, or events exist — always verify with ls or read_file.
+    7. Relative filenames only (example: report.txt).
 
-    VISUALIZATION GATE
-    - Create charts ONLY if user says: create/generate/draw/visualize + chart type
-    - Data must already exist in a file
+    ────────────────────────
+    PLANNING VS EXECUTION
+    ────────────────────────
+    • If a request requires multiple steps:
+    - Execute ONLY the NEXT logical step.
+    - Wait for the user or next turn to continue.
 
-    GROUNDING
-    - If read_file returns “File not found” → stop and ask user.
-    - Never invent file contents.
+    • You are NOT allowed to batch actions in a single turn.
 
-    Violating any rule is a system failure.
+    ────────────────────────
+    RESEARCH RULES
+    ────────────────────────
+    • Market data, competitors, pricing, trends → research_task
+    • research_task is the ONLY way to generate factual content.
+    • research_task MUST save results to a file.
+    ────────────────────
+    SUMMARIZATION PROTOCOL (CRITICAL)
+    ────────────────────────
+    - You are FORBIDDEN from generating summary text yourself.
+    - If a user asks to summarize, combine, or condense:
+      1. First, call 'read_file' to retrieve the content.
+      2. In the NEXT turn, call 'summarization_task' with that content.
+      3. In the FINAL turn, call 'write_file' to save it.
+    - If you provide a summary in natural language without calling 'summarization_task', it is a SYSTEM FAILURE.
+
+    ────────────────────────
+    VISUALIZATION RULES
+    ────────────────────────
+    • Only create charts if the user explicitly asks.
+    • Chart data MUST already exist in a file.
+    • File MUST contain a "DATA FOR GRAPHING" section.
+    • Invalid data → stop and ask user.
+
+    ────────────────────────
+    GROUNDING & SAFETY
+    ────────────────────────
+    • If read_file returns "File not found" → STOP and ask the user.
+    • Never invent file contents.
+    • Never invent calendar events.
+    • Never claim success without verification.
+
+    COMMIT RULE (MANDATORY):
+    - If a request requires a state change (file write/edit/delete, calendar change),
+    you MUST call the corresponding tool.
+    - You are FORBIDDEN from claiming success in text unless a tool was executed.
+    - No “created successfully” messages without a tool call.
+
+    If a request implies writing a file → write_file OR edit_file MUST be called.
+
+    MULTI-FILE RULE:
+    - If a request requires reading multiple files,
+    STOP after reading ONE file and wait for the next turn.
+    - Never attempt to simulate multiple reads.
+
+    ────────────────────────
+    DATA STRUCTURE RULES (FIX)
+    ────────────────────────
+    • BAR/PIE CHARTS: Use 'Label: Value' (e.g., Strategy: 10).
+    • SCATTER CHARTS: Use 'X, Y' numeric pairs ONLY. (e.g., 7, 9). 
+    • WARNING: Do not include any text, hashtags, or descriptions inside the 'DATA FOR GRAPHING' block, or the visualization tool will fail.
+    ────────────────────────
+    RESPONSE FORMAT
+    ────────────────────────
+    • If calling a tool → ONLY return the tool call.
+    • If no tool is required → respond in ONE short sentence.
+    • Errors must be explicit and actionable.
+
+    Violating ANY rule is a SYSTEM FAILURE.
+
     """
-
-
 
     tool_free_client = ChatGroq(
         api_key=os.getenv("GROQ_API_KEY"),
@@ -156,40 +215,41 @@ def setup_agent():
         return f"Research completed. Data saved to {target_file}. Summary: {summary_text}"
     
     @tool
-    def summarization_task(text: str, config: RunnableConfig) -> str: 
-        
-        """Summarize text using the summarization sub-agent."""
-        # Use the sub-agent directly
+    def summarization_task(text: str, config: RunnableConfig = None) -> str: 
+        """
+        Summarize a block of text. 
+        Use this tool whenever a summary, condensation, or combination of text is required.
+        """
+        # The agent often forgets to pass config, so we make it optional in the signature
         result = summarization_agent.invoke(
             {"input": text},
             config=config
         )
-        # Handle both String and Message return types
         return result if isinstance(result, str) else result.content
 
     @tool
-    def summarize_file(filename: str, config: RunnableConfig) -> str:
-        """Read a file, delegate summarization, and save result."""
-        print(f"\n--- DEBUG: summarize_file called for {filename} ---")
+    def summarize_file(filename: str, config: RunnableConfig = None) -> str:
+        """
+        Automatic workflow: Reads a specific file, delegates to the summarization sub-agent, 
+        and saves the output to a new file.
+        """
         clean_filename = filename.lstrip('/')
         content = read_file(clean_filename)
         
         if isinstance(content, str) and content.startswith("File"):
             return f"Error: {content}"
 
-        # FIX: Call the logic directly or ensure result is a string
-        # If you call summarization_task.invoke(), LangChain might wrap the output
-        summary = summarization_agent.invoke(
+        # Directly use the logic to ensure trace visibility
+        summary_result = summarization_agent.invoke(
             {"input": content},
             config=config
         )
         
-        summary_text = summary if isinstance(summary, str) else summary.content
-
+        summary = summary_result if isinstance(summary_result, str) else summary_result.content
         summary_file = clean_filename.replace(".txt", "_summary.txt")
-        write_file(summary_file, summary_text)
+        write_file(summary_file, summary)
 
-        return f"Summary saved successfully to {summary_file}"
+        return f"SUCCESS: Summary of {clean_filename} saved to {summary_file}"
 
     @tool
     def create_work_todo(task_text: str) -> str:
@@ -208,6 +268,140 @@ def setup_agent():
             
         return f"Successfully added '{task_text}' to {filename}"
     
+    # @tool
+    # def create_visualization(
+    #     source_file: str,
+    #     chart_type: str,
+    #     title: str = ""
+    # ) -> str:
+    #     """
+    #     Unified visualization tool with strict validation.
+    #     Reads data ONLY from 'DATA FOR GRAPHING' section and
+    #     prevents invalid chart-data combinations.
+    #     """
+
+    #     import re
+    #     import io
+    #     import matplotlib.pyplot as plt
+
+    #     # ---------- FILE READ ----------
+    #     content = read_file(source_file)
+
+    #     if isinstance(content, str) and content.startswith("File"):
+    #         return f"Error: {content}"
+
+    #     # ---------- DATA BLOCK EXTRACTION ----------
+    #     if "DATA FOR GRAPHING" in content:
+    #         relevant_text = content.split("DATA FOR GRAPHING")[-1].strip()
+    #     elif "DATA BLOCK" in content:
+    #         relevant_text = content.split("DATA BLOCK")[-1].strip()
+    #     else:
+    #         return (
+    #             "Visualization failed: No 'DATA FOR GRAPHING' section found. "
+    #             "Ensure the research output includes a dedicated graphing block."
+    #         )
+
+    #     if not relevant_text:
+    #         return "Visualization failed: Graphing data section is empty."
+
+    #     chart_type = chart_type.lower()
+
+    #     # ---------- LINE / AREA ----------
+    #     if chart_type in {"line", "area"}:
+    #         matches = re.findall(r"(\d{4})\s*:\s*(\d+(?:\.\d+)?)", relevant_text)
+
+    #         if not matches:
+    #             return (
+    #                 "Invalid data for line/area chart. "
+    #                 "Expected format: Year: Value (e.g., 2023: 120)"
+    #             )
+
+    #         x = [int(m[0]) for m in matches]
+    #         y = [float(m[1]) for m in matches]
+    #         x, y = zip(*sorted(zip(x, y)))
+
+    #         plt.figure(figsize=(10, 6))
+    #         if chart_type == "line":
+    #             plt.plot(x, y, marker="o", linewidth=2)
+    #         else:
+    #             plt.fill_between(x, y, alpha=0.6)
+
+    #         plt.xlabel("Year")
+    #         plt.ylabel("Value")
+
+    #     # ---------- BAR / HORIZONTAL BAR / PIE ----------
+    #     elif chart_type in {"bar", "horizontal_bar", "pie"}:
+    #         matches = re.findall(r"([a-zA-Z\s]+):\s*(\d+(?:\.\d+)?)", relevant_text)
+
+    #         if not matches:
+    #             return (
+    #                 "Invalid data for bar/pie chart. "
+    #                 "Expected format: Label: Value (e.g., Online: 40)"
+    #             )
+
+    #         labels = [m[0].strip() for m in matches]
+    #         values = [float(m[1]) for m in matches]
+
+    #         plt.figure(figsize=(10, 6))
+
+    #         if chart_type == "bar":
+    #             plt.bar(labels, values)
+    #             plt.xticks(rotation=45, ha="right")
+
+    #         elif chart_type == "horizontal_bar":
+    #             plt.barh(labels, values)
+
+    #         else:  # pie
+    #             plt.pie(values, labels=labels, autopct="%1.1f%%")
+
+    #         plt.ylabel("Value")
+
+    #     # ---------- SCATTER ----------
+    #     elif chart_type == "scatter":
+    #         # Guard against categorical data misuse
+    #         if ":" in relevant_text:
+    #             return (
+    #                 "Invalid chart choice: Scatter plots require numeric X,Y pairs. "
+    #                 "Use 'pie' or 'bar' for category-value data."
+    #             )
+
+    #         matches = re.findall(r"([\d\.]+)\s*,\s*([\d\.]+)", relevant_text)
+
+    #         if not matches:
+    #             return (
+    #                 "Invalid data for scatter plot. "
+    #                 "Expected format: X, Y (numeric pairs)."
+    #             )
+
+    #         x = [float(m[0]) for m in matches]
+    #         y = [float(m[1]) for m in matches]
+
+    #         plt.figure(figsize=(8, 6))
+    #         plt.scatter(x, y)
+    #         plt.xlabel("X")
+    #         plt.ylabel("Y")
+
+    #     # ---------- UNSUPPORTED ----------
+    #     else:
+    #         return (
+    #             f"Unsupported chart type: '{chart_type}'. "
+    #             "Supported types: line, area, bar, horizontal_bar, pie, scatter."
+    #         )
+
+    #     # ---------- FINALIZE ----------
+    #     final_title = title if title else f"{chart_type.title()} Visualization"
+    #     plt.title(final_title)
+    #     plt.tight_layout()
+
+    #     buf = io.BytesIO()
+    #     plt.savefig(buf, format="png")
+    #     plt.close()
+
+    #     output_name = source_file.replace(".txt", f"_{chart_type}.png").lstrip("/")
+    #     VFS[output_name] = buf.getvalue()
+
+    #     return f"SUCCESS: {chart_type} chart saved to VFS as {output_name}"
+
     @tool
     def create_visualization(
         source_file: str,
@@ -215,11 +409,9 @@ def setup_agent():
         title: str = ""
     ) -> str:
         """
-        Unified visualization tool with strict validation.
-        Reads data ONLY from 'DATA FOR GRAPHING' section and
-        prevents invalid chart-data combinations.
+        Enhanced visualization tool with robust data parsing.
+        Cleans data blocks and extracts numeric values even if extra text or hashtags are present.
         """
-
         import re
         import io
         import matplotlib.pyplot as plt
@@ -231,117 +423,100 @@ def setup_agent():
             return f"Error: {content}"
 
         # ---------- DATA BLOCK EXTRACTION ----------
-        if "DATA FOR GRAPHING" in content:
-            relevant_text = content.split("DATA FOR GRAPHING")[-1].strip()
-        elif "DATA BLOCK" in content:
-            relevant_text = content.split("DATA BLOCK")[-1].strip()
-        else:
-            return (
-                "Visualization failed: No 'DATA FOR GRAPHING' section found. "
-                "Ensure the research output includes a dedicated graphing block."
-            )
+        # Try multiple common headers
+        data_headers = ["DATA FOR GRAPHING", "DATA BLOCK", "GRAPH DATA"]
+        relevant_text = ""
+        for header in data_headers:
+            if header in content:
+                relevant_text = content.split(header)[-1].strip()
+                # Stop if we find a common footer or separator
+                relevant_text = re.split(r"END DATA|END GRAPHING|#|---", relevant_text)[0].strip()
+                break
 
         if not relevant_text:
-            return "Visualization failed: Graphing data section is empty."
+            return "Visualization failed: No valid data block found in file."
 
         chart_type = chart_type.lower()
+        plt.figure(figsize=(10, 6))
 
-        # ---------- LINE / AREA ----------
-        if chart_type in {"line", "area"}:
-            matches = re.findall(r"(\d{4})\s*:\s*(\d+(?:\.\d+)?)", relevant_text)
+        try:
+            # ---------- SCATTER (Numeric Pairs) ----------
+            if chart_type == "scatter":
+                # Logic: Split into lines and find any two numbers on each line.
+                # This ignores labels like "Priority 1" or hashtags.
+                lines = [l for l in relevant_text.split('\n') if l.strip()]
+                x, y = [], []
+                for line in lines:
+                    nums = re.findall(r"(\d+(?:\.\d+)?)", line)
+                    if len(nums) >= 2:
+                        x.append(float(nums[0]))
+                        y.append(float(nums[1]))
+                
+                if not x:
+                    return "Invalid data for scatter: No numeric pairs found (e.g., 7, 9)."
+                
+                plt.scatter(x, y, s=120, alpha=0.7, edgecolors='k', color='royalblue')
+                plt.xlabel("X Axis")
+                plt.ylabel("Y Axis")
 
-            if not matches:
-                return (
-                    "Invalid data for line/area chart. "
-                    "Expected format: Year: Value (e.g., 2023: 120)"
-                )
+            # ---------- BAR / PIE / HORIZONTAL BAR (Categorical) ----------
+            elif chart_type in {"bar", "horizontal_bar", "pie"}:
+                # Logic: Find 'Category: Number' even with bullet points or dashes
+                matches = re.findall(r"([a-zA-Z\s\d]+):\s*(\d+(?:\.\d+)?)", relevant_text)
+                if not matches:
+                    return "Invalid data for bar/pie: Expected 'Label: Value' pairs."
+                
+                labels = [m[0].strip().replace("- ", "").replace("* ", "") for m in matches]
+                values = [float(m[1]) for m in matches]
 
-            x = [int(m[0]) for m in matches]
-            y = [float(m[1]) for m in matches]
-            x, y = zip(*sorted(zip(x, y)))
+                if chart_type == "bar":
+                    plt.bar(labels, values, color='skyblue')
+                    plt.xticks(rotation=45, ha="right")
+                elif chart_type == "horizontal_bar":
+                    plt.barh(labels, values, color='lightgreen')
+                else: # pie
+                    plt.pie(values, labels=labels, autopct="%1.1f%%", startangle=140)
 
-            plt.figure(figsize=(10, 6))
-            if chart_type == "line":
-                plt.plot(x, y, marker="o", linewidth=2)
+            # ---------- LINE / AREA (Time/Series) ----------
+            elif chart_type in {"line", "area"}:
+                matches = re.findall(r"(\d+(?:\.\d+)?)\s*[:,\s]\s*(\d+(?:\.\d+)?)", relevant_text)
+                if not matches:
+                    return "Invalid data for line/area chart."
+                
+                x = [float(m[0]) for m in matches]
+                y = [float(m[1]) for m in matches]
+                # Sort by X to ensure lines don't zig-zag
+                x, y = zip(*sorted(zip(x, y)))
+
+                if chart_type == "line":
+                    plt.plot(x, y, marker='o', linewidth=2, color='coral')
+                else:
+                    plt.fill_between(x, y, alpha=0.4, color='teal')
+                    plt.plot(x, y, marker='.', alpha=0.8)
+
             else:
-                plt.fill_between(x, y, alpha=0.6)
+                plt.close()
+                return f"Unsupported chart type: {chart_type}"
 
-            plt.xlabel("Year")
-            plt.ylabel("Value")
+            # ---------- FINALIZE ----------
+            final_title = title if title else f"{chart_type.replace('_', ' ').title()} Analysis"
+            plt.title(final_title, fontsize=14, pad=20)
+            plt.grid(True, linestyle='--', alpha=0.6) if chart_type != "pie" else None
+            plt.tight_layout()
 
-        # ---------- BAR / HORIZONTAL BAR / PIE ----------
-        elif chart_type in {"bar", "horizontal_bar", "pie"}:
-            matches = re.findall(r"([a-zA-Z\s]+):\s*(\d+(?:\.\d+)?)", relevant_text)
+            # Save to VFS
+            buf = io.BytesIO()
+            plt.savefig(buf, format="png", dpi=100)
+            plt.close()
 
-            if not matches:
-                return (
-                    "Invalid data for bar/pie chart. "
-                    "Expected format: Label: Value (e.g., Online: 40)"
-                )
+            output_name = source_file.replace(".txt", f"_{chart_type}.png").lstrip("/")
+            VFS[output_name] = buf.getvalue()
 
-            labels = [m[0].strip() for m in matches]
-            values = [float(m[1]) for m in matches]
+            return f"SUCCESS: {chart_type} chart saved as {output_name}"
 
-            plt.figure(figsize=(10, 6))
-
-            if chart_type == "bar":
-                plt.bar(labels, values)
-                plt.xticks(rotation=45, ha="right")
-
-            elif chart_type == "horizontal_bar":
-                plt.barh(labels, values)
-
-            else:  # pie
-                plt.pie(values, labels=labels, autopct="%1.1f%%")
-
-            plt.ylabel("Value")
-
-        # ---------- SCATTER ----------
-        elif chart_type == "scatter":
-            # Guard against categorical data misuse
-            if ":" in relevant_text:
-                return (
-                    "Invalid chart choice: Scatter plots require numeric X,Y pairs. "
-                    "Use 'pie' or 'bar' for category-value data."
-                )
-
-            matches = re.findall(r"([\d\.]+)\s*,\s*([\d\.]+)", relevant_text)
-
-            if not matches:
-                return (
-                    "Invalid data for scatter plot. "
-                    "Expected format: X, Y (numeric pairs)."
-                )
-
-            x = [float(m[0]) for m in matches]
-            y = [float(m[1]) for m in matches]
-
-            plt.figure(figsize=(8, 6))
-            plt.scatter(x, y)
-            plt.xlabel("X")
-            plt.ylabel("Y")
-
-        # ---------- UNSUPPORTED ----------
-        else:
-            return (
-                f"Unsupported chart type: '{chart_type}'. "
-                "Supported types: line, area, bar, horizontal_bar, pie, scatter."
-            )
-
-        # ---------- FINALIZE ----------
-        final_title = title if title else f"{chart_type.title()} Visualization"
-        plt.title(final_title)
-        plt.tight_layout()
-
-        buf = io.BytesIO()
-        plt.savefig(buf, format="png")
-        plt.close()
-
-        output_name = source_file.replace(".txt", f"_{chart_type}.png").lstrip("/")
-        VFS[output_name] = buf.getvalue()
-
-        return f"SUCCESS: {chart_type} chart saved to VFS as {output_name}"
-
+        except Exception as e:
+            plt.close()
+            return f"Visualization logic error: {str(e)}"
 
     # Create main agent
     agent = create_deep_agent(
@@ -369,11 +544,19 @@ def setup_agent():
         def __init__(self, agent):
             self.agent = agent
 
-        def invoke(self, input, **kwargs):
-            # Allow tests to pass list[HumanMessage]
-            if isinstance(input, list):
-                return self.agent.invoke({"messages": input}, **kwargs)
-            return self.agent.invoke(input, **kwargs)
+        def invoke(self, input_messages, **kwargs):
+            user_text = input_messages[-1].content.lower()
+            
+            # Logic Gate: Is a chart actually requested?
+            trigger_verbs = ["create", "generate", "draw", "visualize"]
+            chart_types = ["bar", "pie", "line", "scatter", "area"]
+            is_requested = any(v in user_text for v in trigger_verbs) and any(c in user_text for c in chart_types)
+
+            # If not requested, we tell the agent the tool is currently locked
+            if not is_requested and "create_visualization" in user_text:
+                return {"messages": [HumanMessage(content="System: Visualization tool is locked unless explicitly requested with chart type.")]}
+
+            return self.agent.invoke({"messages": input_messages}, **kwargs)
 
     return AgentWrapper(agent)
 
