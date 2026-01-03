@@ -5,3 +5,7 @@ python-dotenv
 langsmith
 typing_extensions
 certifi
+streamlit
+langchain-groq
+langchain-core
+langchain-community
