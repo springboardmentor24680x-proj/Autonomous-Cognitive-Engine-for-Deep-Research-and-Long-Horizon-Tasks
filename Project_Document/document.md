@@ -270,8 +270,16 @@ This workflow illustrates how all components work together in a controlled pipel
 **Workflow Diagram Placeholder:** 
 ```python
  Input → Supervisor → Search → Reasoning → Summarization → Memory → Output
- 
+
  ```
+## Challenges I Faced
+
+- Managing long-term context due to LLM limitations → solved using **persistent VFS memory**
+- Controlling inconsistent LLM outputs → improved with a **planning (TODO) phase**
+- Separating reasoning from execution → addressed via a **dedicated tools layer**
+- Coordinating multiple agents → simplified using a **Supervisor–Worker architecture**
+- Debugging stateful workflows → handled with **LangGraph state management**
+
 ---
 
 ##  Conclusion
