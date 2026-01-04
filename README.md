@@ -49,7 +49,7 @@ The goal is to simulate advanced AI agent behavior such as planning, reasoning, 
 
 ---
 ## Architecture Diagram
-```mermaid
+```python
  Input(User prompt / request)
   ↓
 Supervisor Agent(Main Cognitive Agent)
