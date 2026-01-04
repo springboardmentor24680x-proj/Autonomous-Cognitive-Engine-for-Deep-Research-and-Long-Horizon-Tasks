@@ -22,6 +22,7 @@ The project emphasizes **agent orchestration, memory management, observability, 
 ---
 
 ## Architecture
+```
 User
 ↓
 Supervisor Agent
@@ -34,7 +35,7 @@ Tools (File System, TODO Manager, Tracing)
 ↓
 Final Structured Output
 
-
+```
 
 ---
 
