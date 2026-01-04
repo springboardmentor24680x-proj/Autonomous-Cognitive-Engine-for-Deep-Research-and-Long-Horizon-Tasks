@@ -10,26 +10,60 @@ The goal is to simulate advanced AI agent behavior such as planning, reasoning, 
 
 ## Key Features
 
-* **Task Planning**: Breaks complex user requests into structured TODO lists.
-* **Memory Management (VFS)**: Uses a virtual file system to store and retrieve intermediate data.
-* **Sub-Agent Delegation**: Allows the main agent to delegate tasks to specialized sub-agents.
-* **Stateful Workflow**: Built with LangGraph to maintain state across multiple steps.
+### Task Planning
+- Breaks complex user requests into structured TODO lists
+- Enables long-horizon execution with clear intermediate goals
+
+### Memory Management (Virtual File System)
+- Uses a virtual file system (VFS) to store intermediate results
+- Allows agents to read/write context across multiple steps
+
+### Sub-Agent Delegation
+- Main agent can delegate subtasks to specialized sub-agents
+- Improves modularity and separation of concerns
+
+### Stateful Workflow
+- Built with **LangGraph** to maintain state across execution steps
+- Supports branching, retries, and multi-step reasoning
 
 ---
 
-## Workflow
+## System Workflow
 
-1. User provides a complex request.
-2. Agent creates a TODO list.
-3. Agent executes tasks step by step:
+1. **User Input**  
+   User provides a complex or multi-step request
 
-   * Uses tools
-   * Stores data in the virtual file system
-   * Delegates tasks to sub-agents when required
-4. Agent gathers all results.
-5. Final output is generated.
+2. **Task Planning**  
+   Agent decomposes the request into a structured TODO list
+
+3. **Task Execution**
+   - Uses tools (LLMs, search, code execution)
+   - Stores intermediate data in the virtual file system
+   - Delegates tasks to sub-agents when required
+
+4. **Result Aggregation**  
+   Agent gathers outputs from all steps and sub-agents
+
+5. **Final Output**  
+   Consolidated and coherent final response is generated
 
 ---
+## Architecture Diagram
+```mermaid
+ Input(User prompt / request)
+  ↓
+Supervisor Agent(Main Cognitive Agent)
+  ↓
+Search(Tavily API / Search Tools)
+  ↓
+Reasoning(LangGraph execution)
+  ↓
+Summarization(Final synthesis step)
+  ↓
+Memory(VFS)
+  ↓
+Output(Final agent response)
+```
 
 ## Tech Stack
 
@@ -46,6 +80,8 @@ The goal is to simulate advanced AI agent behavior such as planning, reasoning, 
 
 * Autonomous research report generation
 * Multi-step code analysis or refactoring
+* Long-horizon reasoning tasks
+* Knowledge synthesis from multiple sources
 
 ---
 
@@ -57,4 +93,4 @@ Work in progress — milestone-based development.
 
 ## License
 
-For educational and research purposes.
+This project is intended for educational and research purposes only.
