@@ -1,6 +1,6 @@
 # Autonomous Cognitive Agent Project
 
-## 📌 Project Overview
+## Project Overview
 This documentation describes the design, architecture, and implementation of an **Autonomous Cognitive Agent System** built using **Python, LangChain, LangGraph, and Groq-hosted Large Language Models (LLMs)**.
 The system demonstrates how modern LLM frameworks can be orchestrated into a **scalable, modular, and stateful multi-agent architecture** capable of:
 - Autonomous reasoning
@@ -10,7 +10,7 @@ The system demonstrates how modern LLM frameworks can be orchestrated into a **s
 The project evolves incrementally—from a **single LLM-powered agent** to a **fully coordinated multi-agent system** with delegated responsibilities and persistent memory.
 
 
-## 🎯 System Objectives
+## System Objectives
 The primary objectives of this project are:
 
 - Design an autonomous AI agent capable of reasoning and acting independently
@@ -19,7 +19,7 @@ The primary objectives of this project are:
 - Implement a scalable **multi-agent architecture** with task delegation
 - Build a modular system extensible with new agents and tools
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Programming Language
 - **Python** – Core implementation language
@@ -34,7 +34,7 @@ The primary objectives of this project are:
 ### Storage & Memory
 - **Virtual File System (VFS)** – Persistent structured memory for long-term context retention
 
-## 🧩 System Architecture Overview
+## System Architecture Overview
 The system follows a **Supervisor–Worker multi-agent architecture**.
 
 ### Architectural Principles
@@ -63,7 +63,7 @@ A central **Supervisor Agent** coordinates multiple specialized agents, while sh
  -	Conversational interaction loop
  -	In-memory task management
 
-## 🧠 Persistent Memory & Virtual File System (VFS)
+## Persistent Memory & Virtual File System (VFS)
 
 ### Description
   The system uses a Virtual File System (VFS) to extend the memory of Large Language Models. It provides structured, persistent storage that agents can read and write, track tasks, and reference past decisions. Agents interact with the VFS through tools for reading, writing, updating, and listing memory entries, which helps maintain continuity and supports complex reasoning across multiple sessions
@@ -74,7 +74,7 @@ A central **Supervisor Agent** coordinates multiple specialized agents, while sh
  *	Updated dynamically by agents
  *	Accessible through well-defined tools
 
-## 🔧 Tool Integration
+## Tool Integration
 
 ### Tools Layer
 The Tools Layer enables agents to interact with external systems while maintaining a clean separation between reasoning and execution.
@@ -90,7 +90,7 @@ The Tools Layer enables agents to interact with external systems while maintaini
 
  The Tools Layer allows the system to interact with the real world while keeping agent logic clean and focused.
 
-## 🤖 Multi-Agent Architecture
+## Multi-Agent Architecture
 
 ### Overview
 As task complexity increases, the system adopts a **multi-agent design** where responsibilities are distributed among specialized agents coordinated by a supervisor.
@@ -103,7 +103,7 @@ As task complexity increases, the system adopts a **multi-agent design** where r
 ### Role in System :
 The multi-agent design allows parallel task handling and specialized processing. Each agent focuses on a specific domain, reducing bottlenecks and improving overall efficiency. It also provides a clear pathway to extend the system with new capabilities without disrupting existing agents.
 
-## 🧠 Supervisor Agent
+## Supervisor Agent
 The **Supervisor Agent** functions as the central controller and orchestrator of the system. It is the brain of the multi-agent system, making high-level decisions and ensuring all other agents work cohesively.
 1. **Intent Interpretation:** Transforms user intent into actionable tasks.
 2. **Task Delegation:** Generates execution plans and assigns tasks to specialized agents.
@@ -125,14 +125,27 @@ The **Supervisor Agent** functions as the central controller and orchestrator of
 ### Implementation :
 
 **Key Imports :-**
- 
- ![alt text](image-4.png)
+```python
 
+ from typing import TypedDict
+ from langgraph.graph import StateGraph, END
+ from langchain_groq import ChatGroq
+ from agents.search_agent import SearchAgent
+ from agents.summarizer_agent import SummarizerAgent
+ from memory.vfs import append_memory, load_memory
+
+```
 ### Supervisor Planning Node
 
  This node uses the LLM to convert unstructured user queries into a structured TODO plan. 
 
- ![alt text](image-3.png) 
+```python
+ def planner_node(state: SupervisorState):
+    res = llm.invoke(
+        f"Create a short TODO plan to answer:\n{state['input']}"
+    )
+    return {"plan": res.content}
+```
 
  By converting unstructured user queries into a structured TODO plan, this function enables controlled execution and effective task delegation to downstream agents such as search and summarization
 
@@ -140,9 +153,16 @@ The **Supervisor Agent** functions as the central controller and orchestrator of
 
  This function handles a single step of a conversation with an AI assistant. It takes the current user input, generates a reply using a language model, updates the conversation memory with both the user’s message and the AI’s response, and then returns the AI’s response.Essentially, it manages context, ensures the conversation history is stored, and produces a context-aware reply.
 
- ![alt text](image.png)
+```python
+def respond_node(state: SupervisorState):
+    memory = load_memory()
+    res = llm.invoke(prompt)
+    append_memory("user", state["input"])
+    append_memory("assistant", res.content)
 
-## 🔍 Search Agent
+    return {"response": res.content}
+```
+## Search Agent
 
  The Search Agent is dedicated to gathering information from internal or external sources. It acts as the system’s knowledge retriever.
  The search agent allows the system to dynamically acquire knowledge that the supervisor or other agents may require for reasoning or decision-making. By offloading information retrieval, it enables the supervisor to focus on planning and task integration. It ensures that decisions are data-driven and accurate.
@@ -155,18 +175,23 @@ The **Supervisor Agent** functions as the central controller and orchestrator of
 
 ### Implementation :
 
- ![alt text](image-5.png)
+```python
+from tools.search_tool import web_search
+```
 
  The Search Agent does not perform reasoning or decision-making. Its responsibility is to fetch information using search tools and return structured results to the Supervisor Agent. This separation ensures that reasoning logic remains clean and focused.
 
 ### Search Node :
  The search_node acts as the interface to the search system, using a SearchState to ensure type-safe data handling.
 
- ![alt text](image-1.png)
+```python
+def search_node(state: SearchState):
+    return {"result": web_search(state["query"])}
+```
  
  This function takes a state object containing a search query, performs a web search using that query, and returns the search results in a dictionary under the key "result".
 
-## ✂️ Summarizer Agent
+## Summarizer Agent
 
  The Summarizer Agent condenses large volumes of data into concise and meaningful summaries, acting as the system’s content simplifier. 
  The summarizer agent enhances information clarity and usability. It reduces cognitive load on the supervisor and other agents by distilling complex or lengthy data into actionable insights. This ensures that the system can make efficient, informed decisions and provide user-friendly outputs.
@@ -184,19 +209,29 @@ The **Supervisor Agent** functions as the central controller and orchestrator of
 
  This node distills a conversation turn into a brief, two-sentence summary for the workflow.
 
- ![alt text](image-2.png)
+```python
+def summarize_node(state: SummaryState):
+    res = llm.invoke(
+        f"Summarize the following in two concise sentences:\n{state['input']}"
+    )
+    return {"output": res.content}
+```    
 
  *	summarize_node is a workflow step in My Summarizer.
  *	It takes input text and uses a language model to generate a concise summary.
  *	The summary is limited to two sentences, keeping it brief and focused.
  *	Outputs the summary in a structured format, making it easy to use in further workflow steps.
 
-## 🖥️ Streamlit User Interface
+## Streamlit User Interface
  
  The Streamlit UI provides an interactive chat-based interface for users.
- 
- ![alt text](image-6.png)
 
+```python
+import streamlit as st
+from agents.supervisor_agent import SupervisorAgent
+from memory.vfs import load_memory, clear_memory
+
+```
  The UI makes the autonomous agent system accessible and easy to demonstrate. It loads conversation history from memory, displays agent responses clearly, and allows users to reset the system state when needed.
 
  This interface is ideal for mentor demonstrations and project evaluations.
@@ -212,7 +247,7 @@ The **Supervisor Agent** functions as the central controller and orchestrator of
  - Clear visualization of agent responses
 
 
-## 🔄 End-to-End Workflow
+## End-to-End Workflow
 
 This workflow illustrates how all components work together in a controlled pipeline. Each step is explicit and modular, making the system explainable, debuggable, and scalable.
 
@@ -233,8 +268,10 @@ This workflow illustrates how all components work together in a controlled pipel
 8. Final response is displayed
 
 **Workflow Diagram Placeholder:** 
-
+```python
  Input → Supervisor → Search → Reasoning → Summarization → Memory → Output
+ 
+ ```
 ---
 
 ##  Conclusion
