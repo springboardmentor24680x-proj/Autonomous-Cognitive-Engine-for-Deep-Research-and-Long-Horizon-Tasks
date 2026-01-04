@@ -75,28 +75,6 @@ Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks/
 
 ---
 
-## How to Run the Project
-
-### 1. Clone the Repository
-```bash
-git clone <your-repo-url>
-cd Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
-
-2. Create and Activate Virtual Environment
-python -m venv venv
-venv\Scripts\activate   # Windows
-
-3. Install Dependencies
-pip install -r requirements.txt
-
-4. Set Environment Variables
-set GROQ_API_KEY=your_groq_api_key
-set LANGSMITH_API_KEY=your_langsmith_api_key
-set LANGCHAIN_TRACING_V2=true
-
-5. Run the Application
-streamlit run app.py
-
 
 Future Enhancements
 
