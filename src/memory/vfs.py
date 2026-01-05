@@ -1,6 +1,11 @@
 from langchain_core.tools import tool
 import streamlit as st
 
+# Use session_state so the files don't disappear when the app refreshes
+if "VFS" not in st.session_state:
+    st.session_state["VFS"] = {}
+
+VFS = st.session_state["VFS"]
 # ----------------------------
 # In-memory VFS
 # ----------------------------
@@ -45,11 +50,9 @@ def edit_file(filename: str, new_content: str) -> str:
     VFS[filename] = new_content
     return f"File '{filename}' updated."
 
-def ls(*args, **kwargs) -> str:  
-    """Lists all file names currently stored in the VFS."""
-    if not VFS:
-        return "No files in VFS."
-    return "Files: " + ", ".join(VFS.keys())
+def ls(*args, **kwargs) -> list:  # Change return type to list
+    """Returns a list of filenames for the MCP server to handle."""
+    return list(VFS.keys())
 
 def delete_file(filename: str) -> str:
     """Removes a file from the Virtual File System."""

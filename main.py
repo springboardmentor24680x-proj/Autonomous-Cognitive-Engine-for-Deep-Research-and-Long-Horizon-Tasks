@@ -9,7 +9,11 @@ server = MCPServer("autonomous-cognitive-engine")
 vfs_tools.register(server)
 research_tools.register(server)
 summarize_tools.register(server)
-mcp_calendar_tools.register_calendar_tools(server) #
+mcp_calendar_tools.register_calendar_tools(server) 
+
+@server.tool()
+def list_tools():
+    return server.list_tool_names()
 
 if __name__ == "__main__":
     server.run(port=3333)

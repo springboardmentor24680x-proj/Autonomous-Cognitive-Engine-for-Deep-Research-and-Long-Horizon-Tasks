@@ -1,18 +1,15 @@
-# src/tools/calendar_tools.py
-
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from my_mcp.server.fastapi import MCPServer
 
 # ----------------------------
-# Calendar Storage (Scoped)
+# Calendar Storage (In-Memory)
 # ----------------------------
 class CalendarStore:
     def __init__(self):
         self.events = []
 
 CALENDAR = CalendarStore()
-
 
 # ----------------------------
 # Input Schemas
@@ -22,10 +19,12 @@ class AddEventInput(BaseModel):
     date: str  # YYYY-MM-DD
     time: str  # HH:MM
 
-
 class DeleteEventInput(BaseModel):
     index: int
 
+class ListEventsInput(BaseModel):
+    # Empty model to ensure consistent JSON-body handling
+    pass
 
 # ----------------------------
 # MCP Tool Registration
@@ -34,6 +33,7 @@ def register_calendar_tools(server: MCPServer):
 
     @server.tool()
     def add_event(input: AddEventInput) -> str:
+        # Check for exact duplicates
         for event in CALENDAR.events:
             if (
                 event["title"] == input.title
@@ -50,7 +50,7 @@ def register_calendar_tools(server: MCPServer):
         return f"Event '{input.title}' added on {input.date} at {input.time}."
 
     @server.tool()
-    def list_events() -> str:
+    def list_events(input: Optional[ListEventsInput] = None) -> str:
         if not CALENDAR.events:
             return "No events scheduled."
 
@@ -65,4 +65,4 @@ def register_calendar_tools(server: MCPServer):
             event = CALENDAR.events.pop(input.index)
             return f"Deleted event '{event['title']}'."
         except IndexError:
-            return "Invalid event index."
+            return f"Invalid index {input.index}. Use list_events to see valid IDs."
