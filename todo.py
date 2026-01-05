@@ -25,7 +25,7 @@ User request:
 
 
 def run_agent():
-    print("\n🧠 TODO Agent Started")
+    print("\n TODO Agent Started")
     print("Type 'exit' to stop\n")
 
     while True:
@@ -37,10 +37,11 @@ def run_agent():
 
         todo = generate_todo(user_input)
 
-        print("\n📋 Generated TODO List:\n")
+        print("\n Generated TODO List:\n")
         print(todo)
         print("\n" + "-" * 50 + "\n")
 
 
 if __name__ == "__main__":
     run_agent()
+
