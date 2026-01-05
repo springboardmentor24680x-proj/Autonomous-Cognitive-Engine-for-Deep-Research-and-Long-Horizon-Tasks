@@ -17,6 +17,7 @@ The system acts as a stateful AI agent that can:
 
 This project focuses on building the core cognitive architecture using LangGraph, LangChain, and Large Language Models (LLMs).
 
+
 Tech Stack
 
 
@@ -46,4 +47,6 @@ Current Project Status
 • Task planning and decomposition
 • External memory via virtual file system
 • Stateful execution using LangGraph
-• Sub-agent delegation (summarizer & search agents)
+• Sub-agent delegation (summarizer & code agents, search agents )
+
+
