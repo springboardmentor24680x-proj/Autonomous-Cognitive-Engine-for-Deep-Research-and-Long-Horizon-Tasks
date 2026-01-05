@@ -8,10 +8,10 @@ if "vfs" not in st.session_state:
 vfs = st.session_state.vfs
 
 st.set_page_config(page_title="VFS Memory Agent", layout="wide")
-st.title("🧠 Virtual File System – Memory Agent")
+st.title(" Virtual File System – Memory Agent")
 
 # Sidebar: File list
-st.sidebar.header("📂 Files in Memory")
+st.sidebar.header("Files in Memory")
 files = vfs.ls()
 if files:
     for f in files:
@@ -46,3 +46,4 @@ read_filename = st.text_input("Filename to read")
 if st.button("Read File"):
     result = vfs.read_file(read_filename)
     st.text_area("File Output", result, height=150)
+
