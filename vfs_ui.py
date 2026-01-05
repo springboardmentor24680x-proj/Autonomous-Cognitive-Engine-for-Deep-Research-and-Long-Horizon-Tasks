@@ -8,10 +8,10 @@ if "vfs" not in st.session_state:
 vfs = st.session_state.vfs
 
 st.set_page_config(page_title="Virtual File System UI", layout="wide")
-st.title("🧠 Virtual File System (External Memory UI)")
+st.title(" Virtual File System (External Memory UI)")
 
 # Sidebar: list files
-st.sidebar.header("📂 Files in Memory")
+st.sidebar.header(" Files in Memory")
 files = vfs.list_files()
 if files:
     for f in files:
@@ -22,7 +22,7 @@ else:
 st.divider()
 
 # Write / Edit section
-st.subheader("✍️ Write / Edit File")
+st.subheader("Write / Edit File")
 
 filename = st.text_input("Filename")
 content = st.text_area("Content", height=150)
@@ -46,8 +46,9 @@ with col2:
 st.divider()
 
 # Read section
-st.subheader("📖 Read File")
+st.subheader("Read File")
 read_filename = st.text_input("Filename to read", key="read")
 
 if st.button("Read File"):
     st.text_area("File Content", vfs.read_file(read_filename), height=150)
+
