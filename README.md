@@ -1,4 +1,5 @@
 Autonomous Cognitive Engine for Deep Research and Long-Horizon Tasks
+
 Project Overview
 
 The Autonomous Cognitive Engine is a stateful, Large Language Model (LLM)–driven system designed to autonomously handle complex, long-horizon tasks such as deep research, multi-step reasoning, structured planning, and problem solving with minimal human intervention.
