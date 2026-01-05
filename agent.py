@@ -3,7 +3,7 @@ from vfs import VirtualFileSystem
 def run_agent():
     vfs = VirtualFileSystem()
 
-    print("\n🧠 Virtual File System Memory Agent (Running)")
+    print("\n Virtual File System Memory Agent (Running)")
     print("Available commands:")
     print("  write_file <filename>")
     print("  read_file <filename>")
@@ -40,7 +40,8 @@ def run_agent():
             print(vfs.ls())
 
         else:
-            print("❌ Invalid command or missing filename.")
+            print(" Invalid command or missing filename.")
 
 if __name__ == "__main__":
     run_agent()
+
