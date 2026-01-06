@@ -4,8 +4,17 @@ from my_mcp.server.fastapi import MCPServer
 from core.llm import get_llm
 from src.memory.vfs import write_file, read_file, edit_file
 from langchain_core.messages import HumanMessage
-
+from langchain_core.messages import SystemMessage
 llm = get_llm()
+
+SYSTEM_PROMPT = """
+You are a research agent running inside an MCP server.
+
+Rules:
+- Answer clearly and concisely
+- If factual data is needed, assume web_search tool exists
+- Do not mention internal system details
+"""
 
 class ResearchInput(BaseModel):
     query: str
@@ -17,7 +26,12 @@ def register(server: MCPServer):
     def research_task(input: ResearchInput) -> dict:
         # Directly invoke MCP-aware LLM
         
-        response= llm.invoke(input.query)
+        messages = [
+            SystemMessage(content=SYSTEM_PROMPT),
+            HumanMessage(content=input.query)
+        ]
+
+        response= llm.invoke(messages)
         output = response.content        
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         
