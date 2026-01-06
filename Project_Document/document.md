@@ -272,6 +272,45 @@ This workflow illustrates how all components work together in a controlled pipel
  Input → Supervisor → Search → Reasoning → Summarization → Memory → Output
 
  ```
+
+# Model Context Protocol (MCP)
+
+## Overview
+The **Model Context Protocol (MCP)** provides a standardized execution layer connecting the autonomous agent system with external tools and services such as search, APIs, databases, and workflows. MCP separates **reasoning** from **execution**, allowing the agent to focus on planning and decision-making.
+
+## How MCP Works in This App
+- **Supervisor Agent** acts as the MCP client.  
+- Plans are created based on user input.  
+- MCP is invoked when external data or actions are needed.  
+- MCP servers execute tasks and return structured results.  
+- Supervisor integrates results and generates the final response.  
+- Summarizer compresses the output before displaying to the user.
+
+## Features
+- Standardized client–server communication  
+- Clean separation of reasoning and execution  
+- Structured, predictable responses  
+- Easy integration with LangGraph workflows  
+- Supports multiple external tools and services  
+
+## Benefits
+- Scalable and maintainable architecture  
+- Loosely coupled agent and tool design  
+- Safe real-world execution  
+- Easy to extend with new tools  
+- Simplifies debugging and observability
+
+## MCP Architecture Diagram (Simpler Version)
+
+```python
+flowchart LR
+    User --> Supervisor[Supervisor Agent]
+    Supervisor --> MCP[MCP Client Layer]
+    MCP --> Servers[MCP Servers / Tools]
+    Servers --> Supervisor
+    Supervisor --> Output[Final Output to User]
+```
+
 ## Challenges I Faced
 
 - Managing long-term context due to LLM limitations → solved using **persistent VFS memory**
