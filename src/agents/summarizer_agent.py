@@ -9,9 +9,7 @@ class SummaryState(TypedDict):
     output: str
 
 def summarize_node(state: SummaryState):
-    res = llm.invoke(
-        f"Summarize the following in two concise sentences:\n{state['input']}"
-    )
+    res = llm.invoke(f"Summarize the following in two concise sentences:\n{state['input']}")
     return {"output": res.content}
 
 graph = StateGraph(SummaryState)
