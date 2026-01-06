@@ -3,7 +3,7 @@ from agents.supervisor_agent import SupervisorAgent
 from memory.vfs import load_memory, clear_memory
 
 st.set_page_config(page_title="Autonomous Cognitive Agent", layout="wide")
-st.title("🧠 Autonomous Cognitive Agent")
+st.title(" Autonomous Cognitive Agent")
 
 # ---------- SIDEBAR ----------
 with st.sidebar:
@@ -36,3 +36,8 @@ if user_input := st.chat_input("Ask something..."):
         with st.spinner("Thinking..."):
             result = SupervisorAgent.invoke({"input": user_input})
             st.markdown(result["output"])
+        # Summary (from summarizer agent)
+        if "summary" in result and result["summary"]:
+            st.divider()
+            st.markdown("** Summary**")
+            st.markdown(result["summary"])
