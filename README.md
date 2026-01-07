@@ -48,6 +48,7 @@ The goal is to simulate advanced AI agent behavior such as planning, reasoning, 
    Consolidated and coherent final response is generated
 
 ---
+
 ## Architecture Diagram
 ```python
  Input(User prompt / request)
@@ -64,6 +65,7 @@ Memory(VFS)
   ↓
 Output(Final agent response)
 ```
+---
 
 ## Tech Stack
 
@@ -89,7 +91,6 @@ Output(Final agent response)
 
 This guide explains how to run the **Autonomous Cognitive Engine** locally using Streamlit.
 
----
 
 ### 1. Clone the Repository
 
@@ -137,6 +138,8 @@ You can now interact with the Autonomous Cognitive Agent.
 ### 7. Clear Chat History
 
 Use the sidebar “Clear Chat” button to reset the conversation memory when needed.
+
+---
 
 ## Project Status
 
