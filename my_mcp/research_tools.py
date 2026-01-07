@@ -7,15 +7,29 @@ from langchain_core.messages import HumanMessage
 from langchain_core.messages import SystemMessage
 llm = get_llm()
 
-SYSTEM_PROMPT = """
-You are a research agent running inside an MCP server.
+# SYSTEM_PROMPT = """
+# You are a research agent running inside an MCP server.
+
+# Rules:
+# - Answer clearly and concisely
+# - If factual data is needed, assume web_search tool exists
+# - Do not mention internal system details
+# """
+RESEARCH_SYSTEM_PROMPT = """
+You are a STRICT research agent.
 
 Rules:
-- Answer clearly and concisely
-- If factual data is needed, assume web_search tool exists
-- Do not mention internal system details
-"""
+- ONLY factual market research
+- NO opinions
+- NO tool mentions
+- OUTPUT must include:
 
+1. Clear competitor sections
+2. A section titled exactly:
+   DATA FOR GRAPHING
+3. Store counts as:
+   Brand: Number
+"""
 class ResearchInput(BaseModel):
     query: str
     filename: str = "research_notes.txt"
@@ -27,7 +41,7 @@ def register(server: MCPServer):
         # Directly invoke MCP-aware LLM
         
         messages = [
-            SystemMessage(content=SYSTEM_PROMPT),
+            SystemMessage(content=RESEARCH_SYSTEM_PROMPT),
             HumanMessage(content=input.query)
         ]
 
