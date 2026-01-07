@@ -10,7 +10,7 @@ load_dotenv()
 # ================= ENV =================
 API_KEY = os.getenv("GROQ_API_KEY")
 if not API_KEY:
-    raise RuntimeError("❌ GROQ_API_KEY not found in .env")
+    raise RuntimeError(" GROQ_API_KEY not found in .env")
 
 # ================= GROQ CLIENT =================
 client = Groq(api_key=API_KEY)
@@ -51,9 +51,10 @@ def call_llm(prompt: str) -> str:
         return answer
 
     except Exception as e:
-        return f"❌ LLM ERROR: {str(e)}"
+        return f" LLM ERROR: {str(e)}"
 
 
 # ================= CLEANER =================
 def clean_text(text: str) -> str:
     return text.strip()
+
