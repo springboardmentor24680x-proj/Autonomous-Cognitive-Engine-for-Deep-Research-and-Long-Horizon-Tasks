@@ -20,7 +20,7 @@ Tool-Based Execution – File system and extensible tool support
 
 Observability – LangSmith tracing for agent execution transparency
 
-Architecture
+Architecture:
 User → Supervisor Agent → Memory (VFS)
                      ↓
            Sub-Agents (Research / Summary)
@@ -29,7 +29,7 @@ User → Supervisor Agent → Memory (VFS)
                      ↓
                 Final Output
 
-Tech Stack
+Tech Stack:
 
 Python
 
@@ -39,7 +39,7 @@ Groq LLM
 
 LangSmith (Tracing)
 
-Project Structure
+Project Structure:
 Autonomous-Cognitive-Engine-for-Deep-Research/
 ├── src/          # Core agent logic
 ├── subagents/    # Research & summary agents
@@ -47,7 +47,7 @@ Autonomous-Cognitive-Engine-for-Deep-Research/
 ├── README.md
 └── requirements.txt
 
-Current Progress
+Current Progress:
 
 ✅ Research & summarization delegation
 
@@ -57,7 +57,7 @@ Current Progress
 
 ✅ Observable sub-agent execution
 
-Future Work
+Future Work:
 
 LangGraph StateGraph
 
@@ -65,6 +65,6 @@ Planner & verification agents
 
 Vector-based semantic memory
 
-License
+License:
 
 MIT License
