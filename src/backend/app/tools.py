@@ -54,7 +54,7 @@ class ToolExecutor:
             "success": True,
             "action": "created_todo",
             "todo": todo,
-            "summary": f"✅ Created task: '{todo['title']}' (Priority: {todo['priority'].upper()}{due_str})"
+            "summary": f" Created task: '{todo['title']}' (Priority: {todo['priority'].upper()}{due_str})"
         }
 
     @staticmethod
@@ -64,7 +64,7 @@ class ToolExecutor:
             return {
                 "success": False,
                 "action": "create_multiple_failed",
-                "summary": "❌ No tasks provided"
+                "summary": " No tasks provided"
             }
 
         created_todos = []
@@ -98,7 +98,7 @@ class ToolExecutor:
             return {
                 "success": False,
                 "action": "create_multiple_failed",
-                "summary": "❌ No valid tasks created"
+                "summary": " No valid tasks created"
             }
 
         priority_summary = [f"{count} {priority}" for priority, count in by_priority.items() if count > 0]
@@ -109,7 +109,7 @@ class ToolExecutor:
             "count": len(created_todos),
             "todos": created_todos,
             "by_priority": by_priority,
-            "summary": f"✅ Created {len(created_todos)} tasks: {', '.join(priority_summary)}"
+            "summary": f"Created {len(created_todos)} tasks: {', '.join(priority_summary)}"
         }
 
     @staticmethod
@@ -134,7 +134,7 @@ class ToolExecutor:
             return {
                 "success": False,
                 "action": "complete_failed",
-                "summary": "❌ Task not found"
+                "summary": " Task not found"
             }
 
         if todo["completed"]:
@@ -142,7 +142,7 @@ class ToolExecutor:
                 "success": True,
                 "action": "already_completed",
                 "todo": todo,
-                "summary": f"ℹ️ Task '{todo['title']}' was already completed"
+                "summary": f"ℹ Task '{todo['title']}' was already completed"
             }
 
         todo["completed"] = True
@@ -152,7 +152,7 @@ class ToolExecutor:
             "success": True,
             "action": "completed_todo",
             "todo": todo,
-            "summary": f"✅ Completed: '{todo['title']}'"
+            "summary": f"Completed: '{todo['title']}'"
         }
 
     @staticmethod
@@ -169,14 +169,14 @@ class ToolExecutor:
             return {
                 "success": False,
                 "action": "update_failed",
-                "summary": "❌ Task not found"
+                "summary": " Task not found"
             }
 
         if not updates:
             return {
                 "success": False,
                 "action": "no_updates",
-                "summary": "❌ No updates provided"
+                "summary": " No updates provided"
             }
 
         old_title = todo["title"]
@@ -203,7 +203,7 @@ class ToolExecutor:
             "action": "updated_todo",
             "todo": todo,
             "changes": changes,
-            "summary": f"✅ Updated '{old_title}': {change_summary}"
+            "summary": f" Updated '{old_title}': {change_summary}"
         }
 
     @staticmethod
@@ -216,13 +216,13 @@ class ToolExecutor:
                 return {
                     "success": True,
                     "action": "deleted_todo",
-                    "summary": f"🗑️ Deleted: '{removed['title']}'"
+                    "summary": f"Deleted: '{removed['title']}'"
                 }
         
         return {
             "success": False,
             "action": "delete_failed",
-            "summary": "❌ Task not found"
+            "summary": " Task not found"
         }
 
     @staticmethod
@@ -240,14 +240,14 @@ class ToolExecutor:
             return {
                 "success": False,
                 "action": "create_event_failed",
-                "summary": "❌ Event title cannot be empty"
+                "summary": " Event title cannot be empty"
             }
         
         if not date:
             return {
                 "success": False,
                 "action": "create_event_failed",
-                "summary": "❌ Event date is required"
+                "summary": " Event date is required"
             }
         
         event = {
@@ -286,7 +286,7 @@ class ToolExecutor:
             "event": event,
             "formatted_date": formatted_date,
             "formatted_time": formatted_time,
-            "summary": f"📅 Scheduled '{title}' on {formatted_date} at {formatted_time}{attendee_str}"
+            "summary": f"Scheduled '{title}' on {formatted_date} at {formatted_time}{attendee_str}"
         }
 
     @staticmethod
@@ -312,14 +312,14 @@ class ToolExecutor:
             return {
                 "success": False,
                 "action": "update_failed",
-                "summary": "❌ Event not found"
+                "summary": " Event not found"
             }
 
         if not updates:
             return {
                 "success": False,
                 "action": "no_updates",
-                "summary": "❌ No updates provided"
+                "summary": " No updates provided"
             }
 
         changes = []
@@ -348,7 +348,7 @@ class ToolExecutor:
             "action": "updated_calendar_event",
             "event": target_event,
             "changes": changes,
-            "summary": f"✅ Updated '{target_event['title']}': {change_summary}"
+            "summary": f" Updated '{target_event['title']}': {change_summary}"
         }
 
     @staticmethod
@@ -365,13 +365,13 @@ class ToolExecutor:
                 return {
                     "success": True,
                     "action": "deleted_event",
-                    "summary": f"🗑️ Cancelled: '{removed['title']}'"
+                    "summary": f" Cancelled: '{removed['title']}'"
                 }
         
         return {
             "success": False,
             "action": "delete_failed",
-            "summary": "❌ Event not found"
+            "summary": " Event not found"
         }
 
     @staticmethod
@@ -381,7 +381,7 @@ class ToolExecutor:
             return {
                 "success": False,
                 "action": "save_failed",
-                "summary": "❌ Filename cannot be empty"
+                "summary": "Filename cannot be empty"
             }
         
         filename = sanitize_filename(filename)
@@ -392,7 +392,7 @@ class ToolExecutor:
             "action": "saved_file",
             "filename": filename,
             "size": len(content),
-            "summary": f"💾 Saved '{filename}' ({len(content):,} characters)"
+            "summary": f" Saved '{filename}' ({len(content):,} characters)"
         }
 
     @staticmethod
@@ -405,13 +405,13 @@ class ToolExecutor:
                 "action": "read_file",
                 "filename": filename,
                 "content": content,
-                "summary": f"📄 Read '{filename}' ({len(content):,} characters)"
+                "summary": f"Read '{filename}' ({len(content):,} characters)"
             }
         
         return {
             "success": False,
             "action": "read_failed",
-            "summary": f"❌ File '{filename}' not found"
+            "summary": f" File '{filename}' not found"
         }
 
     @staticmethod
@@ -422,13 +422,13 @@ class ToolExecutor:
             return {
                 "success": True,
                 "action": "deleted_file",
-                "summary": f"🗑️ Deleted '{filename}'"
+                "summary": f" Deleted '{filename}'"
             }
         
         return {
             "success": False,
             "action": "delete_failed",
-            "summary": f"❌ File '{filename}' not found"
+            "summary": f" File '{filename}' not found"
         }
 
     @staticmethod
@@ -441,14 +441,14 @@ class ToolExecutor:
                 "success": True,
                 "action": "ls",
                 "files": [],
-                "summary": "📂 No files saved"
+                "summary": " No files saved"
             }
         
         return {
             "success": True,
             "action": "ls",
             "files": files,
-            "summary": f"📂 {len(files)} file(s): {', '.join(files)}"
+            "summary": f"{len(files)} file(s): {', '.join(files)}"
         }
 
     @staticmethod
@@ -458,7 +458,7 @@ class ToolExecutor:
             return {
                 "success": False,
                 "action": "export_failed",
-                "summary": "❌ No tasks to export"
+                "summary": " No tasks to export"
             }
 
         filename = sanitize_filename(filename)
@@ -516,7 +516,7 @@ class ToolExecutor:
             "total": len(state["todos"]),
             "pending": len(pending),
             "completed": len(completed),
-            "summary": f"💾 Exported {len(state['todos'])} tasks to '{filename}' ({len(pending)} pending, {len(completed)} completed)"
+            "summary": f"Exported {len(state['todos'])} tasks to '{filename}' ({len(pending)} pending, {len(completed)} completed)"
         }
 
     @staticmethod
@@ -526,7 +526,7 @@ class ToolExecutor:
             return {
                 "success": False,
                 "action": "visualize_failed",
-                "summary": "❌ No tasks to visualize"
+                "summary": " No tasks to visualize"
             }
 
         completed = sum(1 for t in state["todos"] if t["completed"])
@@ -564,5 +564,5 @@ class ToolExecutor:
             "chart": chart,
             "pending": pending,
             "completed": completed,
-            "summary": f"📊 Chart created: {pending} pending, {completed} completed tasks"
+            "summary": f" Chart created: {pending} pending, {completed} completed tasks"
         }

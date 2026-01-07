@@ -1,14 +1,11 @@
-"""
-Autonomous AI Agent Backend - FIXED VERSION
-Proper narration layer, tool result feedback, and message handling
-"""
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import Optional, List, Dict, Any
 from .utils import get_or_create_session, sessions
 from .agent import agent
 
-app = FastAPI(title="Autonomous AI Agent", version="3.0.0")
+app = FastAPI(title="Autonomous AI Agent", version="3.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,10 +25,11 @@ class ChatResponse(BaseModel):
     todos: list
     files: dict
     calendar: list
+    visualizations: list  
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
-    """Main chat endpoint"""
+    """Main chat endpoint with visualization support"""
     try:
         # Get or create session
         state = get_or_create_session(request.session_id)
@@ -40,12 +38,13 @@ async def chat(request: ChatRequest):
         from langchain_core.messages import HumanMessage
         state["messages"].append(HumanMessage(content=request.message))
        
-        # Run the agent (assistant message is added INSIDE reasoning_node now)
+        # Run the agent 
         result = agent.invoke(state)
        
         # Update session with result
         sessions[request.session_id] = result
        
+        # Format messages for response
         formatted_messages = []
         for msg in result["messages"]:
             formatted_messages.append({
@@ -53,6 +52,7 @@ async def chat(request: ChatRequest):
                 "content": msg.content
             })
        
+        # Get last assistant response
         last_assistant_response = ""
         for msg in reversed(result["messages"]):
             if msg.type == "ai":
@@ -64,7 +64,8 @@ async def chat(request: ChatRequest):
             messages=formatted_messages,
             todos=result["todos"],
             files=result["files"],
-            calendar=result["calendar"]
+            calendar=result["calendar"],
+            visualizations=result.get("visualizations", [])  # Include visualizations
         )
        
     except Exception as e:
@@ -74,13 +75,23 @@ async def chat(request: ChatRequest):
 
 @app.get("/session/{session_id}")
 async def get_session(session_id: str):
-    """Get current session state"""
+    """Get current session state including visualizations"""
     state = get_or_create_session(session_id)
     return {
         "todos": state["todos"],
         "files": state["files"],
         "calendar": state["calendar"],
+        "visualizations": state.get("visualizations", []),
         "context": state["context"]
+    }
+
+@app.get("/visualizations/{session_id}")
+async def get_visualizations(session_id: str):
+    """Get all visualizations for a session"""
+    state = get_or_create_session(session_id)
+    return {
+        "visualizations": state.get("visualizations", []),
+        "count": len(state.get("visualizations", []))
     }
 
 @app.delete("/session/{session_id}")
@@ -93,11 +104,16 @@ async def clear_session(session_id: str):
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "agent": "autonomous-ai-agent-v3", "version": "3.0.0"}
+    return {
+        "status": "healthy",
+        "agent": "autonomous-ai-agent-v3",
+        "version": "3.1.0",
+        "features": ["tasks", "calendar", "files", "visualizations", "sub-agents"]
+    }
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════
 # RUN SERVER
-# ═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

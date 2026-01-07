@@ -19,18 +19,19 @@ if not GROQ_API_KEY:
 
 client = OpenAI(
     api_key=GROQ_API_KEY,
-    base_url="https://api.groq.com/openai/v1"
+    base_url="https://api.groq.com/openai/v1",
+    timeout=30.0  # Add timeout to prevent hanging
 )
 
 
-def call_gemini(prompt: str, temperature: float = 0.3, max_tokens: int = 4096) -> str:
+def call_gemini(prompt: str, temperature: float = 0.3, max_tokens: int = 1024) -> str:
     """
-    Call Groq API (name kept for compatibility)
+    Call Groq API with timeout protection
     
     Args:
         prompt: The prompt to send
         temperature: Creativity level (0-1)
-        max_tokens: Maximum response length
+        max_tokens: Maximum response length (reduced default for speed)
     
     Returns:
         Generated text response
@@ -39,16 +40,17 @@ def call_gemini(prompt: str, temperature: float = 0.3, max_tokens: int = 4096) -
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
-                {"role": "system", "content": "You are a helpful, precise, and accurate AI assistant."},
+                {"role": "system", "content": "You are a helpful, precise, and concise AI assistant."},
                 {"role": "user", "content": prompt},
             ],
             temperature=temperature,
             max_tokens=max_tokens,
+            timeout=30  # Explicit timeout
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
-        print(f"Error calling Groq API: {e}")
-        return f"Error: {str(e)}"
+        print(f"  Error calling Groq API: {e}")
+        return f"I encountered an error: {str(e)}"
 
 
 # =========================================================
@@ -295,7 +297,7 @@ def get_state_summary(state: AgentState) -> str:
     high_priority = len(get_high_priority_todos(state))
     upcoming = len(get_upcoming_events(state))
     
-    return f"""📊 Current State:
+    return f""" Current State:
 - Tasks: {pending} pending, {completed} completed ({high_priority} high priority)
 - Calendar: {len(state['calendar'])} events ({upcoming} upcoming)
 - Files: {len(state['files'])} saved"""

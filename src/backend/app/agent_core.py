@@ -33,16 +33,12 @@ def normalize_tool_params(tool_name: str, params: dict) -> dict:
             "title_match": params.get("title"),
             "todo_id": params.get("todo_id"),
             "updates": params.get("updates", {})
-        },
-        "visualize_todos": {
-            "chart_type": params.get("chart_type", "pie")
         }
     }
     return mapping.get(tool_name, params)
 
 def reasoning_node(state: AgentState) -> dict:
-    # Your get_planning_response() call here
-    raw_response = "..."  # ← your LLM call
+    raw_response = "..."  
     plan = extract_json(raw_response)
 
     state["context"]["last_thinking"] = plan.get("thinking", "")
