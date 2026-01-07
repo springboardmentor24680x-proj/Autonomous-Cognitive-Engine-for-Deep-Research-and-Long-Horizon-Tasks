@@ -1,26 +1,26 @@
 # Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
 Springboard Internship Project – Infosys
-Overview
+# Overview
 
 The Autonomous Cognitive Engine (ACE) is an LLM-driven system designed to autonomously perform deep research and long-horizon tasks. It breaks complex user goals into actionable plans, delegates work to specialized sub-agents, maintains persistent memory, and produces structured outputs with minimal human intervention.
 
 Key Features
 
-Task Planning & TODO Enforcement – Structured task decomposition and execution tracking
+1.Task Planning & TODO Enforcement – Structured task decomposition and execution tracking
 
-Persistent Memory (VFS) – Long-term storage of research artifacts and context
+2. Persistent Memory (VFS) – Long-term storage of research artifacts and context
 
-Sub-Agent Delegation
+3. Sub-Agent Delegation
 
-Research Agent
+4. Research Agent
 
-Summarization Agent
+5. Summarization Agent
 
 Tool-Based Execution – File system and extensible tool support
 
 Observability – LangSmith tracing for agent execution transparency
 
-Architecture:
+# Architecture:
 User → Supervisor Agent → Memory (VFS)
                      ↓
            Sub-Agents (Research / Summary)
@@ -29,7 +29,8 @@ User → Supervisor Agent → Memory (VFS)
                      ↓
                 Final Output
 
-Tech Stack:
+
+# Tech Stack:
 
 Python
 
@@ -39,7 +40,7 @@ Groq LLM
 
 LangSmith (Tracing)
 
-Project Structure:
+# Project Structure:
 Autonomous-Cognitive-Engine-for-Deep-Research/
 
 ├── src/ # Core agent logic
@@ -48,7 +49,7 @@ Autonomous-Cognitive-Engine-for-Deep-Research/
 ├── README.md
 └── requirements.txt
 
-Current Progress:
+# Current Progress:
 
 ✅ Research & summarization delegation
 
@@ -58,7 +59,7 @@ Current Progress:
 
 ✅ Observable sub-agent execution
 
-Future Work:
+# Future Work:
 
 LangGraph StateGraph
 
@@ -66,6 +67,6 @@ Planner & verification agents
 
 Vector-based semantic memory
 
-License:
+# License:
 
 MIT License
