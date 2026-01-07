@@ -85,6 +85,59 @@ Output(Final agent response)
 
 ---
 
+## Running the Project
+
+This guide explains how to run the **Autonomous Cognitive Engine** locally using Streamlit.
+
+---
+
+### 1. Clone the Repository
+
+```python
+git clone https://github.com/your-username/your-repo.git
+cd your-repo
+```
+### 2. Create a Virtual Environment (Recommended)
+```python
+python -m venv venv
+```
+### 3. Activate the Virtual Environment
+* On Windows:
+
+```python
+venv\Scripts\activate
+```
+* On macOS/Linux:
+
+```python
+source venv/bin/activate
+```
+### 4. Install Dependencies
+```python
+pip install -r requirements.txt
+```
+
+Make sure the requirements.txt includes all necessary packages such as streamlit, langgraph, langchain-groq, etc.
+
+### 5. Run the Streamlit App
+```python
+streamlit run src/app.py
+```
+
+### 6. Open the App in Your Browser
+
+```python
+Streamlit will automatically open your default web browser at:
+
+http://localhost:8501
+```
+
+You can now interact with the Autonomous Cognitive Agent.
+
+### 7. Clear Chat History
+
+Use the sidebar “Clear Chat” button to reset the conversation memory when needed.
+
 ## Project Status
 
 Work in progress — milestone-based development.

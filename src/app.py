@@ -3,7 +3,7 @@ from agents.supervisor_agent import SupervisorAgent
 from memory.vfs import load_memory, clear_memory
 
 st.set_page_config(page_title="Autonomous Cognitive Agent", layout="wide")
-st.title(" Autonomous Cognitive Agent")
+st.title("Autonomous Cognitive Agent")
 
 # ---------- SIDEBAR ----------
 with st.sidebar:
@@ -13,19 +13,32 @@ with st.sidebar:
     if not history:
         st.info("No chat history yet.")
     else:
-        for i, msg in enumerate(history):
+        q = 1
+        for msg in history:
             if msg["role"] == "user":
-                st.markdown(f"**Q{i//2 + 1}:** {msg['content'][:40]}...")
+                st.markdown(f"**Q{q}:** {msg['content'][:40]}...")
+                q += 1
+
     st.divider()
 
     if st.button("Clear Chat", use_container_width=True):
         clear_memory()
-        st.experimental_rerun()  # works in Streamlit 1.40.2
+        st.experimental_rerun()
 
 # ---------- MAIN CHAT ----------
 for msg in load_memory():
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+    if msg["role"] == "user":
+        with st.chat_message("user"):
+            st.markdown(msg["content"])
+
+    elif msg["role"] == "assistant":
+        with st.chat_message("assistant"):
+            st.markdown(msg["content"])
+
+            if "summary" in msg:
+                st.divider()
+                st.markdown("**Summary**")
+                st.markdown(msg["summary"])
 
 # ---------- INPUT ----------
 if user_input := st.chat_input("Ask something..."):
@@ -36,8 +49,6 @@ if user_input := st.chat_input("Ask something..."):
         with st.spinner("Thinking..."):
             result = SupervisorAgent.invoke({"input": user_input})
             st.markdown(result["output"])
-        # Summary (from summarizer agent)
-        if "summary" in result and result["summary"]:
             st.divider()
-            st.markdown("** Summary**")
+            st.markdown("**Summary**")
             st.markdown(result["summary"])
