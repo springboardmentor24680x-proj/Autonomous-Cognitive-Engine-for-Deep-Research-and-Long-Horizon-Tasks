@@ -14,9 +14,9 @@ SUB_AGENT_REGISTRY = {
 def delegate_task(task_type: str, task_input: str) -> str:
     agent = SUB_AGENT_REGISTRY.get(task_type)
     if not agent:
-        return f"❌ No sub-agent registered for task type: {task_type}"
+        return f" No sub-agent registered for task type: {task_type}"
 
     try:
         return agent(task_input)
     except Exception as e:
-        return f"❌ Sub-agent execution failed: {str(e)}"
+        return f" Sub-agent execution failed: {str(e)}"
