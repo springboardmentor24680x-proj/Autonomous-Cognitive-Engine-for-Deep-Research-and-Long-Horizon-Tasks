@@ -41,7 +41,8 @@ LangSmith (Tracing)
 
 Project Structure:
 Autonomous-Cognitive-Engine-for-Deep-Research/
-├── src/          # Core agent logic
+
+├── src/ # Core agent logic
 ├── subagents/    # Research & summary agents
 ├── storage/      # Persistent memory
 ├── README.md
