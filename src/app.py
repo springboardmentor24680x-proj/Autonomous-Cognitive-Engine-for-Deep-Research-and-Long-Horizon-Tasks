@@ -23,7 +23,7 @@ with st.sidebar:
 
     if st.button("Clear Chat", use_container_width=True):
         clear_memory()
-        st.experimental_rerun()
+        st.rerun()
 
 # ---------- MAIN CHAT ----------
 for msg in load_memory():
