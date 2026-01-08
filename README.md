@@ -68,14 +68,14 @@ Output(Final agent response)
 ---
 
 ## Tech Stack
-
+```python
 * Python 3.11+
 * LangGraph
 * LangChain
 * LLM API (Claude / Groq)
 * LangSmith (Tracing & Debugging)
 * Tavily API (Search)
-
+```
 ---
 
 ## Use Case Example
@@ -135,15 +135,32 @@ http://localhost:8501
 
 You can now interact with the Autonomous Cognitive Agent.
 
-### 7. Clear Chat History
-
-Use the sidebar “Clear Chat” button to reset the conversation memory when needed.
-
 ---
 
 ## Project Status
 
-Work in progress — milestone-based development.
+ **Advanced Prototype**
+
+This project is a functional, research-grade autonomous agent system with **planning, persistent memory, multi-agent coordination, and tool-driven execution** fully implemented.
+
+## Current Capabilities
+
+- Task planning using TODO-based reasoning
+- Persistent memory via Virtual File System (VFS)
+- Supervisor–Worker multi-agent architecture
+- Integrated Search and Summarization agents
+- Model Context Protocol (MCP) for tool execution
+- Streamlit-based interactive user interface
+
+
+## Ongoing Work
+
+- Improved planning strategies and memory retrieval
+- Addition of more specialized agents
+- Performance, reliability, and scalability enhancements
+
+
+Overall, the system is **stable, extensible, and well-suited for autonomous research, long-horizon reasoning, and future production experimentation**.
 
 ---
 
