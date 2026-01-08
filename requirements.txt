@@ -1,18 +1,19 @@
-# ===============================
-# Core
-# ===============================
-streamlit>=1.32.0
-python-dotenv>=1.0.1
+# UI
+streamlit>=1.30.0
 
-# ===============================
-# LLM + Agents
-# ===============================
-langchain>=0.2.6
-langgraph>=0.0.52
+# Agent & Graph Framework
+langchain>=0.2.0
+langgraph>=0.0.45
+
+# Groq LLM integration
 langchain-groq>=0.1.5
 
-# ===============================
+# State & Validation
+typing-extensions>=4.8.0
+
 # Utilities
-# ===============================
-typing-extensions>=4.9.0
+python-dotenv>=1.0.0
 requests>=2.31.0
+
+# Tracing / Debugging
+langsmith>=0.1.40
