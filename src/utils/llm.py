@@ -15,7 +15,7 @@ if not API_KEY:
 # ================= GROQ CLIENT =================
 client = Groq(api_key=API_KEY)
 
-# ⚡ FAST GROQ MODEL
+#  FAST GROQ MODEL
 MODEL = "llama-3.1-8b-instant"
 
 # ================= SIMPLE CACHE =================
@@ -57,4 +57,5 @@ def call_llm(prompt: str) -> str:
 # ================= CLEANER =================
 def clean_text(text: str) -> str:
     return text.strip()
+
 
