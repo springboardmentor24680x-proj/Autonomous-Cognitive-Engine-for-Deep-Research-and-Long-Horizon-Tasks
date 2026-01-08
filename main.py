@@ -1,3 +1,4 @@
+#main.py
 from my_mcp.server.fastapi import MCPServer
 from my_mcp import vfs_tools, research_tools, summarize_tools, mcp_calendar_tools
 from my_mcp import visualization_tools
@@ -52,19 +53,16 @@ Rules:
 """
 
 @server.tool()
-def supervisor(query: str) -> dict:
+def supervisor(state: dict) -> dict:
     response = llm.invoke([
         SystemMessage(content=SUPERVISOR_PROMPT),
-        HumanMessage(content=query)
+        HumanMessage(content=json.dumps(state))
     ])
 
     try:
         return json.loads(response.content)
-    except Exception as e:
-        return {
-            "error": "Supervisor output was not valid JSON",
-            "raw": response.content
-        }
+    except:
+        return {"action": "stop"}
 
 # --------------------
 # Run server

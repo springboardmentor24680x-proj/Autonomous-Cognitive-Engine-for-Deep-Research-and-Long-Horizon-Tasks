@@ -1,5 +1,7 @@
+#vfs_tools.py
 from pydantic import BaseModel
 from my_mcp.server.fastapi import MCPServer
+import base64
 from src.memory.vfs import (
     write_file,
     read_file,
@@ -31,7 +33,16 @@ def register(server: MCPServer):
 
     @server.tool()
     def vfs_read(input: VFSReadInput) -> dict:
-        return {"content": read_file(input.filename)}
+        content = read_file(input.filename)
+        
+        # Check if we are dealing with an image or binary data
+        if isinstance(content, bytes):
+            # Encode to Base64 so it can travel safely over JSON
+            encoded_content = base64.b64encode(content).decode('utf-8')
+            return {"content": encoded_content, "encoding": "base64"}
+        
+        # Otherwise, return as normal text
+        return {"content": content, "encoding": "text"}
 
     @server.tool()
     def vfs_ls() -> dict:
@@ -39,7 +50,7 @@ def register(server: MCPServer):
         List virtual files.
         """
         return {
-            "files": ls()   # ✅ MUST be a list[str]
+            "files": ls()   #  MUST be a list[str]
         }
 
     @server.tool()
