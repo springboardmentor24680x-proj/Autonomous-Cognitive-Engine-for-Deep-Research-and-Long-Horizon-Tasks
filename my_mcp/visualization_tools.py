@@ -1,41 +1,21 @@
-import re
 import matplotlib.pyplot as plt
-from pydantic import BaseModel
-from my_mcp.server.fastapi import MCPServer
-from src.memory.vfs import read_file, write_file
+import base64
+from io import BytesIO
+from mcp.server.fastmcp import FastMCP
 
-class VisualizationInput(BaseModel):
-    filename: str = "research_notes.txt"
-    output_image: str = "coffee_market_chart.png"
+def register(mcp: FastMCP):
 
-def register(server: MCPServer):
+    @mcp.tool()
+    def create_visualization(data: dict):
+        brands = list(data.keys())
+        values = list(data.values())
 
-    @server.tool()
-    def create_visualization(input: VisualizationInput) -> dict:
-        content = read_file(input.filename)
+        plt.figure()
+        plt.bar(brands, values)
 
-        match = re.search(r"DATA FOR GRAPHING([\s\S]*)", content)
-        if not match:
-            return {"error": "DATA FOR GRAPHING section missing"}
-
-        data = re.findall(r"([\w\s]+):\s*(\d+)", match.group(1))
-        if not data:
-            return {"error": "No graphable data found"}
-
-        labels, values = zip(*[(k.strip(), int(v)) for k, v in data])
-
-        plt.figure(figsize=(8, 5))
-        plt.bar(labels, values)
-        plt.ylabel("Stores")
-        plt.title("Market Comparison")
-
-        plt.savefig(input.output_image)
+        buf = BytesIO()
+        plt.savefig(buf, format="png")
         plt.close()
 
-        with open(input.output_image, "rb") as f:
-            write_file(input.output_image, f.read())
-
-        return {
-            "status": "chart_created",
-            "image_file": input.output_image
-        }
+        encoded = base64.b64encode(buf.getvalue()).decode()
+        return {"image_base64": encoded}

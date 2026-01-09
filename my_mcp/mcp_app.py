@@ -3,20 +3,45 @@ from my_mcp.client import MCPClient
 import base64
 import json
 import time
+import logging
+import os
 
-# --- Page configuration ---
+# --------------------
+# Logging Setup
+# --------------------
+os.makedirs("logs", exist_ok=True)
+
+logger = logging.getLogger("STREAMLIT_APP")
+logger.setLevel(logging.INFO)
+logger.propagate = False
+
+if not logger.handlers:
+    handler = logging.FileHandler("logs/mcp_app.log", encoding="utf-8")
+    formatter = logging.Formatter(
+        "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+# --------------------
+# Page configuration
+# --------------------
 st.set_page_config(page_title="Autonomous Cognitive Engine", layout="wide")
+logger.info("Streamlit app started")
 
-# --- MCP Client Initialization ---
+# --------------------
+# MCP Client Initialization
+# --------------------
 @st.cache_resource
 def load_client():
+    logger.info("Initializing MCP Client")
     return MCPClient("http://localhost:3333")
 
 client = load_client()
 
-# --- Utility: Display Logic for Files ---
+# --------------------
+# Utility: Display Logic for Files
+# --------------------
 def display_vfs_file(fname, content):
-    """Handles different file types for the sidebar display."""
     if fname.endswith(".png"):
         try:
             if isinstance(content, str) and "," in content:
@@ -24,36 +49,44 @@ def display_vfs_file(fname, content):
             img_bytes = base64.b64decode(content)
             st.image(img_bytes, caption=fname, use_container_width=True)
         except Exception as e:
+            logger.exception(f"Failed to render image {fname}")
             st.error(f"Error rendering {fname}: {e}")
     else:
         st.code(content, language="text")
 
-# --- Sidebar: File Explorer ---
+# --------------------
+# Sidebar: File Explorer
+# --------------------
 with st.sidebar:
     st.title("Agent State")
     st.header("Virtual Files")
-    
-    if st.button("🔄 Refresh Files"):
+
+    if st.button(" Refresh Files"):
+        logger.info("User refreshed VFS")
         st.rerun()
 
     try:
+        logger.info("Requesting VFS file list")
         vfs_data = client.call("vfs_ls")
         file_list = vfs_data.get("files", [])
-        if isinstance(file_list, str):
-            file_list = [file_list]
-        
+        logger.info(f"VFS files: {file_list}")
+
         if not file_list:
             st.info("No files in memory.")
         else:
             for fname in file_list:
                 res = client.call("vfs_read", {"filename": fname})
-                content = res.get("content", "Empty")
-                with st.expander(f"📄 {fname}"):
-                    display_vfs_file(fname, content)
-    except Exception as e:
-        st.error(f"VFS Error: {e}")
+                file_content = res.get("content", "Empty")
+                with st.expander(f" {fname}"):
+                    display_vfs_file(fname, file_content)
 
-# --- Chat UI ---
+    except Exception as e:
+        logger.exception("VFS Connection Error")
+        st.error(f"VFS Connection Error: {e}")
+
+# --------------------
+# Chat UI
+# --------------------
 st.title("Deep Agent (MCP Trace Mode)")
 
 if "messages" not in st.session_state:
@@ -63,55 +96,60 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- Agentic Execution Loop ---
+# --------------------
+# Agentic Execution Loop
+# --------------------
 if user_input := st.chat_input("Enter your complex research task..."):
+    logger.info(f"User input: {user_input}")
+
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # Use st.status to show the "Thinking Trace"
     with st.status("Agent is working...", expanded=True) as status_box:
         current_query = user_input
         final_response = ""
-        
-        # Limit to 5 steps to prevent infinite loops
-        for step in range(5):
-            st.write(f"🧠 **Step {step+1}:** Consulting Supervisor...")
-            
-            # 1. Ask Supervisor for the next action
-            decision = client.call("supervisor", {"query": current_query})
-            
-            action = decision.get("action")
-            args = decision.get("args", {})
 
-            # 2. Check if we reached a final answer
-            if action == "final_answer" or not action:
-                final_response = args.get("response", "I have completed all tasks.")
+        for step in range(5):
+            logger.info(f"Step {step+1} - Supervisor call")
+            st.write(f"**Step {step+1}:** Consulting Supervisor...")
+
+            decision_resp = client.call("supervisor", {"query": current_query})
+            logger.info(f"Supervisor response: {decision_resp}")
+
+            try:
+                decision = decision_resp
+                action = decision.get("action")
+                args = decision.get("args", {})
+            except Exception as e:
+                logger.exception("Supervisor response parsing failed")
+                final_response = str(decision_resp)
                 break
 
-            # 3. TRACE: Show the tool call details
-            st.write(f"🛠️ **Action:** Calling tool `{action}`")
-            st.json(args) # This shows the parameters in the trace
+            if action == "final_answer" or not action:
+                final_response = args.get("response", "Task completed.")
+                logger.info("Final answer reached")
+                break
 
-            # 4. Execute the tool
+            st.write(f"**Action:** `{action}`")
+            st.json(args)
+
             try:
+                logger.info(f"Executing tool: {action} | args={args}")
                 tool_result = client.call(action, args)
-                st.write(f"✅ **Result:** Success")
-                
-                # Update query with tool output so supervisor knows what happened
-                current_query = f"Tool '{action}' result: {json.dumps(tool_result)}. Task context: {user_input}"
+                logger.info(f"Tool result: {tool_result}")
+
+                current_query = f"Tool '{action}' result: {json.dumps(tool_result)}. Next step?"
             except Exception as e:
-                st.error(f"Tool Error: {e}")
-                current_query = f"Tool '{action}' failed with error: {str(e)}"
-            
-            time.sleep(1) # Brief pause for UI readability
+                logger.exception("Tool execution failed")
+                current_query = f"Tool '{action}' failed: {str(e)}"
+
+            time.sleep(0.5)
 
         status_box.update(label="Tasks Finished!", state="complete", expanded=False)
 
-    # Save and display final response
     st.session_state.messages.append({"role": "assistant", "content": final_response})
     with st.chat_message("assistant"):
         st.markdown(final_response)
-    
-    # Rerun to refresh the VFS sidebar automatically
-    st.rerun()
+
+    logger.info("Agent loop finished")
