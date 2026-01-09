@@ -1,30 +1,36 @@
-from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage
-from state import AgentState
+from langsmith import traceable
+
+from graph.state import AgentState
 from tools.llm_factory import make_llm
-from memory.vfs import VirtualFileSystem
-from tools.shared_resources import vfs
+from memory.vfs import vfs   # ✅ singleton VFS
 
-
-vfs = VirtualFileSystem()
-
+@traceable(name="summarizer_node")
 def summarizer_node(state: AgentState) -> AgentState:
     llm = make_llm()
 
+    content = state.get("search_results", "")
+
+    # 🔹 Remove links / sources
+    if "Sources:" in content:
+        content = content.split("Sources:")[0].strip()
+
     prompt = HumanMessage(
-        content=f"Summarize the following:\n\n{state['search_results']}"
+        content=(
+            "Summarize the following clearly.\n"
+            "- No links\n"
+            "- No sources\n\n"
+            f"{content}"
+        )
     )
 
     response = llm.invoke([prompt])
 
-    vfs.write_file("summary.txt", prompt.content, response.content)
+    vfs.write_file(
+        file_name="summary.txt",
+        prompt=prompt.content,
+        response=response.content
+    )
+
     state["messages"].append(response)
-
     return state
-
-graph = StateGraph(AgentState)
-graph.add_node("summarize", summarizer_node)
-graph.set_entry_point("summarize")
-graph.add_edge("summarize", END)
-
-SummarizationAgent = graph.compile()

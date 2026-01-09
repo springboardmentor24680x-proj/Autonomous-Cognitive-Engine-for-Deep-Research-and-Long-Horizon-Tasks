@@ -5,6 +5,10 @@ from memory.vfs import vfs
 tavily = TavilyClient()
 
 def web_search_node(state):
+    # Safety: ensure messages exist
+    if not state.get("messages"):
+        return state
+
     query = state["messages"][-1].content
 
     results = tavily.search(
@@ -18,12 +22,16 @@ def web_search_node(state):
 
     sources_text = ""
     for r in sources:
-        sources_text += f"- {r['title']}\n  {r['url']}\n\n"
+        title = r.get("title", "No title")
+        url = r.get("url", "")
+        sources_text += f"- {title}\n  {url}\n\n"
 
     content = f"{answer}\n\nSources:\n{sources_text}"
 
+    # Persist to VFS
     vfs.write_file("search.txt", query, content)
 
+    # Update state
     state["search_results"] = content
     state["messages"].append(AIMessage(content=content))
 

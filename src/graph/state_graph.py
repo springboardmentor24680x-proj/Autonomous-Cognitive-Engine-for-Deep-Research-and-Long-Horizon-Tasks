@@ -1,21 +1,57 @@
-# src/graph/state_graph.py
 from langchain_core.messages import HumanMessage, AIMessage
 from langsmith import traceable
 
-# Absolute imports
+from langgraph.graph import StateGraph, END
+
 from graph.state import AgentState
 from tools.llm_factory import make_llm
-from memory.vfs import vfs
 from tools.shared_resources import TavilyClient
+from memory.vfs import vfs   # ✅ SINGLETON VFS
 
-# ---------------- External Clients ----------------
+# =================================================
+# External Clients
+# =================================================
 tavily = TavilyClient()
 
-# ---------------- GRAPH NODES ----------------
+# =================================================
+# Intent Detection
+# =================================================
+def is_todo_request(text: str) -> bool:
+    keywords = ["todo", "to-do", "task", "plan", "schedule"]
+    return any(k in text.lower() for k in keywords)
+
+# =================================================
+# ROUTER NODE (must return STATE)
+# =================================================
+@traceable(name="router")
+def router_node(state: AgentState) -> AgentState:
+    # Router node does NO logic
+    # Routing logic lives in route_decision()
+    return state
+
+# =================================================
+# ROUTING FUNCTION (returns STRING KEY)
+# =================================================
+def route_decision(state: AgentState) -> str:
+    user_text = state["messages"][-1].content
+    if is_todo_request(user_text):
+        return "todo"
+    return "web_search"
+
+# =================================================
+# GRAPH NODES
+# =================================================
+
 @traceable(name="web_search_node")
 def web_search_node(state: AgentState) -> AgentState:
     query = state["messages"][-1].content
-    results = tavily.search(query=query, max_results=5, include_answer=True)
+
+    results = tavily.search(
+        query=query,
+        max_results=5,
+        include_answer=True
+    )
+
     answer = results.get("answer", "No answer found.")
     sources = results.get("results", [])
 
@@ -25,8 +61,12 @@ def web_search_node(state: AgentState) -> AgentState:
 
     content = f"{answer}\n\nSources:\n{sources_text}"
 
-    # Persist search results
-    vfs.write_file("search.txt", query, content)
+    # Persist search output
+    vfs.write_file(
+        file_name="search.txt",
+        prompt=query,
+        response=content
+    )
 
     state["search_results"] = content
     state["messages"].append(AIMessage(content=content))
@@ -36,34 +76,92 @@ def web_search_node(state: AgentState) -> AgentState:
 @traceable(name="summarizer_node")
 def summarizer_node(state: AgentState) -> AgentState:
     llm = make_llm()
-    content_to_summarize = state.get("search_results") or state["messages"][-1].content
-    prompt = HumanMessage(content=f"Summarize the following information:\n\n{content_to_summarize}")
+
+    content = state.get("search_results", "")
+
+    # ❌ Remove links/sources
+    if "Sources:" in content:
+        content = content.split("Sources:")[0].strip()
+
+    prompt = HumanMessage(
+        content=(
+            "Summarize the following clearly.\n"
+            "- No links\n"
+            "- No sources\n\n"
+            f"{content}"
+        )
+    )
+
     response = llm.invoke([prompt])
-    vfs.write_file("summary.txt", prompt.content, response.content)
+
+    vfs.write_file(
+        file_name="summary.txt",
+        prompt=prompt.content,
+        response=response.content
+    )
+
     state["messages"].append(response)
     return state
 
 
-@traceable(name="research_node")
-def research_node(state: AgentState) -> AgentState:
+@traceable(name="todo_node")
+def todo_node(state: AgentState) -> AgentState:
     llm = make_llm()
-    prompt = HumanMessage(content=state["messages"][-1].content)
+
+    prompt = HumanMessage(
+        content=(
+            "Create a clean, actionable to-do list.\n"
+            "Rules:\n"
+            "- NO links\n"
+            "- NO sources\n"
+            "- Use time blocks if applicable\n\n"
+            f"Request:\n{state['messages'][-1].content}"
+        )
+    )
+
     response = llm.invoke([prompt])
+
+    vfs.write_file(
+        file_name="todos.md",
+        prompt=prompt.content,
+        response=response.content
+    )
+
     state["messages"].append(response)
     return state
 
-
-# ---------------- GRAPH DEFINITION ----------------
-from langgraph.graph import StateGraph, END
+# =================================================
+# GRAPH DEFINITION
+# =================================================
 
 graph = StateGraph(AgentState)
+
+# Nodes
+graph.add_node("router", router_node)
 graph.add_node("web_search", web_search_node)
 graph.add_node("summarize", summarizer_node)
-graph.add_node("research", research_node)
+graph.add_node("todo", todo_node)
 
-graph.set_entry_point("web_search")
+# Entry
+graph.set_entry_point("router")
+
+# Conditional Routing (✅ CORRECT)
+graph.add_conditional_edges(
+    "router",
+    route_decision,   # MUST be callable
+    {
+        "web_search": "web_search",
+        "todo": "todo"
+    }
+)
+
+# Flow
 graph.add_edge("web_search", "summarize")
 graph.add_edge("summarize", END)
+graph.add_edge("todo", END)
 
-# ---------------- COMPILE AGENT ----------------
+# =================================================
+# COMPILE AGENT
+# =================================================
+
 SummarizationAgent = graph.compile()
