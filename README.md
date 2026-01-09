@@ -15,11 +15,11 @@ Unlike traditional chat-based assistants that operate in **single-step prompt–
 The primary objective of this project is to design and implement a **Deep Cognitive Task Framework** using **LangGraph**, capable of executing **long-running and complex tasks** autonomously.
 
 This framework aims to:
-- Move beyond simple tool-calling loops
-- Support **structured task planning**
-- Maintain **persistent memory**
-- Enable **sub-agent delegation**
-- Produce **coherent final outputs** after multi-step execution
+- Move beyond simple tool-calling loops  
+- Support **structured task planning**  
+- Maintain **persistent memory**  
+- Enable **sub-agent delegation**  
+- Produce **coherent final outputs** after multi-step execution  
 
 ---
 
@@ -32,7 +32,7 @@ This framework aims to:
 
 ### **Persistent Memory (Virtual File System)**
 - Custom **Virtual File System (VFS)** for memory persistence
-- Supports `read`, `write`, `edit`, `delete` operations
+- Supports `read`, `write`, `edit`, and `delete` operations
 - Overcomes LLM context window limitations
 
 ### **Multi-Agent Delegation**
@@ -45,11 +45,11 @@ This framework aims to:
 ### **Stateful Workflow Execution**
 - Implemented using **LangGraph**
 - Maintains execution state across steps
-- Supports retries, branching, and long-running flows
+- Supports retries, branching, and long-running workflows
 
 ### **Model Context Protocol (MCP)**
-- All sub-agents exposed as **MCP tools**
-- Supervisor communicates via **MCP client**
+- All sub-agents are exposed as **MCP tools**
+- Supervisor communicates via an **MCP client**
 - Enables standardized and extensible tool execution
 
 ### **Observability & Tracing**
@@ -78,13 +78,14 @@ This framework aims to:
    - Sub-agent delegation via MCP
 
 5. **Result Aggregation**
-   - Outputs gathered from tools and agents
+   - Outputs gathered from tools and sub-agents
    - Context retrieved from memory
 
 6. **Final Output**
-   - Structured, coherent response generated
+   - Structured and coherent response generated
 
 ---
+
 ## **Technology Stack**
 
 ### **Core Technologies**
@@ -96,13 +97,46 @@ This framework aims to:
 ### **Tools & Utilities**
 - **Virtual File System (VFS)** – Persistent memory
 - **Model Context Protocol (MCP)** – Tool execution
-- **LangSmith** – Tracing & observability
-- **Streamlit** – Web-based UI
-- **python-dotenv** – Environment management
+- **LangSmith** – Tracing and observability
+- **Streamlit** – Web-based user interface
+- **python-dotenv** – Environment configuration
 - **Pytest** – Automated testing
 
 ---
 
+## **Project Structure**
+
+```text
+src/
+├── agents/
+│   ├── chat_agent.py            # Main supervisor agent
+│   ├── code_agent.py            # Code generation sub-agent
+│   ├── summarization_agent.py   # Summarization sub-agent
+│   └── web_search_agent.py      # Web search sub-agent
+│
+├── memory/
+│   └── vfs_tools.py             # Virtual File System (persistent memory)
+│
+├── tools/
+│   └── delegation_tool.py       # Multi-agent delegation & MCP integration
+│
+├── utils/
+│   └── llm.py                   # LLM abstraction and response cleaning
+│
+├── tests/
+│   ├── test_chatagent.py
+│   ├── test_code_agent.py
+│   ├── test_delegation_tool.py
+│   ├── test_summarization_agent.py
+│   ├── test_vfs_tools.py
+│   └── test_web_search_agent.py
+│
+├── main.py                      # Application entry point
+│
+LICENSE
+README.md
+requirements.txt
+```
 ## **User Interface**
 
 The system includes a **Streamlit-based chat interface** that provides:
