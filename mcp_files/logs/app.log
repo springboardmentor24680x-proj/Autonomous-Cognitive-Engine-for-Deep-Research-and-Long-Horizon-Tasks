@@ -1,0 +1,365 @@
+2026-01-10 17:47:24,375 - INFO - User Input: I'm thinking about starting a coffee roasting business. Find out who the top three competitors are in the specialty coffee market right now and what their unique selling points are. Once you have that, give me a concise summary of the risks I might face and keep a record of this strategy for me. Also, put a 'Market Deep Dive' session on my calendar for next Tuesday at 9 AM.
+2026-01-10 17:47:24,375 - INFO - User Input: I'm thinking about starting a coffee roasting business. Find out who the top three competitors are in the specialty coffee market right now and what their unique selling points are. Once you have that, give me a concise summary of the risks I might face and keep a record of this strategy for me. Also, put a 'Market Deep Dive' session on my calendar for next Tuesday at 9 AM.
+2026-01-10 17:47:25,072 - INFO - --- Processing Step 1 ---
+2026-01-10 17:47:25,072 - INFO - --- Processing Step 1 ---
+2026-01-10 17:47:25,072 - INFO - --- Processing Step 1 ---
+2026-01-10 17:47:26,491 - INFO - Executing: research_agent
+2026-01-10 17:47:26,491 - INFO - Executing: research_agent
+2026-01-10 17:47:26,491 - INFO - Executing: research_agent
+2026-01-10 17:47:27,860 - INFO - --- Processing Step 2 ---
+2026-01-10 17:47:27,860 - INFO - --- Processing Step 2 ---
+2026-01-10 17:47:27,860 - INFO - --- Processing Step 2 ---
+2026-01-10 17:47:27,860 - INFO - --- Processing Step 2 ---
+2026-01-10 17:47:28,944 - INFO - Executing: research_agent
+2026-01-10 17:47:28,944 - INFO - Executing: research_agent
+2026-01-10 17:47:28,944 - INFO - Executing: research_agent
+2026-01-10 17:47:28,944 - INFO - Executing: research_agent
+2026-01-10 17:47:29,994 - INFO - --- Processing Step 3 ---
+2026-01-10 17:47:29,994 - INFO - --- Processing Step 3 ---
+2026-01-10 17:47:29,994 - INFO - --- Processing Step 3 ---
+2026-01-10 17:47:29,994 - INFO - --- Processing Step 3 ---
+2026-01-10 17:47:29,994 - INFO - --- Processing Step 3 ---
+2026-01-10 17:47:31,083 - INFO - Executing: research_agent
+2026-01-10 17:47:31,083 - INFO - Executing: research_agent
+2026-01-10 17:47:31,083 - INFO - Executing: research_agent
+2026-01-10 17:47:31,083 - INFO - Executing: research_agent
+2026-01-10 17:47:31,083 - INFO - Executing: research_agent
+2026-01-10 17:47:32,122 - INFO - --- Processing Step 4 ---
+2026-01-10 17:47:32,122 - INFO - --- Processing Step 4 ---
+2026-01-10 17:47:32,122 - INFO - --- Processing Step 4 ---
+2026-01-10 17:47:32,122 - INFO - --- Processing Step 4 ---
+2026-01-10 17:47:32,122 - INFO - --- Processing Step 4 ---
+2026-01-10 17:47:32,122 - INFO - --- Processing Step 4 ---
+2026-01-10 17:47:33,214 - INFO - Executing: research_agent
+2026-01-10 17:47:33,214 - INFO - Executing: research_agent
+2026-01-10 17:47:33,214 - INFO - Executing: research_agent
+2026-01-10 17:47:33,214 - INFO - Executing: research_agent
+2026-01-10 17:47:33,214 - INFO - Executing: research_agent
+2026-01-10 17:47:33,214 - INFO - Executing: research_agent
+2026-01-10 17:47:34,257 - INFO - --- Processing Step 5 ---
+2026-01-10 17:47:34,257 - INFO - --- Processing Step 5 ---
+2026-01-10 17:47:34,257 - INFO - --- Processing Step 5 ---
+2026-01-10 17:47:34,257 - INFO - --- Processing Step 5 ---
+2026-01-10 17:47:34,257 - INFO - --- Processing Step 5 ---
+2026-01-10 17:47:34,257 - INFO - --- Processing Step 5 ---
+2026-01-10 17:47:34,257 - INFO - --- Processing Step 5 ---
+2026-01-10 17:47:35,299 - INFO - Executing: research_agent
+2026-01-10 17:47:35,299 - INFO - Executing: research_agent
+2026-01-10 17:47:35,299 - INFO - Executing: research_agent
+2026-01-10 17:47:35,299 - INFO - Executing: research_agent
+2026-01-10 17:47:35,299 - INFO - Executing: research_agent
+2026-01-10 17:47:35,299 - INFO - Executing: research_agent
+2026-01-10 17:47:35,299 - INFO - Executing: research_agent
+2026-01-10 17:47:36,342 - INFO - --- Processing Step 6 ---
+2026-01-10 17:47:36,342 - INFO - --- Processing Step 6 ---
+2026-01-10 17:47:36,342 - INFO - --- Processing Step 6 ---
+2026-01-10 17:47:36,342 - INFO - --- Processing Step 6 ---
+2026-01-10 17:47:36,342 - INFO - --- Processing Step 6 ---
+2026-01-10 17:47:36,342 - INFO - --- Processing Step 6 ---
+2026-01-10 17:47:36,342 - INFO - --- Processing Step 6 ---
+2026-01-10 17:47:36,342 - INFO - --- Processing Step 6 ---
+2026-01-10 17:47:39,348 - INFO - Executing: vfs_write
+2026-01-10 17:47:39,348 - INFO - Executing: vfs_write
+2026-01-10 17:47:39,348 - INFO - Executing: vfs_write
+2026-01-10 17:47:39,348 - INFO - Executing: vfs_write
+2026-01-10 17:47:39,348 - INFO - Executing: vfs_write
+2026-01-10 17:47:39,348 - INFO - Executing: vfs_write
+2026-01-10 17:47:39,348 - INFO - Executing: vfs_write
+2026-01-10 17:47:39,348 - INFO - Executing: vfs_write
+2026-01-10 17:47:40,468 - INFO - --- Processing Step 7 ---
+2026-01-10 17:47:40,468 - INFO - --- Processing Step 7 ---
+2026-01-10 17:47:40,468 - INFO - --- Processing Step 7 ---
+2026-01-10 17:47:40,468 - INFO - --- Processing Step 7 ---
+2026-01-10 17:47:40,468 - INFO - --- Processing Step 7 ---
+2026-01-10 17:47:40,468 - INFO - --- Processing Step 7 ---
+2026-01-10 17:47:40,468 - INFO - --- Processing Step 7 ---
+2026-01-10 17:47:40,468 - INFO - --- Processing Step 7 ---
+2026-01-10 17:47:40,468 - INFO - --- Processing Step 7 ---
+2026-01-10 17:47:41,537 - INFO - Executing: research_agent
+2026-01-10 17:47:41,537 - INFO - Executing: research_agent
+2026-01-10 17:47:41,537 - INFO - Executing: research_agent
+2026-01-10 17:47:41,537 - INFO - Executing: research_agent
+2026-01-10 17:47:41,537 - INFO - Executing: research_agent
+2026-01-10 17:47:41,537 - INFO - Executing: research_agent
+2026-01-10 17:47:41,537 - INFO - Executing: research_agent
+2026-01-10 17:47:41,537 - INFO - Executing: research_agent
+2026-01-10 17:47:41,537 - INFO - Executing: research_agent
+2026-01-10 17:47:42,573 - INFO - --- Processing Step 8 ---
+2026-01-10 17:47:42,573 - INFO - --- Processing Step 8 ---
+2026-01-10 17:47:42,573 - INFO - --- Processing Step 8 ---
+2026-01-10 17:47:42,573 - INFO - --- Processing Step 8 ---
+2026-01-10 17:47:42,573 - INFO - --- Processing Step 8 ---
+2026-01-10 17:47:42,573 - INFO - --- Processing Step 8 ---
+2026-01-10 17:47:42,573 - INFO - --- Processing Step 8 ---
+2026-01-10 17:47:42,573 - INFO - --- Processing Step 8 ---
+2026-01-10 17:47:42,573 - INFO - --- Processing Step 8 ---
+2026-01-10 17:47:42,573 - INFO - --- Processing Step 8 ---
+2026-01-10 17:47:43,643 - INFO - Executing: research_agent
+2026-01-10 17:47:43,643 - INFO - Executing: research_agent
+2026-01-10 17:47:43,643 - INFO - Executing: research_agent
+2026-01-10 17:47:43,643 - INFO - Executing: research_agent
+2026-01-10 17:47:43,643 - INFO - Executing: research_agent
+2026-01-10 17:47:43,643 - INFO - Executing: research_agent
+2026-01-10 17:47:43,643 - INFO - Executing: research_agent
+2026-01-10 17:47:43,643 - INFO - Executing: research_agent
+2026-01-10 17:47:43,643 - INFO - Executing: research_agent
+2026-01-10 17:47:43,643 - INFO - Executing: research_agent
+2026-01-10 17:47:44,675 - INFO - --- Processing Step 9 ---
+2026-01-10 17:47:44,675 - INFO - --- Processing Step 9 ---
+2026-01-10 17:47:44,675 - INFO - --- Processing Step 9 ---
+2026-01-10 17:47:44,675 - INFO - --- Processing Step 9 ---
+2026-01-10 17:47:44,675 - INFO - --- Processing Step 9 ---
+2026-01-10 17:47:44,675 - INFO - --- Processing Step 9 ---
+2026-01-10 17:47:44,675 - INFO - --- Processing Step 9 ---
+2026-01-10 17:47:44,675 - INFO - --- Processing Step 9 ---
+2026-01-10 17:47:44,675 - INFO - --- Processing Step 9 ---
+2026-01-10 17:47:44,675 - INFO - --- Processing Step 9 ---
+2026-01-10 17:47:44,675 - INFO - --- Processing Step 9 ---
+2026-01-10 17:47:45,705 - INFO - Executing: research_agent
+2026-01-10 17:47:45,705 - INFO - Executing: research_agent
+2026-01-10 17:47:45,705 - INFO - Executing: research_agent
+2026-01-10 17:47:45,705 - INFO - Executing: research_agent
+2026-01-10 17:47:45,705 - INFO - Executing: research_agent
+2026-01-10 17:47:45,705 - INFO - Executing: research_agent
+2026-01-10 17:47:45,705 - INFO - Executing: research_agent
+2026-01-10 17:47:45,705 - INFO - Executing: research_agent
+2026-01-10 17:47:45,705 - INFO - Executing: research_agent
+2026-01-10 17:47:45,705 - INFO - Executing: research_agent
+2026-01-10 17:47:45,705 - INFO - Executing: research_agent
+2026-01-10 17:47:46,779 - INFO - --- Processing Step 10 ---
+2026-01-10 17:47:46,779 - INFO - --- Processing Step 10 ---
+2026-01-10 17:47:46,779 - INFO - --- Processing Step 10 ---
+2026-01-10 17:47:46,779 - INFO - --- Processing Step 10 ---
+2026-01-10 17:47:46,779 - INFO - --- Processing Step 10 ---
+2026-01-10 17:47:46,779 - INFO - --- Processing Step 10 ---
+2026-01-10 17:47:46,779 - INFO - --- Processing Step 10 ---
+2026-01-10 17:47:46,779 - INFO - --- Processing Step 10 ---
+2026-01-10 17:47:46,779 - INFO - --- Processing Step 10 ---
+2026-01-10 17:47:46,779 - INFO - --- Processing Step 10 ---
+2026-01-10 17:47:46,779 - INFO - --- Processing Step 10 ---
+2026-01-10 17:47:46,779 - INFO - --- Processing Step 10 ---
+2026-01-10 17:47:47,957 - INFO - Executing: research_agent
+2026-01-10 17:47:47,957 - INFO - Executing: research_agent
+2026-01-10 17:47:47,957 - INFO - Executing: research_agent
+2026-01-10 17:47:47,957 - INFO - Executing: research_agent
+2026-01-10 17:47:47,957 - INFO - Executing: research_agent
+2026-01-10 17:47:47,957 - INFO - Executing: research_agent
+2026-01-10 17:47:47,957 - INFO - Executing: research_agent
+2026-01-10 17:47:47,957 - INFO - Executing: research_agent
+2026-01-10 17:47:47,957 - INFO - Executing: research_agent
+2026-01-10 17:47:47,957 - INFO - Executing: research_agent
+2026-01-10 17:47:47,957 - INFO - Executing: research_agent
+2026-01-10 17:47:47,957 - INFO - Executing: research_agent
+2026-01-10 17:47:49,075 - WARNING - Step limit reached.
+2026-01-10 17:47:49,075 - WARNING - Step limit reached.
+2026-01-10 17:47:49,075 - WARNING - Step limit reached.
+2026-01-10 17:47:49,075 - WARNING - Step limit reached.
+2026-01-10 17:47:49,075 - WARNING - Step limit reached.
+2026-01-10 17:47:49,075 - WARNING - Step limit reached.
+2026-01-10 17:47:49,075 - WARNING - Step limit reached.
+2026-01-10 17:47:49,075 - WARNING - Step limit reached.
+2026-01-10 17:47:49,075 - WARNING - Step limit reached.
+2026-01-10 17:47:49,075 - WARNING - Step limit reached.
+2026-01-10 17:47:49,075 - WARNING - Step limit reached.
+2026-01-10 17:47:49,075 - WARNING - Step limit reached.
+2026-01-10 17:47:49,075 - WARNING - Step limit reached.
+2026-01-10 17:51:05,077 - INFO - User Input: I'm thinking about starting a coffee roasting business. Find out who the top three competitors are in the specialty coffee market right now and what their unique selling points are. Once you have that, give me a concise summary of the risks I might face and keep a record of this strategy for me. Also, put a 'Market Deep Dive' session on my calendar for next Tuesday at 9 AM.
+2026-01-10 17:51:05,077 - INFO - User Input: I'm thinking about starting a coffee roasting business. Find out who the top three competitors are in the specialty coffee market right now and what their unique selling points are. Once you have that, give me a concise summary of the risks I might face and keep a record of this strategy for me. Also, put a 'Market Deep Dive' session on my calendar for next Tuesday at 9 AM.
+2026-01-10 17:51:05,727 - INFO - --- Processing Step 1 ---
+2026-01-10 17:51:05,727 - INFO - --- Processing Step 1 ---
+2026-01-10 17:51:05,727 - INFO - --- Processing Step 1 ---
+2026-01-10 17:51:08,654 - INFO - Executing: research_agent
+2026-01-10 17:51:08,654 - INFO - Executing: research_agent
+2026-01-10 17:51:08,654 - INFO - Executing: research_agent
+2026-01-10 17:51:09,725 - INFO - --- Processing Step 2 ---
+2026-01-10 17:51:09,725 - INFO - --- Processing Step 2 ---
+2026-01-10 17:51:09,725 - INFO - --- Processing Step 2 ---
+2026-01-10 17:51:09,725 - INFO - --- Processing Step 2 ---
+2026-01-10 17:51:10,753 - INFO - Executing: research_agent
+2026-01-10 17:51:10,753 - INFO - Executing: research_agent
+2026-01-10 17:51:10,753 - INFO - Executing: research_agent
+2026-01-10 17:51:10,753 - INFO - Executing: research_agent
+2026-01-10 17:51:11,769 - INFO - --- Processing Step 3 ---
+2026-01-10 17:51:11,769 - INFO - --- Processing Step 3 ---
+2026-01-10 17:51:11,769 - INFO - --- Processing Step 3 ---
+2026-01-10 17:51:11,769 - INFO - --- Processing Step 3 ---
+2026-01-10 17:51:11,769 - INFO - --- Processing Step 3 ---
+2026-01-10 17:51:12,827 - INFO - Executing: research_agent
+2026-01-10 17:51:12,827 - INFO - Executing: research_agent
+2026-01-10 17:51:12,827 - INFO - Executing: research_agent
+2026-01-10 17:51:12,827 - INFO - Executing: research_agent
+2026-01-10 17:51:12,827 - INFO - Executing: research_agent
+2026-01-10 17:51:13,857 - INFO - --- Processing Step 4 ---
+2026-01-10 17:51:13,857 - INFO - --- Processing Step 4 ---
+2026-01-10 17:51:13,857 - INFO - --- Processing Step 4 ---
+2026-01-10 17:51:13,857 - INFO - --- Processing Step 4 ---
+2026-01-10 17:51:13,857 - INFO - --- Processing Step 4 ---
+2026-01-10 17:51:13,857 - INFO - --- Processing Step 4 ---
+2026-01-10 17:51:14,875 - INFO - Executing: research_agent
+2026-01-10 17:51:14,875 - INFO - Executing: research_agent
+2026-01-10 17:51:14,875 - INFO - Executing: research_agent
+2026-01-10 17:51:14,875 - INFO - Executing: research_agent
+2026-01-10 17:51:14,875 - INFO - Executing: research_agent
+2026-01-10 17:51:14,875 - INFO - Executing: research_agent
+2026-01-10 17:51:15,885 - INFO - --- Processing Step 5 ---
+2026-01-10 17:51:15,885 - INFO - --- Processing Step 5 ---
+2026-01-10 17:51:15,885 - INFO - --- Processing Step 5 ---
+2026-01-10 17:51:15,885 - INFO - --- Processing Step 5 ---
+2026-01-10 17:51:15,885 - INFO - --- Processing Step 5 ---
+2026-01-10 17:51:15,885 - INFO - --- Processing Step 5 ---
+2026-01-10 17:51:15,885 - INFO - --- Processing Step 5 ---
+2026-01-10 17:51:18,492 - INFO - Executing: vfs_write
+2026-01-10 17:51:18,492 - INFO - Executing: vfs_write
+2026-01-10 17:51:18,492 - INFO - Executing: vfs_write
+2026-01-10 17:51:18,492 - INFO - Executing: vfs_write
+2026-01-10 17:51:18,492 - INFO - Executing: vfs_write
+2026-01-10 17:51:18,492 - INFO - Executing: vfs_write
+2026-01-10 17:51:18,492 - INFO - Executing: vfs_write
+2026-01-10 17:51:19,612 - INFO - --- Processing Step 6 ---
+2026-01-10 17:51:19,612 - INFO - --- Processing Step 6 ---
+2026-01-10 17:51:19,612 - INFO - --- Processing Step 6 ---
+2026-01-10 17:51:19,612 - INFO - --- Processing Step 6 ---
+2026-01-10 17:51:19,612 - INFO - --- Processing Step 6 ---
+2026-01-10 17:51:19,612 - INFO - --- Processing Step 6 ---
+2026-01-10 17:51:19,612 - INFO - --- Processing Step 6 ---
+2026-01-10 17:51:19,612 - INFO - --- Processing Step 6 ---
+2026-01-10 17:51:20,628 - INFO - Executing: research_agent
+2026-01-10 17:51:20,628 - INFO - Executing: research_agent
+2026-01-10 17:51:20,628 - INFO - Executing: research_agent
+2026-01-10 17:51:20,628 - INFO - Executing: research_agent
+2026-01-10 17:51:20,628 - INFO - Executing: research_agent
+2026-01-10 17:51:20,628 - INFO - Executing: research_agent
+2026-01-10 17:51:20,628 - INFO - Executing: research_agent
+2026-01-10 17:51:20,628 - INFO - Executing: research_agent
+2026-01-10 17:51:21,663 - INFO - --- Processing Step 7 ---
+2026-01-10 17:51:21,663 - INFO - --- Processing Step 7 ---
+2026-01-10 17:51:21,663 - INFO - --- Processing Step 7 ---
+2026-01-10 17:51:21,663 - INFO - --- Processing Step 7 ---
+2026-01-10 17:51:21,663 - INFO - --- Processing Step 7 ---
+2026-01-10 17:51:21,663 - INFO - --- Processing Step 7 ---
+2026-01-10 17:51:21,663 - INFO - --- Processing Step 7 ---
+2026-01-10 17:51:21,663 - INFO - --- Processing Step 7 ---
+2026-01-10 17:51:21,663 - INFO - --- Processing Step 7 ---
+2026-01-10 17:51:22,716 - INFO - Executing: research_agent
+2026-01-10 17:51:22,716 - INFO - Executing: research_agent
+2026-01-10 17:51:22,716 - INFO - Executing: research_agent
+2026-01-10 17:51:22,716 - INFO - Executing: research_agent
+2026-01-10 17:51:22,716 - INFO - Executing: research_agent
+2026-01-10 17:51:22,716 - INFO - Executing: research_agent
+2026-01-10 17:51:22,716 - INFO - Executing: research_agent
+2026-01-10 17:51:22,716 - INFO - Executing: research_agent
+2026-01-10 17:51:22,716 - INFO - Executing: research_agent
+2026-01-10 17:51:23,730 - INFO - --- Processing Step 8 ---
+2026-01-10 17:51:23,730 - INFO - --- Processing Step 8 ---
+2026-01-10 17:51:23,730 - INFO - --- Processing Step 8 ---
+2026-01-10 17:51:23,730 - INFO - --- Processing Step 8 ---
+2026-01-10 17:51:23,730 - INFO - --- Processing Step 8 ---
+2026-01-10 17:51:23,730 - INFO - --- Processing Step 8 ---
+2026-01-10 17:51:23,730 - INFO - --- Processing Step 8 ---
+2026-01-10 17:51:23,730 - INFO - --- Processing Step 8 ---
+2026-01-10 17:51:23,730 - INFO - --- Processing Step 8 ---
+2026-01-10 17:51:23,730 - INFO - --- Processing Step 8 ---
+2026-01-10 17:51:24,773 - INFO - Executing: research_agent
+2026-01-10 17:51:24,773 - INFO - Executing: research_agent
+2026-01-10 17:51:24,773 - INFO - Executing: research_agent
+2026-01-10 17:51:24,773 - INFO - Executing: research_agent
+2026-01-10 17:51:24,773 - INFO - Executing: research_agent
+2026-01-10 17:51:24,773 - INFO - Executing: research_agent
+2026-01-10 17:51:24,773 - INFO - Executing: research_agent
+2026-01-10 17:51:24,773 - INFO - Executing: research_agent
+2026-01-10 17:51:24,773 - INFO - Executing: research_agent
+2026-01-10 17:51:24,773 - INFO - Executing: research_agent
+2026-01-10 17:51:25,795 - INFO - --- Processing Step 9 ---
+2026-01-10 17:51:25,795 - INFO - --- Processing Step 9 ---
+2026-01-10 17:51:25,795 - INFO - --- Processing Step 9 ---
+2026-01-10 17:51:25,795 - INFO - --- Processing Step 9 ---
+2026-01-10 17:51:25,795 - INFO - --- Processing Step 9 ---
+2026-01-10 17:51:25,795 - INFO - --- Processing Step 9 ---
+2026-01-10 17:51:25,795 - INFO - --- Processing Step 9 ---
+2026-01-10 17:51:25,795 - INFO - --- Processing Step 9 ---
+2026-01-10 17:51:25,795 - INFO - --- Processing Step 9 ---
+2026-01-10 17:51:25,795 - INFO - --- Processing Step 9 ---
+2026-01-10 17:51:25,795 - INFO - --- Processing Step 9 ---
+2026-01-10 17:51:26,845 - INFO - Executing: research_agent
+2026-01-10 17:51:26,845 - INFO - Executing: research_agent
+2026-01-10 17:51:26,845 - INFO - Executing: research_agent
+2026-01-10 17:51:26,845 - INFO - Executing: research_agent
+2026-01-10 17:51:26,845 - INFO - Executing: research_agent
+2026-01-10 17:51:26,845 - INFO - Executing: research_agent
+2026-01-10 17:51:26,845 - INFO - Executing: research_agent
+2026-01-10 17:51:26,845 - INFO - Executing: research_agent
+2026-01-10 17:51:26,845 - INFO - Executing: research_agent
+2026-01-10 17:51:26,845 - INFO - Executing: research_agent
+2026-01-10 17:51:26,845 - INFO - Executing: research_agent
+2026-01-10 17:51:27,860 - INFO - --- Processing Step 10 ---
+2026-01-10 17:51:27,860 - INFO - --- Processing Step 10 ---
+2026-01-10 17:51:27,860 - INFO - --- Processing Step 10 ---
+2026-01-10 17:51:27,860 - INFO - --- Processing Step 10 ---
+2026-01-10 17:51:27,860 - INFO - --- Processing Step 10 ---
+2026-01-10 17:51:27,860 - INFO - --- Processing Step 10 ---
+2026-01-10 17:51:27,860 - INFO - --- Processing Step 10 ---
+2026-01-10 17:51:27,860 - INFO - --- Processing Step 10 ---
+2026-01-10 17:51:27,860 - INFO - --- Processing Step 10 ---
+2026-01-10 17:51:27,860 - INFO - --- Processing Step 10 ---
+2026-01-10 17:51:27,860 - INFO - --- Processing Step 10 ---
+2026-01-10 17:51:27,860 - INFO - --- Processing Step 10 ---
+2026-01-10 17:51:29,003 - INFO - Executing: research_agent
+2026-01-10 17:51:29,003 - INFO - Executing: research_agent
+2026-01-10 17:51:29,003 - INFO - Executing: research_agent
+2026-01-10 17:51:29,003 - INFO - Executing: research_agent
+2026-01-10 17:51:29,003 - INFO - Executing: research_agent
+2026-01-10 17:51:29,003 - INFO - Executing: research_agent
+2026-01-10 17:51:29,003 - INFO - Executing: research_agent
+2026-01-10 17:51:29,003 - INFO - Executing: research_agent
+2026-01-10 17:51:29,003 - INFO - Executing: research_agent
+2026-01-10 17:51:29,003 - INFO - Executing: research_agent
+2026-01-10 17:51:29,003 - INFO - Executing: research_agent
+2026-01-10 17:51:29,003 - INFO - Executing: research_agent
+2026-01-10 17:51:30,036 - WARNING - Step limit reached.
+2026-01-10 17:51:30,036 - WARNING - Step limit reached.
+2026-01-10 17:51:30,036 - WARNING - Step limit reached.
+2026-01-10 17:51:30,036 - WARNING - Step limit reached.
+2026-01-10 17:51:30,036 - WARNING - Step limit reached.
+2026-01-10 17:51:30,036 - WARNING - Step limit reached.
+2026-01-10 17:51:30,036 - WARNING - Step limit reached.
+2026-01-10 17:51:30,036 - WARNING - Step limit reached.
+2026-01-10 17:51:30,036 - WARNING - Step limit reached.
+2026-01-10 17:51:30,036 - WARNING - Step limit reached.
+2026-01-10 17:51:30,036 - WARNING - Step limit reached.
+2026-01-10 17:51:30,036 - WARNING - Step limit reached.
+2026-01-10 17:51:30,036 - WARNING - Step limit reached.
+2026-01-10 17:54:52,490 - INFO - Streamlit App logger initialized
+2026-01-10 17:55:02,726 - INFO - Streamlit App logger initialized
+2026-01-10 17:55:03,299 - INFO - User Input: I'm thinking about starting a coffee roasting business. Find out who the top three competitors are in the specialty coffee market right now and what their unique selling points are. Once you have that, give me a concise summary of the risks I might face and keep a record of this strategy for me. Also, put a 'Market Deep Dive' session on my calendar for next Tuesday at 9 AM.
+2026-01-10 17:55:03,358 - INFO - Streamlit App logger initialized
+2026-01-10 17:55:03,850 - INFO - --- Processing Step 1 ---
+2026-01-10 17:55:05,155 - INFO - Executing: research_agent
+2026-01-10 17:55:05,669 - INFO - Streamlit App logger initialized
+2026-01-10 17:55:06,208 - INFO - --- Processing Step 2 ---
+2026-01-10 17:55:07,243 - INFO - Executing: research_agent
+2026-01-10 17:55:07,784 - INFO - Streamlit App logger initialized
+2026-01-10 17:55:08,286 - INFO - --- Processing Step 3 ---
+2026-01-10 17:55:09,324 - INFO - Executing: research_agent
+2026-01-10 17:55:09,841 - INFO - Streamlit App logger initialized
+2026-01-10 17:55:10,341 - INFO - --- Processing Step 4 ---
+2026-01-10 17:55:11,469 - INFO - Executing: research_agent
+2026-01-10 17:55:11,985 - INFO - Streamlit App logger initialized
+2026-01-10 17:55:12,488 - INFO - --- Processing Step 5 ---
+2026-01-10 17:55:13,534 - INFO - Executing: research_agent
+2026-01-10 17:55:14,052 - INFO - Streamlit App logger initialized
+2026-01-10 17:55:14,621 - INFO - --- Processing Step 6 ---
+2026-01-10 17:55:15,770 - INFO - Executing: research_agent
+2026-01-10 17:55:16,409 - INFO - Streamlit App logger initialized
+2026-01-10 17:55:16,932 - INFO - --- Processing Step 7 ---
+2026-01-10 17:55:17,995 - INFO - Executing: research_agent
+2026-01-10 17:55:18,581 - INFO - Streamlit App logger initialized
+2026-01-10 17:55:19,213 - INFO - --- Processing Step 8 ---
+2026-01-10 17:55:20,346 - INFO - Executing: research_agent
+2026-01-10 17:55:20,999 - INFO - Streamlit App logger initialized
+2026-01-10 17:55:21,639 - INFO - --- Processing Step 9 ---
+2026-01-10 17:55:22,724 - INFO - Executing: research_agent
+2026-01-10 17:55:23,335 - INFO - Streamlit App logger initialized
+2026-01-10 17:55:23,892 - INFO - --- Processing Step 10 ---
+2026-01-10 17:55:26,585 - INFO - Executing: vfs_write
+2026-01-10 17:55:27,435 - INFO - Streamlit App logger initialized
+2026-01-10 17:55:28,231 - WARNING - Step limit reached.
