@@ -1,48 +1,154 @@
-# Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
+# Autonomous Cognitive Engine for Deep Research and Long-Horizon Tasks
 
-A Springboard – Infosys Internship Project
+**A Springboard – Infosys Internship Project**
+
+---
 
 ## Overview
 
-The Autonomous Cognitive Engine is an LLM-driven system designed to perform deep research and long-horizon tasks autonomously. It breaks complex queries into actions, delegates work to sub-agents, stores memory persistently, and produces structured outputs with minimal human input.
+The **Autonomous Cognitive Engine** is an LLM-driven system designed to autonomously perform deep research and long-horizon tasks. It decomposes complex user queries into structured actions, delegates work to specialized sub-agents, persists memory across sessions, and produces verified, structured outputs with minimal human intervention.
 
-## key Features
+---
 
-    * Task Planning & TODO Enforcement
+## Key Features
 
-    * Persistent Memory using Virtual File System (VFS)
+* Task planning with strict TODO enforcement
+* Persistent memory via a Virtual File System (VFS)
+* Sub-agent delegation architecture
+* Dedicated Research Agent
+* Dedicated Summarization Agent
+* Tool-based execution (files, calendar, web, visualization)
+* LangSmith tracing for observability and debugging
 
-    * Sub-Agent Delegation
-
-    * Research Agent
-
-    * Summarization Agent
-
-    * Tool-based Execution (files, calendar)
-
-    * LangSmith Tracing for observability
+---
 
 ## Architecture
 
-User → Supervisor Agent
-        ↓
-   Memory (VFS)
-        ↓
- Sub-Agents (Research / Summary)
-        ↓
-   Tools → Final Output
+```
+User
+  ↓
+Supervisor Agent
+  ↓
+Virtual File System (Persistent Memory)
+  ↓
+Sub-Agents (Research / Summarization)
+  ↓
+Tools (Web / Files / Calendar / Visualization)
+  ↓
+Verified Structured Output
+```
+
+---
+
+## Core Components
+
+### Supervisor Agent
+
+* Central orchestrator of the system
+* Cannot perform research or summarization directly
+* Enforces **one tool call per turn**
+* Verifies sub-agent outputs before task completion
+
+### Virtual File System (VFS)
+
+* Acts as persistent external memory
+* Grounds outputs to prevent hallucination
+* Enables long-horizon reasoning
+* Supports read, write, edit, delete, and list operations
+
+### Research Sub-Agent
+
+* Dedicated factual research agent
+* Restricted to web search tools only
+* Stores structured research outputs in VFS
+
+### Summarization Sub-Agent
+
+* Condenses large research outputs
+* Used for executive summaries and synthesis
+* Supervisor is forbidden from summarizing inline
+
+### Visualization Tool (Charts & Graphs)
+
+Supports generation of:
+
+* Bar charts
+* Pie charts
+* Line charts
+* Scatter plots
+
+---
+
+## Visualization Design Principles
+
+* Visualization is strictly tool-gated
+* Data must exist before chart creation
+* Charts read only from validated data blocks
+* Prevents invalid chart-data combinations
+
+### Required Data Format
+
+```
+DATA FOR GRAPHING
+Online Sales: 40
+Wholesale Sales: 35
+Subscriptions: 25
+END DATA FOR GRAPHING
+```
+
+All generated charts are saved back into the Virtual File System.
+
+---
+
+## Execution Flow
+
+1. User submits a complex request
+2. Supervisor analyzes intent
+3. Tasks are delegated to tools or sub-agents
+4. Sub-agents perform isolated work
+5. Outputs are stored in the VFS
+6. Supervisor verifies results
+7. Final response is returned
+
+---
+
+## Observability & Debugging
+
+* Integrated LangSmith tracing
+* Full visibility into:
+
+  * Tool calls
+  * Sub-agent execution
+  * Decision flow
+
+Enables efficient debugging and performance analysis.
+
+---
+
+## Safety & Constraints
+
+* Supervisor cannot perform research or summarization
+* Only one tool call allowed per turn
+* All file operations require verification
+* No assumptions about file existence
+* Visualization allowed only from validated data blocks
+* Any constraint violation is treated as a system failure
+
+---
 
 ## Tech Stack
 
-    * Python
+* Python
+* LangChain
+* DeepAgents
+* Groq LLM
+* Matplotlib (Visualization)
+* LangSmith (Tracing)
 
-    * LangChain & DeepAgents
-
-    * Groq LLM
-
-LangSmith (Tracing)
+---
 
 ## Project Structure
+
 ```
 Autonomous-Cognitive-Engine-for-Deep-Research/
 ├── src/                 # Core agent logic & execution
@@ -55,16 +161,84 @@ Autonomous-Cognitive-Engine-for-Deep-Research/
 ├── README.md
 └── requirements.txt
 ```
-## Progress
-    ✔ Research & summarization delegation
-    ✔ Persistent memory
-    ✔ Strict TODO management
-    ✔ Observable sub-agent execution
 
-## Future Work
+---
 
-    * LangGraph StateGraph
+## Setup (Project Initialization)
 
-    * Planner & verification agents
+### 1. Clone the Repository
 
-    * Vector memory
+```
+git clone https://github.com/your-username/Autonomous-Cognitive-Engine-for-Deep-Research.git
+cd Autonomous-Cognitive-Engine-for-Deep-Research
+```
+
+### 2. Create Virtual Environment
+
+```
+python -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
+```
+
+### 3. Install Dependencies
+
+```
+pip install -r requirements.txt
+```
+
+### 4. Set Environment Variables
+
+Create a `.env` file:
+
+```
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+---
+
+## Usage
+
+### Start the Agent
+
+```
+python src/main/app.py
+```
+
+---
+
+## Example Commands
+
+* Perform market research
+* Create long-term strategic plans
+* Generate executive summaries
+* Schedule strategy reviews
+* Create visual charts from stored data
+
+---
+
+## Sample Use Cases
+
+* Market and competitor research
+* Long-horizon business planning
+* Executive summary generation
+* Strategic roadmap creation
+* Data visualization for decision-making
+
+---
+
+## Current Progress
+
+* Research and summarization delegation
+* Persistent memory implementation
+* Strict TODO management
+* Observable sub-agent execution
+
+---
+
+## Future Enhancements
+
+* LangGraph StateGraph integration
+* Planner, Verifier, and Critic agents
+* Vector database-backed memory
+* Role-based access control
+* FastAPI deployment
