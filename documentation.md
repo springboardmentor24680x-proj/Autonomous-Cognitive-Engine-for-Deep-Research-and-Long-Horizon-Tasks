@@ -10,7 +10,7 @@ This project implements an \*\*Autonomous Cognitive Agent System\*\* designed to
 
 
 
-The core idea is to move beyond single-prompt LLM usage and instead build an \*\*agentic workflow\*\* where tasks are planned, executed step by step, and stored in memory for future reference. The architecture is modular, extensible, and suitable for research and real-world automation.
+The core idea is to move beyond single-prompt LLM usage and instead build an \*\*agentic workflow\*\* where tasks are planned, executed step by step, and stored in memory for future reference. The architecture is modular, extensible, and suitable for research as well as real-world automation.
 
 
 
@@ -46,35 +46,35 @@ The core idea is to move beyond single-prompt LLM usage and instead build an \*\
 
 \### Programming Language
 
-\- Python
+\- \*\*Python\*\*
 
 
 
 \### Agent \& Workflow Frameworks
 
-\- LangGraph – Stateful agent execution  
+\- \*\*LangGraph\*\* – Stateful agent execution  
 
-\- LangChain – Tool abstraction and LLM utilities  
+\- \*\*LangChain\*\* – Tool abstraction and LLM utilities  
 
 
 
 \### Large Language Model
 
-\- Groq LLM (`llama-3.1-8b-instant`)
+\- \*\*Groq LLM\*\* (`llama-3.1-8b-instant`)
 
 
 
 \### Utilities
 
-\- python-dotenv – Environment management  
+\- \*\*python-dotenv\*\* – Environment management  
 
-\- LangSmith – Tracing and observability  
+\- \*\*LangSmith\*\* – Tracing and observability  
 
 
 
 \### User Interface
 
-\- Streamlit  
+\- \*\*Streamlit\*\*
 
 
 
@@ -91,6 +91,8 @@ The system follows a \*\*Supervisor–Worker architecture\*\* implemented using 
 
 
 \### Key Principles
+
+
 
 \- Explicit planning before execution  
 
