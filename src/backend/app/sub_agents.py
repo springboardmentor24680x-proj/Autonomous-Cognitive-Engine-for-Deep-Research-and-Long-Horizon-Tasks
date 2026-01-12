@@ -372,11 +372,6 @@ SUB_AGENTS = {
         "description": "Professional structured reports with visuals",
         "capabilities": ["reporting", "documentation", "charts"]
     },
-    "visualizer": {
-        "agent": visualizer_agent,
-        "description": "Generate beautiful charts from task data",
-        "capabilities": ["charts", "graphs", "visualization"]
-    },
     "planning": {
         "agent": planning_agent,
         "description": "Strategic planning and task breakdown",
