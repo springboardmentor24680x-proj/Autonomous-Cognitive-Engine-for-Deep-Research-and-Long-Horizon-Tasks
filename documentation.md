@@ -69,8 +69,10 @@ load_dotenv()
 API_KEY = os.getenv("GROQ_API_KEY")
 if not API_KEY:
     raise ValueError("GROQ_API_KEY not found. Please check your .env file.")
-
 client = Groq(api_key=API_KEY)
+```
+---
+
 ## Reusable LLM Call Wrapper
 ```python
 def llm_call(messages):
@@ -79,6 +81,8 @@ def llm_call(messages):
         messages=messages
     )
     return response.choices[0].message.content
+```
+---
 ## Task Planning Using TODO Decomposition
 User requests are converted into structured TODO steps to ensure deterministic and controlled execution.
 
@@ -99,6 +103,8 @@ def write_todos(request: str):
         for t in result.split("\n") if t.strip()
     ]
     return todos or []
+```
+---
 ## Supervisor Agent
 The Supervisor Agent interprets user intent, generates TODO plans, and manages the overall execution state.
 
@@ -109,6 +115,9 @@ def supervisor_node(state):
         state["todos"] = todos or []
         state["current_step"] = 0
     return state
+```
+---
+
 ## Worker Agent
 The Worker Agent executes individual TODO tasks sequentially and stores intermediate results.
 
@@ -128,6 +137,8 @@ def worker_node(state):
     state["todos"][state["current_step"]]["result"] = result
     state["current_step"] += 1
     return state
+```
+---
 ## Workflow Orchestration with LangGraph
 LangGraph is used to define and control the agent workflow using a state graph.
 
@@ -146,6 +157,8 @@ workflow.add_conditional_edges(
 )
 
 graph = workflow.compile()
+```
+---
 ## Persistent Memory – Virtual File System (VFS)
 The Virtual File System (VFS) enables agents to store and retrieve information beyond the LLM context window.
 
@@ -166,6 +179,8 @@ def list_files(vfs: dict) -> str:
     if not vfs:
         return "No files present."
     return "\n".join(vfs.keys())
+```
+---
 ## Streamlit User Interface
 The Streamlit UI provides an interactive chat-based interface for the autonomous agent.
 
@@ -175,10 +190,13 @@ from agent import graph
 
 st.set_page_config(page_title="AI Agent", layout="centered")
 st.title("🧠 Intelligent AI Agent")
+```
+---
 ### UI Features
 - Real-time chat interaction  
 - Persistent session state  
 - Clear visualization of agent responses
+---
 ## End-to-End Execution Flow
 1. User submits a query  
 2. Supervisor agent generates a TODO-based plan  
@@ -186,6 +204,7 @@ st.title("🧠 Intelligent AI Agent")
 4. Memory is updated when required  
 5. Final response is generated  
 6. Output is displayed to the user
+---
 ## Setup and Usage
 
 ### Prerequisites
@@ -198,32 +217,40 @@ st.title("🧠 Intelligent AI Agent")
 python -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+```
 ### Create a .env file in the project root
 ```env
 GROQ_API_KEY=your_api_key_here
+```
 ### Running the Agent (CLI Mode)
 ```bash
 python agent.py
+```
 ### Running the Streamlit Application
 ```bash
 streamlit run app.py
+```
+---
 ## Challenges Faced
 - Managing long-term context within LLM limitations  
 - Inconsistent responses without structured planning  
 - State recursion errors in LangGraph workflows  
 - Coordinating shared state across multiple agents  
+---
 
 ## Limitations
 - Dependent on external LLM availability and API limits  
 - Sequential task execution without parallelism  
 - Memory is local and not distributed  
 - Limited real-world tool integrations  
+---
 
 ## Troubleshooting
 - **GROQ_API_KEY not found** → Ensure the `.env` file exists and the variable name is correct  
 - **GraphRecursionError** → Increase recursion limit during graph invocation  
 - **Incomplete or vague responses** → Improve system prompts and add explicit planning constraints  
 - **Streamlit UI not updating** → Clear session state and restart the Streamlit server  
+---
 
 ## Conclusion
 This project demonstrates a scalable and explainable autonomous agent architecture that integrates planning, reasoning, persistent memory, and execution.  
