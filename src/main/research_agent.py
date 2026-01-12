@@ -22,11 +22,42 @@ from src.memory.vfs import write_file, read_file, ls, edit_file,clear_vfs,delete
 # Calendar tools
 from src.tools.calendar_tools import add_event, list_events, delete_event
 
+#planner agent
+from src.agents.planner_agent import build_planner_agent
 # Research sub-agent
 from subagents.research_subagent import build_research_agent
 
 #Summarization sub-agent
 from subagents.summarization_subagent import build_summarization_agent
+
+
+
+# ─────────────────────────────
+# TOOL CALL PARSER
+# ─────────────────────────────
+TOOL_CALL_PATTERN = re.compile(r'(\w+)\((.*)\)')
+
+def parse_plan(plan_text: str):
+    steps = []
+    for line in plan_text.splitlines():
+        line = line.strip()
+        if not line or not line[0].isdigit():
+            continue
+
+        step = line.split(".", 1)[1].strip()
+        match = TOOL_CALL_PATTERN.match(step)
+        if not match:
+            raise ValueError(f"Invalid planner step: {step}")
+
+        tool = match.group(1)
+        args = eval(f"dict({match.group(2)})")
+
+        steps.append({
+            "tool": tool,
+            "args": args,
+            "raw": step
+        })
+    return steps
 
 def setup_agent():
     # Clear the virtual file system on startup
@@ -87,6 +118,7 @@ def setup_agent():
     5. Every action (read, write, summarize, visualize, schedule) REQUIRES a tool call.
     6. Never assume files, data, or events exist — always verify with ls or read_file.
     7. Relative filenames only (example: report.txt).
+    You MAY execute subsequent steps when "__continue__" is provided by the system.
 
     ────────────────────────
     PLANNING VS EXECUTION
@@ -154,6 +186,7 @@ def setup_agent():
     • If calling a tool → ONLY return the tool call.
     • If no tool is required → respond in ONE short sentence.
     • Errors must be explicit and actionable.
+
 
     Violating ANY rule is a SYSTEM FAILURE.
 
@@ -267,140 +300,6 @@ def setup_agent():
             edit_file(filename, f"{existing_content}\n- {task_text}")
             
         return f"Successfully added '{task_text}' to {filename}"
-    
-    # @tool
-    # def create_visualization(
-    #     source_file: str,
-    #     chart_type: str,
-    #     title: str = ""
-    # ) -> str:
-    #     """
-    #     Unified visualization tool with strict validation.
-    #     Reads data ONLY from 'DATA FOR GRAPHING' section and
-    #     prevents invalid chart-data combinations.
-    #     """
-
-    #     import re
-    #     import io
-    #     import matplotlib.pyplot as plt
-
-    #     # ---------- FILE READ ----------
-    #     content = read_file(source_file)
-
-    #     if isinstance(content, str) and content.startswith("File"):
-    #         return f"Error: {content}"
-
-    #     # ---------- DATA BLOCK EXTRACTION ----------
-    #     if "DATA FOR GRAPHING" in content:
-    #         relevant_text = content.split("DATA FOR GRAPHING")[-1].strip()
-    #     elif "DATA BLOCK" in content:
-    #         relevant_text = content.split("DATA BLOCK")[-1].strip()
-    #     else:
-    #         return (
-    #             "Visualization failed: No 'DATA FOR GRAPHING' section found. "
-    #             "Ensure the research output includes a dedicated graphing block."
-    #         )
-
-    #     if not relevant_text:
-    #         return "Visualization failed: Graphing data section is empty."
-
-    #     chart_type = chart_type.lower()
-
-    #     # ---------- LINE / AREA ----------
-    #     if chart_type in {"line", "area"}:
-    #         matches = re.findall(r"(\d{4})\s*:\s*(\d+(?:\.\d+)?)", relevant_text)
-
-    #         if not matches:
-    #             return (
-    #                 "Invalid data for line/area chart. "
-    #                 "Expected format: Year: Value (e.g., 2023: 120)"
-    #             )
-
-    #         x = [int(m[0]) for m in matches]
-    #         y = [float(m[1]) for m in matches]
-    #         x, y = zip(*sorted(zip(x, y)))
-
-    #         plt.figure(figsize=(10, 6))
-    #         if chart_type == "line":
-    #             plt.plot(x, y, marker="o", linewidth=2)
-    #         else:
-    #             plt.fill_between(x, y, alpha=0.6)
-
-    #         plt.xlabel("Year")
-    #         plt.ylabel("Value")
-
-    #     # ---------- BAR / HORIZONTAL BAR / PIE ----------
-    #     elif chart_type in {"bar", "horizontal_bar", "pie"}:
-    #         matches = re.findall(r"([a-zA-Z\s]+):\s*(\d+(?:\.\d+)?)", relevant_text)
-
-    #         if not matches:
-    #             return (
-    #                 "Invalid data for bar/pie chart. "
-    #                 "Expected format: Label: Value (e.g., Online: 40)"
-    #             )
-
-    #         labels = [m[0].strip() for m in matches]
-    #         values = [float(m[1]) for m in matches]
-
-    #         plt.figure(figsize=(10, 6))
-
-    #         if chart_type == "bar":
-    #             plt.bar(labels, values)
-    #             plt.xticks(rotation=45, ha="right")
-
-    #         elif chart_type == "horizontal_bar":
-    #             plt.barh(labels, values)
-
-    #         else:  # pie
-    #             plt.pie(values, labels=labels, autopct="%1.1f%%")
-
-    #         plt.ylabel("Value")
-
-    #     # ---------- SCATTER ----------
-    #     elif chart_type == "scatter":
-    #         # Guard against categorical data misuse
-    #         if ":" in relevant_text:
-    #             return (
-    #                 "Invalid chart choice: Scatter plots require numeric X,Y pairs. "
-    #                 "Use 'pie' or 'bar' for category-value data."
-    #             )
-
-    #         matches = re.findall(r"([\d\.]+)\s*,\s*([\d\.]+)", relevant_text)
-
-    #         if not matches:
-    #             return (
-    #                 "Invalid data for scatter plot. "
-    #                 "Expected format: X, Y (numeric pairs)."
-    #             )
-
-    #         x = [float(m[0]) for m in matches]
-    #         y = [float(m[1]) for m in matches]
-
-    #         plt.figure(figsize=(8, 6))
-    #         plt.scatter(x, y)
-    #         plt.xlabel("X")
-    #         plt.ylabel("Y")
-
-    #     # ---------- UNSUPPORTED ----------
-    #     else:
-    #         return (
-    #             f"Unsupported chart type: '{chart_type}'. "
-    #             "Supported types: line, area, bar, horizontal_bar, pie, scatter."
-    #         )
-
-    #     # ---------- FINALIZE ----------
-    #     final_title = title if title else f"{chart_type.title()} Visualization"
-    #     plt.title(final_title)
-    #     plt.tight_layout()
-
-    #     buf = io.BytesIO()
-    #     plt.savefig(buf, format="png")
-    #     plt.close()
-
-    #     output_name = source_file.replace(".txt", f"_{chart_type}.png").lstrip("/")
-    #     VFS[output_name] = buf.getvalue()
-
-    #     return f"SUCCESS: {chart_type} chart saved to VFS as {output_name}"
 
     @tool
     def create_visualization(
@@ -540,55 +439,112 @@ def setup_agent():
         model=groq_client,
     )
 
+    planner = build_planner_agent()
+
     class AgentWrapper:
-        def __init__(self, agent):
-            self.agent = agent
+        def __init__(self, tools_dict): 
+            self.plan = []
+            self.awaiting_approval = False
+            self.auto = False
+            self.pending = None
+            self.interrupt = {"delete_event", "delete_file"}
+            # Use tools_map here to match execute_step
+            self.tools_map = tools_dict 
 
-        def invoke(self, input_messages, **kwargs):
-            user_text = input_messages[-1].content.lower()
+        def execute_step(self, step):
+            tool_name = step["tool"]
+            args = step["args"]
             
-            # Logic Gate: Is a chart actually requested?
-            trigger_verbs = ["create", "generate", "draw", "visualize"]
-            chart_types = ["bar", "pie", "line", "scatter", "area"]
-            is_requested = any(v in user_text for v in trigger_verbs) and any(c in user_text for c in chart_types)
+            # Now self.tools_map is correctly defined
+            tool_fn = self.tools_map.get(tool_name)
+            
+            if not tool_fn:
+                raise ValueError(f"Unknown tool {tool_name}")
 
-            # If not requested, we tell the agent the tool is currently locked
-            if not is_requested and "create_visualization" in user_text:
-                return {"messages": [HumanMessage(content="System: Visualization tool is locked unless explicitly requested with chart type.")]}
+            if hasattr(tool_fn, 'invoke'):
+                return tool_fn.invoke(args)
+            else:
+                return tool_fn(**args)  
 
-            return self.agent.invoke({"messages": input_messages}, **kwargs)
+        def invoke(self, messages):
+            text = messages[-1].content.strip().lower()
 
-    return AgentWrapper(agent)
+            if not self.plan and not self.awaiting_approval:
+                plan_text = planner(messages[-1].content)
+                self.plan = parse_plan(plan_text)
+                self.awaiting_approval = True
+                return {"messages": [HumanMessage(content=f"{plan_text}\nApprove? (yes/no)")]}
+
+            if self.awaiting_approval:
+                if text != "yes":
+                    self.plan = []
+                    self.awaiting_approval = False
+                    return {"messages": [HumanMessage(content="Plan cancelled.")]}
+
+                self.awaiting_approval = False
+                self.auto = True
+                # Return continue: True so the loop in main/streamlit starts the first step
+
+                return {"messages": [HumanMessage(content="Executing plan...")], "continue": True}
+
+            # Add this block to handle the 'pending' tool confirmation
+
+            if self.pending and text == "yes":
+                step = self.pending
+                self.pending = None # Clear it so we don't repeat
+                result = self.execute_step(step)
+                return {"messages": [HumanMessage(content=str(result))], "continue": True}
+
+            if self.auto and self.plan:
+                step = self.plan.pop(0)
+                if step["tool"] in self.interrupt:
+                    self.pending = step
+                    return {"messages": [HumanMessage(content=f"Confirm {step['raw']}? (yes/no)")]}
+
+                result = self.execute_step(step)
+                return {"messages": [HumanMessage(content=str(result))], "continue": True}
+
+            if self.auto:
+                self.auto = False
+                return {"messages": [HumanMessage(content="All tasks completed.")]}
+
+            return {"messages": [HumanMessage(content="Idle.")]}
+        
+    tools_map = {
+        "web_search": web_search,
+        "write_file": write_file,
+        "read_file": read_file,
+        "ls": ls,
+        "edit_file": edit_file,
+        "delete_file": delete_file,
+        "add_event": add_event,
+        "list_events": list_events,
+        "delete_event": delete_event,
+        "research_task": research_task, 
+        "summarization_task": summarization_task,
+        "summarize_file": summarize_file,
+        "create_work_todo": create_work_todo,
+        "create_visualization": create_visualization
+    }
+    return AgentWrapper(tools_map)
 
 
 def main():
-    # Initialize the agent
     agent = setup_agent()
-
-    print("AI Assistant initialized. Type 'exit' or 'quit' to stop.")
+    print("Ready.")
 
     while True:
-        user_input = input("\nYou: ")
-
-        if user_input.lower() in {"exit", "quit"}:
-            print("Goodbye!")
+        user = input("\nYou: ")
+        if user.lower() in {"exit", "quit"}:
             break
 
-        if not user_input.strip():
-            continue
+        result = agent.invoke([HumanMessage(content=user)])
+        print(result["messages"][-1].content)
 
-        try:
-            # Execute agent logic
-            # result = agent.invoke({
-            #     "messages": [{"role": "user", "content": user_input}]
-            # })
-            result = agent.invoke([
-            HumanMessage(content=user_input)
-            ])
-            print("\nAgent:\n")
+        while result.get("continue"):
+            result = agent.invoke([HumanMessage(content="__continue__")])
             print(result["messages"][-1].content)
-        except Exception as e:
-            print(f"\nAn error occurred: {e}")
+
 
 if __name__ == "__main__":
     main()
