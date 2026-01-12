@@ -42,21 +42,31 @@ The approach focuses on maintaining clear boundaries between components while al
 ## 5. Setup (Windows Only)
 
 ### Step 1: Clone the Repository
-git clone https://github.com/springboardmentor24680x-proj/Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks.git  
-cd Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks  
-git checkout intern-divyadharshini  
-
+```bash
+git clone https://github.com/springboardmentor24680x-proj/Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks.git
+cd Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
+git checkout intern-Divyadharshini
+```
 ### Step 2: Create a Virtual Environment
-python -m venv .venv  
 
+```bash
+python -m venv .venv
+```
 ### Step 3: Activate the Virtual Environment
-.venv\Scripts\activate  
 
+```bash
+.venv\Scripts\activate
+```
 ### Step 4: Install Dependencies
-pip install -r requirements.txt  
 
+```bash
+pip install -r requirements.txt
+```
 ### Step 5: Configure Environment Variables
-Create a .env file in the root directory and add the required API keys and configuration values.
+
+Create a `.env` file in the root directory and add the required API keys and configuration values.
+
+
 
 ---
 
