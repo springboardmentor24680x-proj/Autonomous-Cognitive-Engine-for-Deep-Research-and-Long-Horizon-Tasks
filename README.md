@@ -1,93 +1,225 @@
-# Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
-> A powerful, stateful, fully autonomous AI agent built with LangGraph, FastAPI, and Google Gemini.
+#  Autonomous Cognitive Engine  (ACE)
+**for Deep Research & Long-Horizon Tasks**
+
+> A stateful, governed, multi-agent AI system built with **LangGraph, FastAPI, and Groq LLMs** for executing complex, long-horizon tasks with memory, safety, and auditability.
+
+---
 
 ## 1. Overview
 
-This project implements a **fully autonomous cognitive agent** that can understand natural language, reason step-by-step, plan actions, and execute multiple tools — all while maintaining memory and context across conversations.
+The **Autonomous Cognitive Engine (ACE)** is an advanced AI agent platform designed to go far beyond simple chatbots.
 
-It acts as your personal AI assistant for productivity, planning, research, and organization.
+It can:
+- Understand natural language
+- Plan multi-step workflows
+- Delegate work to specialized agents
+- Use tools safely
+- Store and retrieve long-term memory
+- Maintain a full audit trail of every decision
 
-Built using modern agent orchestration patterns with **LangGraph** and powered by **Google Gemini 1.5 Flash**.
+ACE uses a **Supervisor-driven multi-agent architecture** that prevents hallucinations, enforces tool governance, and enables reliable, enterprise-grade AI automation.
 
-Perfect for:
-- Personal productivity
-- Research assistance
-- Demonstrating advanced AI agent architectures
-- Learning how autonomous agents work under the hood
+---
 
-## 2. Features
+## 2. What Makes ACE Different
 
-- **Natural Language Control** — Just talk to it like a real assistant
-- **Task Management** — Create, update, complete, and delete tasks
-- **Calendar Integration** — Schedule events with smart date/time parsing ("tomorrow", "next Monday", etc.)
-- **Virtual File System** — Save notes, export task lists, read saved files
-- **Persistent Memory** — Session-based state preserved across page reloads
-- **Rich Narration** — Detailed, friendly explanations of every action taken
-- **Professional UI** — Clean sidebar showing tasks, files, events, and live stats
+| Normal AI Agents | ACE |
+|-----------------|-----|
+| One-shot reasoning | Long-horizon planning |
+| No memory | Persistent Virtual File System |
+| Uncontrolled tool use | Strict Supervisor governance |
+| Hallucinations | Source-validated outputs |
+| No audit trail | Full LangSmith tracing |
+| Monolithic | Specialized sub-agents |
 
-## 3. Tech Stack
+---
+
+## 3. System Architecture
+
+```
+User
+↓
+Supervisor Agent (Control Plane)
+├── Web Search Agent
+├── Planning Agent
+├── Analyzer Agent
+├── Summarizer Agent
+├── Report Generator Agent
+├── Tool Executor (Calendar, Files, Search)
+└── Virtual File System (Persistent Memory)
+↓
+LangSmith (Tracing, Logging, Observability)
+
+```
+
+Every action is routed through the **Supervisor**, ensuring deterministic, safe, and auditable execution.
+
+---
+
+## 4. Sub-Agents
+
+###  Web Search Agent
+The only agent allowed to access the internet.
+
+- Performs sandboxed web queries  
+- Returns structured, source-grounded data  
+- Cannot write to memory  
+
+---
+
+### Planning Agent
+Responsible for breaking complex user requests into executable steps.
+
+- Creates multi-step plans  
+- Assigns tasks to other agents  
+- Enforces execution order  
+
+---
+
+### Analyzer Agent
+Processes and reasons over collected data.
+
+- Validates facts  
+- Detects inconsistencies  
+- Performs structured reasoning  
+- Prepares data for reporting  
+
+---
+
+###  Summarizer Agent
+Compresses large content into useful knowledge.
+
+- Produces TL;DRs  
+- Bullet-point summaries  
+- Section-wise condensation  
+
+---
+
+###  Report Generator Agent
+Creates final human-readable outputs.
+
+- Generates reports  
+- Formats findings  
+- Produces structured documents  
+
+---
+
+## 5. Supervisor Agent
+
+The **Supervisor** is the brain of ACE.
+
+It:
+- Interprets user intent  
+- Selects which sub-agent or tool to use  
+- Enforces single-tool-per-turn policy  
+- Validates every output  
+- Writes approved results to the Virtual File System  
+- Logs all activity to LangSmith  
+
+---
+
+## 6. Virtual File System (VFS)
+
+A persistent, auditable external memory for ACE.
+
+Stores:
+- Research results  
+- Notes  
+- JSON  
+- CSV  
+- Reports  
+- Logs  
+
+Includes:
+- Versioning  
+- Metadata  
+- Provenance  
+- Full audit trails  
+
+---
+
+## 7. Tech Stack
 
 - **Backend**: FastAPI (Python)
-- **Agent Framework**: LangGraph (by LangChain)
-- **LLM**: Google Gemini 1.5 Flash (`gemini-1.5-flash-002`)
-- **Frontend**: HTML + Tailwind CSS + Vanilla JavaScript
-- **State Management**: In-memory sessions 
+- **Agent Framework**: LangGraph
+- **LLM**: Groq (llama-3.3-70b-versatile)
+- **Memory**: Custom Virtual File System
+- **Observability**: LangSmith
+- **Configuration**: YAML
+- **Environment**: dotenv
 
+---
 
-## 4. Project Structure
+## 8. Project Structure
 
 ```
-autonomous-cognitive-agent/
+src/
 ├── backend/
 │   └── app/
-│       ├── main.py              # FastAPI server, endpoints, and session handling
-│       ├── agent.py             # LangGraph workflow, reasoning node, and agent logic
-│       ├── tools.py             # All tool implementations (todos, calendar, files, etc.)
-│       ├── utils.py             # State management, prompts, Gemini client, and helpers
-│      
+│       ├── agent_core.py      ← Core reasoning + state graph (LangGraph)
+│       ├── agent.py           ← Supervisor Agent (decision maker)
+│       ├── sub_agents.py      ← 5 Sub-Agents (websearch, planner, analyzer, summarizer, report)
+│       ├── tool_executor.py  ← Tool-gating + safe execution layer
+│       ├── tools.py          ← Actual tool implementations (calendar, files, web, etc.)
+│       ├── utils.py          ← State model, prompts, helper functions
+│       └── main.py           ← FastAPI server + API routes
+│
+├── tests/
+│   └── test_delegation.py    ← Verifies correct agent → tool delegation
+│
 ├── frontend/
-│   ├── index.html               # Main chat interface and UI
-│   ├── script.js                # Frontend JavaScript logic (chat, state sync, UI updates)
-│   └── styles.css               # Custom styling for the frontend
-├── .env                         # Environment variables (e.g., GEMINI_API_KEY)
-├── requirements.txt             # Python dependencies
+│   ├── index.html            ← Chat UI
+│   ├── script.js             ← Frontend → backend API logic
+│   └── styles.css            ← UI styling
+│
+├── .env                     ← API keys (Groq, LangSmith, etc.)
+├── requirements.txt
+├── README.md
+└── LICENSE
 
 ```
 
-## 5. Setup & Installation
-1. Clone the repository
-Bashgit clone https://github.com/yourusername/autonomous-cognitive-agent.git
-cd autonomous-cognitive-agent
+---
 
-2. Create virtual environment
-Bashpython -m venv venv
-venv\Scripts\activate       # Windows
+## 9. Setup
 
-3. Install dependencies
-Bashpip install -r requirements.txt
+```
+git clone <repo-url>
+cd Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
+git checkout intern-arunika
 
-4. Get your Gemini API Key
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 
-Go to: https://aistudio.google.com/app/apikey
-Create a new API key
-Add it to .env file:
+```
 
-5. Run the backend server
-Bashcd backend/app
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+Create `.env`:
 
-6. Open the frontend
-Open frontend/index.html in your browser
-(or serve it with any static server)
+```
+GROQ_API_KEY=your_groq_key
+LANGSMITH_KEY=your_langsmith_key
 
-## 6. Usage Examples
-Try saying:
+```
 
-"Plan a trip to Goa next week"
-"Schedule a team meeting tomorrow at 3 PM with Alex and Sara"
-"Create tasks: buy groceries, call mom, finish report"
-"Save my notes on machine learning"
-"Export all tasks to a file"
-"Show me all my events"
+---
 
-The agent will reason, use tools, and narrate exactly what it did!
+## 11. Why This Matters
+
+ACE is not a chatbot — it is a **governed autonomous reasoning system**.
+
+It enables:
+- Research automation  
+- Strategy planning  
+- Knowledge synthesis  
+- Enterprise-grade AI workflows  
+
+---
+
+
+
+
+
+
+
+
