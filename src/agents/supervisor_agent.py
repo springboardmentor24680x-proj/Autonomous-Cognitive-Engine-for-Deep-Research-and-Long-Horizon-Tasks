@@ -1,3 +1,4 @@
+# src/agents/supervisor_agent.py
 from typing import TypedDict
 from langgraph.graph import StateGraph, END
 from langchain_groq import ChatGroq
@@ -12,10 +13,9 @@ class SupervisorState(TypedDict):
     plan: str
     search_result: str
     response: str
-    summary: str
     output: str
 
-# ---------- NODES ----------
+# --- Nodes ---
 
 def planner_node(state: SupervisorState):
     res = llm.invoke(f"Create a short TODO plan to answer:\n{state['input']}")
@@ -27,13 +27,10 @@ def search_node(state: SupervisorState):
 
 def respond_node(state: SupervisorState):
     memory = load_memory()
-    context = "\n".join([f"{m['role']}: {m['content']}" for m in memory[-6:]])
+    context = "\n".join([f"{m['role']}: {m['content']}" for m in memory[-5:]])
 
     prompt = f"""
 You are a helpful AI.
-IMPORTANT:
-- Do NOT include a summary.
-- Provide only the full detailed response.
 
 Conversation Context:
 {context}
@@ -51,24 +48,22 @@ Assistant:
 """
     res = llm.invoke(prompt)
 
-    return {
-        "response": res.content
-    }
+    append_memory("user", state["input"])
+    append_memory("assistant", res.content)
+
+    return {"response": res.content}
 
 def summarize_node(state: SupervisorState):
+    # Call the Summarizer tool 
     summary = SummarizerAgent.invoke({
-        "input": f"Summarize this in exactly 2 sentences:\n{state['response']}"
+        "input": f"User: {state['input']}\nAI: {state['response']}"
     })["output"]
 
-    append_memory("user", state["input"])
-    append_memory("assistant", state["response"], summary)
-
     return {
-        "output": state["response"],
-        "summary": summary
+        "output": f"{state['response']}\n\n---\n### Summary\n{summary}"
     }
 
-# ---------- GRAPH ----------
+# --- Graph Setup ---
 
 graph = StateGraph(SupervisorState)
 

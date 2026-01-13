@@ -1,16 +1,15 @@
+# src/agents/summarizer_agent.py
 from langgraph.graph import StateGraph, END
 from typing import TypedDict
-from langchain_groq import ChatGroq
-
-llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0.2)
+from tools.summarize_tool import summarize_text
 
 class SummaryState(TypedDict):
     input: str
     output: str
 
 def summarize_node(state: SummaryState):
-    res = llm.invoke(f"Summarize the following in two concise sentences:\n{state['input']}")
-    return {"output": res.content}
+    summary = summarize_text.invoke(state["input"])
+    return {"output": summary}
 
 graph = StateGraph(SummaryState)
 graph.add_node("summarize", summarize_node)
