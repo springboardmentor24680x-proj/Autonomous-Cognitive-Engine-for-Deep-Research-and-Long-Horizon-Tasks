@@ -1,42 +1,34 @@
-# src/tools/write_todos.py
-from langsmith import traceable
-from langchain_core.messages import AIMessage, HumanMessage
-from graph.state import AgentState
+from typing import List, Dict
+from langchain_core.messages import HumanMessage
 from tools.llm_factory import make_llm
-from memory.vfs import vfs
 
-@traceable(name="todo_node")
-def todo_node(state: AgentState) -> AgentState:
-    """
-    Create a to-do list from the last user message.
-    Returns updated state with AIMessage.
-    """
-    if not state.get("messages"):
-        return state
 
+def write_todos(user_goal: str) -> List[Dict[str, str]]:
+    """
+    Breaks a high-level user goal into structured TODO items.
+    Returns a list of dicts with id, task, and status.
+    """
     llm = make_llm()
-    user_input = state["messages"][-1].content
 
     prompt = HumanMessage(
         content=(
-            "Create a clean, actionable to-do list.\n"
-            "- NO links\n"
-            "- NO sources\n"
-            "- Use time blocks if applicable\n\n"
-            f"Request:\n{user_input}"
+            "Decompose the following goal into clear, ordered TODO tasks.\n"
+            "Return each task as a short actionable sentence.\n\n"
+            f"GOAL:\n{user_goal}"
         )
     )
 
     response = llm.invoke([prompt])
 
-    # Save to VFS
-    vfs.write_file(
-        file_name="todos.md",
-        prompt=prompt.content,
-        response=response.content
-    )
+    # Simple parsing: one task per line
+    todos = []
+    for idx, line in enumerate(response.content.splitlines(), start=1):
+        line = line.strip("-• ").strip()
+        if line:
+            todos.append({
+                "id": idx,
+                "task": line,
+                "done": False
+            })
 
-    # Append AIMessage
-    new_state = dict(state)
-    new_state["messages"].append(response)
-    return new_state
+    return todos

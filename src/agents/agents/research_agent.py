@@ -1,19 +1,15 @@
-import os
-from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage
+# src/agents/agents/research_agent.py
 
-load_dotenv()
+from graph.state import AgentState
+from memory.vfs import vfs
 
-llm = ChatOpenAI(
-    api_key=os.getenv("OPENROUTER_API_KEY"),
-    base_url="https://openrouter.ai/api/v1",
-    model="gpt-4o-mini",
-)
+def research_agent(state: AgentState) -> AgentState:
+    todo = state["current_todo"]["task"]
 
-def research(query: str) -> str:
-    messages = [
-        SystemMessage(content="You are a research assistant."),
-        HumanMessage(content=query)
-    ]
-    return llm.invoke(messages).content
+    vfs.write_file(
+        file_name="research_notes.txt",
+        prompt=todo,
+        response=f"Notes collected for: {todo}"
+    )
+
+    return state

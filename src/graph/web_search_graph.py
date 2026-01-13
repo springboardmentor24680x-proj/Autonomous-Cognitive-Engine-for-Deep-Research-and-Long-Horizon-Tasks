@@ -1,38 +1,42 @@
+import os
+from dotenv import load_dotenv
 from tavily import TavilyClient
 from langchain_core.messages import AIMessage
+from graph.state import AgentState
 from memory.vfs import vfs
 
-tavily = TavilyClient()
+load_dotenv()
 
-def web_search_node(state):
-    # Safety: ensure messages exist
-    if not state.get("messages"):
-        return state
+def web_search_node(state: AgentState) -> AgentState:
+    api_key = os.getenv("TAVILY_API_KEY")
+    if not api_key:
+        raise RuntimeError("TAVILY_API_KEY not found")
 
-    query = state["messages"][-1].content
+    tavily = TavilyClient(api_key=api_key)
 
-    results = tavily.search(
+    query = state["messages"][-1].content.strip()
+
+    response = tavily.search(
         query=query,
         max_results=5,
-        include_answer=True
+        include_answer=False,
     )
 
-    answer = results.get("answer", "No answer found.")
-    sources = results.get("results", [])
+    # ✅ Correct extraction
+    results = response.get("results", [])
 
-    sources_text = ""
-    for r in sources:
-        title = r.get("title", "No title")
-        url = r.get("url", "")
-        sources_text += f"- {title}\n  {url}\n\n"
+    formatted_blocks = []
+    for r in results:
+        formatted_blocks.append(
+            f"TITLE: {r.get('title', 'N/A')}\n"
+            f"URL: {r.get('url', 'N/A')}\n"
+            f"CONTENT: {r.get('content', '')}\n"
+        )
 
-    content = f"{answer}\n\nSources:\n{sources_text}"
+    combined = "\n\n".join(formatted_blocks)
 
-    # Persist to VFS
-    vfs.write_file("search.txt", query, content)
+    state["search_results"] = combined
+    state.setdefault("messages", []).append(AIMessage(content=combined))
 
-    # Update state
-    state["search_results"] = content
-    state["messages"].append(AIMessage(content=content))
-
+    vfs.write_file("search.txt", query, combined)
     return state

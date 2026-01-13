@@ -1,27 +1,19 @@
-# src/memory/vfs.py
 from typing import Dict, List
-from langsmith import traceable
 
 class VirtualFileSystem:
     def __init__(self):
-        self.files: Dict[str, str] = {}
-        self.history: Dict[str, List[str]] = {}
+        self._files: Dict[str, str] = {}
 
-    @traceable(name="vfs_write")
     def write_file(self, file_name: str, prompt: str, response: str):
-        entry = f"Prompt:\n{prompt}\n\nResponse:\n{response}\n\n---\n"
-        self.history.setdefault(file_name, []).append(entry)
-        self.files[file_name] = "".join(self.history[file_name])
-        with open(file_name, "w", encoding="utf-8") as f:
-            f.write(self.files[file_name])
+        self._files[file_name] = f"PROMPT:\n{prompt}\n\nRESPONSE:\n{response}"
 
-    @traceable(name="vfs_read")
     def read_file(self, file_name: str) -> str:
-        return self.files.get(file_name, "")
+        return self._files[file_name]
 
-    def ls(self) -> list:
-        return list(self.files.keys())
+    def ls(self) -> List[str]:
+        return list(self._files.keys())
 
-# ---- This is correct ----
-# just create the singleton instance here
+    def clear(self):
+        self._files.clear()
+
 vfs = VirtualFileSystem()

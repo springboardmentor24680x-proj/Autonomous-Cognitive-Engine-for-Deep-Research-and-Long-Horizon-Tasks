@@ -1,7 +1,17 @@
-from core_app import invoke_chat
+# tests/test_routing.py
+from graph.state_graph import ResearchAgent
+from langchain_core.messages import HumanMessage
 
-def test_basic_llm_response(chatbot_state):
-    state = invoke_chat(chatbot_state, "Explain recursion")
+def test_basic_research_response(chatbot_state):
+    # Use the fixture as the base state
+    state = dict(chatbot_state)  # copy
 
-    response = state["messages"][-1].content.lower()
+    # Append your test message
+    state["messages"].append(HumanMessage(content="Explain recursion"))
+
+    # Invoke agent
+    output_state = ResearchAgent.invoke(state)
+
+    response = output_state["messages"][-1].content.lower()
+
     assert "recursion" in response

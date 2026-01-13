@@ -1,25 +1,12 @@
-from tools.llm_factory import make_llm
-from memory.vfs import VirtualFileSystem
+# src/graph/research_graph.py
+from graph.state import AgentState
+from graph.web_search_graph import web_search_node
+from graph.summarizer_graph import summary_node
 
-from langchain_core.messages import AIMessage
-
-vfs = VirtualFileSystem()
-
-
-class ResearchAgent:
-    @staticmethod
-    def invoke(state):
-        llm = make_llm()
-        response = llm.invoke(state["messages"])
-
-        if response and response.content.strip():
-            vfs.write_file(
-                "research.txt",
-                state["messages"][-1].content,
-                response.content
-            )
-
-        state["messages"].append(
-            AIMessage(content=response.content)
-        )
-        return state
+def research_node(state: AgentState) -> AgentState:
+    """
+    Performs both web search (Tavily) and summarization (OpenRouter)
+    """
+    state = web_search_node(state)
+    state = summary_node(state)
+    return state
