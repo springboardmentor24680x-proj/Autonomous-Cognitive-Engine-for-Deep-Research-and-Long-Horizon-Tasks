@@ -202,6 +202,7 @@ The Virtual File System (VFS) acts as an external memory layer. It stores resear
 write(state, "research_notes.txt", result)
 notes = read(state, "research_notes.txt")
 ```
+---
 ## **5. Sub-Agent Delegation**
 
 Focused tasks are delegated to specialized sub-agents based on intent detection.
@@ -217,6 +218,8 @@ def should_delegate(text):
 ```
 ### **Explanation**
 This function detects the intent of the user request and routes the task to the appropriate specialized sub-agent. Delegation improves modularity, accuracy, and scalability of the system by ensuring that each task is handled by the most suitable agent.
+
+---
 ## **6. Specialized Sub-Agents**
 
 The system uses dedicated sub-agents to handle focused tasks efficiently. Each sub-agent operates independently with a clearly defined responsibility.
@@ -263,6 +266,8 @@ add_to_memory(state, "assistant", reply)
 ```
 ### **Explanation**
 All intermediate artifacts stored in the Virtual File System (VFS) are retrieved and synthesized into a final response. This response may take the form of a research report, technical analysis, or structured solution. The synthesis phase ensures coherence, completeness, and high-quality final outputs.
+
+---
 ### **8. Final Synthesis and Output Generation**
 
 Once all planned TODO steps are completed, the system consolidates stored information to generate a final coherent output.
@@ -275,7 +280,9 @@ final_output = call_llm(
 ```
 ### **Explanation**
 All intermediate artifacts stored in the Virtual File System (VFS) are retrieved and synthesized into a final response. This response may take the form of a research report, technical analysis, or structured solution. The synthesis phase ensures coherence, completeness, and high-quality final outputs.
+
 ---
+
 ### **Challenges Faced**
 
 - Handling long-horizon tasks within limited LLM context windows  
