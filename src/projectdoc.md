@@ -67,7 +67,6 @@ Overall, this approach enables the Autonomous Cognitive Engine to move beyond re
 
 The architecture of the **Autonomous Cognitive Engine** illustrates a stateful, supervisor-driven, multi-agent system designed to support long-horizon autonomous execution through structured planning, persistent memory, and modular delegation.
 
-![Autonomous Cognitive Engine – System Architecture](./src/system_Architecture.png)
 
 The system is centered around a **Large Language Model (LLM)**, which performs core reasoning, decision-making, and control-flow management. Instead of operating in isolation, the LLM interacts with a set of structured components that enable planning, memory persistence, and specialized task execution.
 
