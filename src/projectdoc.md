@@ -275,7 +275,7 @@ final_output = call_llm(
 ```
 ### **Explanation**
 All intermediate artifacts stored in the Virtual File System (VFS) are retrieved and synthesized into a final response. This response may take the form of a research report, technical analysis, or structured solution. The synthesis phase ensures coherence, completeness, and high-quality final outputs.
-
+---
 ### **Challenges Faced**
 
 - Handling long-horizon tasks within limited LLM context windows  
