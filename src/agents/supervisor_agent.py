@@ -4,7 +4,6 @@ from langchain_groq import ChatGroq
 from agents.search_agent import SearchAgent
 from agents.summarizer_agent import SummarizerAgent
 from memory.vfs import append_memory, load_memory
-from mcp_server.client import call_mcp_sync
 
 llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
 
@@ -12,7 +11,6 @@ class SupervisorState(TypedDict):
     input: str
     plan: str
     search_result: str
-    mcp_result: str
     response: str
     summary: str
     output: str
@@ -26,12 +24,6 @@ def planner_node(state: SupervisorState):
 def search_node(state: SupervisorState):
     result = SearchAgent.invoke({"query": state["input"]})
     return {"search_result": result["result"]}
-
-def mcp_node(state: SupervisorState):
-    enriched = call_mcp_sync(
-        f"Plan:\n{state['plan']}\nSearch Result:\n{state['search_result']}"
-    )
-    return {"mcp_result": enriched}
 
 def respond_node(state: SupervisorState):
     memory = load_memory()
@@ -51,9 +43,6 @@ Plan:
 
 Search Info:
 {state['search_result']}
-
-MCP Enrichment:
-{state['mcp_result']}
 
 User:
 {state['input']}
@@ -85,14 +74,12 @@ graph = StateGraph(SupervisorState)
 
 graph.add_node("planner", planner_node)
 graph.add_node("search", search_node)
-graph.add_node("mcp", mcp_node)
 graph.add_node("respond", respond_node)
 graph.add_node("summarize", summarize_node)
 
 graph.set_entry_point("planner")
 graph.add_edge("planner", "search")
-graph.add_edge("search", "mcp")
-graph.add_edge("mcp", "respond")
+graph.add_edge("search", "respond")
 graph.add_edge("respond", "summarize")
 graph.add_edge("summarize", END)
 
