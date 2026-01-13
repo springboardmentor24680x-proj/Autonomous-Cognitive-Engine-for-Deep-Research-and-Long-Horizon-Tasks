@@ -6,7 +6,6 @@ Rather than operating as a single prompt-based chatbot, the system follows a str
 Project Goals:-
 
 1.The system is developed with the following goals in mind
-
 2.Build an AI agent capable of independent reasoning and action
 3.Extend LLM capabilities using persistent memory beyond context limits
 4.Enable safe and controlled tool-based execution
@@ -143,6 +142,7 @@ Challenges and Learnings:-  LLM context limitations → addressed using persiste
                             State debugging → managed using LangGraph workflows
 
 Final Conclusion:- This project successfully demonstrates a modular, scalable, and memory-aware autonomous cognitive agent system. By integrating planning, delegation, tool usage, persistent memory, and summarization, the system provides a strong foundation for advanced AI applications such as autonomous research assistants and long-horizon reasoning systems.
+
 
 
 
