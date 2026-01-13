@@ -276,3 +276,30 @@ final_output = call_llm(
 ### **Explanation**
 All intermediate artifacts stored in the Virtual File System (VFS) are retrieved and synthesized into a final response. This response may take the form of a research report, technical analysis, or structured solution. The synthesis phase ensures coherence, completeness, and high-quality final outputs.
 
+### **Challenges Faced**
+
+- Handling long-horizon tasks within limited LLM context windows  
+- Designing reliable task decomposition into meaningful TODO steps  
+- Maintaining consistent shared state across multi-step execution  
+- Preventing redundant execution and infinite reasoning loops  
+- Accurate intent detection for correct sub-agent delegation  
+- Managing persistent memory using a Virtual File System (VFS)  
+- Debugging and tracing complex multi-agent workflows  
+- Balancing autonomous behavior with controlled execution flow  
+- Ensuring modularity and future extensibility of the system
+
+  ### **Conclusion**
+
+The Autonomous Cognitive Engine demonstrates an effective approach to executing complex, long-horizon tasks using structured planning, persistent memory, and multi-agent collaboration. By combining stateful execution, modular sub-agent delegation, and external memory through a Virtual File System, the system moves beyond traditional single-step LLM interactions. The framework successfully supports deep reasoning, controlled execution, and coherent final output generation, making it a strong foundation for advanced autonomous AI systems.
+
+---
+
+### **Future Scope**
+
+- Integration of more specialized sub-agents (e.g., data analysis, visualization, planning agents)  
+- Advanced task planning strategies with dynamic re-planning and priority adjustment  
+- Improved memory retrieval mechanisms using semantic search and embeddings  
+- Human-in-the-loop support for partial supervision and approval-based execution  
+- Support for distributed execution and scalability across multiple services  
+- Enhanced evaluation metrics for long-horizon task performance  
+- Production-grade deployment with authentication and access control
