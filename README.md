@@ -1,9 +1,12 @@
 Autonomous Cognitive Agent System Project Description:
+
 This project implements an Autonomous Cognitive Agent System using Python, LangChain, LangGraph, and Groq-powered Large Language Models. The system is designed to showcase how intelligent agents can autonomously interpret user intent, plan actions, interact with tools, store long-term memory, and collaborate with other agents to complete complex tasks.
 Rather than operating as a single prompt-based chatbot, the system follows a structured and extensible design that evolves from a basic agent into a fully coordinated multi-agent workflow with persistent state and controlled execution.
 
 Project Goals:-
-1.The system is developed with the following goals in mind:
+
+1.The system is developed with the following goals in mind
+
 2.Build an AI agent capable of independent reasoning and action
 3.Extend LLM capabilities using persistent memory beyond context limits
 4.Enable safe and controlled tool-based execution
@@ -140,6 +143,7 @@ Challenges and Learnings:-  LLM context limitations → addressed using persiste
                             State debugging → managed using LangGraph workflows
 
 Final Conclusion:- This project successfully demonstrates a modular, scalable, and memory-aware autonomous cognitive agent system. By integrating planning, delegation, tool usage, persistent memory, and summarization, the system provides a strong foundation for advanced AI applications such as autonomous research assistants and long-horizon reasoning systems.
+
 
 
 
