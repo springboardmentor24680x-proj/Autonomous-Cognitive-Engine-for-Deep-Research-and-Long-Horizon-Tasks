@@ -64,7 +64,7 @@ Overall, this approach enables the Autonomous Cognitive Engine to move beyond re
 - **Model Context Protocol (MCP)**  
   Used to expose sub-agents and tools as standardized, protocol-driven interfaces. MCP enables structured communication between the supervisor agent and specialized sub-agents, supporting modularity, scalability, and consistent tool execution.
   ## System Architecture
-
+![Architecture Diagram](src/system_architecture.png)
 The architecture of the **Autonomous Cognitive Engine** illustrates a stateful, supervisor-driven, multi-agent system designed to support long-horizon autonomous execution through structured planning, persistent memory, and modular delegation.
 
 
