@@ -479,6 +479,33 @@ Traces can be used to iteratively improve the system by:
 All traces are grouped under the configured project name
 
 ---
+##  Simple User Interface (UI)
+
+The Autonomous Cognitive Engine includes a **simple and lightweight UI** to interact with the system in a conversational manner. The UI is designed for clarity, ease of use, and quick experimentation with long-horizon tasks.
+
+
+
+## UI Overview
+
+The UI provides:
+
+- A **text input box** for user queries  
+- A **chat-style response area** showing agent outputs  
+- Support for **multi-step tasks**, sub-agent delegation, and memory usage  
+- Real-time interaction with the Supervisor Agent  
+
+This interface allows users to submit complex requests and observe how the system plans, delegates, and synthesizes results.
+
+
+
+## Running the Simple UI
+
+If the project uses **Streamlit** (recommended for demos), start the UI with:
+
+```bash
+streamlit run src/main.py
+```
+---
 ### **Challenges Faced**
 
 - Handling long-horizon tasks within limited LLM context windows  
