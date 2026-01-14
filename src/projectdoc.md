@@ -356,8 +356,129 @@ The environment configuration enables secure access to external services and act
 
 - **LANGSMITH_PROJECT** groups all traces under a single project name in LangSmith, ensuring organized monitoring and easier comparison across multiple runs.
 
-Together, these environment variables ensure secure LLM access
+nce the environment variables are configured, you can start and use the **Autonomous Cognitive Engine for Deep Research and Long-Horizon Tasks**.
+
+---
+
+## Running the Application
+
+Navigate to the project root directory and run the main entry file:
+
+```bash
+python src/main.py
+```
+Once the application starts successfully, the **Autonomous Cognitive Engine for Deep Research and Long-Horizon Tasks** enters an interactive execution phase driven by the Supervisor Agent.
+
 --- 
+##  Interacting with the System
+
+Once the application is running, you can interact with the **Autonomous Cognitive Engine for Deep Research and Long-Horizon Tasks** using natural language inputs. The system is designed to understand high-level goals and autonomously execute multi-step workflows.
+
+
+## How Interaction Works
+
+Each user input is treated as a new task request within the active session. The Supervisor Agent manages the entire interaction lifecycle, ensuring continuity and long-horizon reasoning.
+
+When you submit an input, the system:
+
+1. Analyzes the intent and complexity of the request  
+2. Decides whether structured planning is required  
+3. Delegates sub-tasks to specialized sub-agents when appropriate  
+4. Stores intermediate results in persistent memory  
+5. Synthesizes a final response  
+
+
+## Example Interactions
+
+
+### Research-Oriented Task
+
+```text
+Analyze recent advancements in autonomous AI agents and provide a structured summary.
+```
+---
+
+#  Monitoring and Tracing Execution (LangSmith)
+
+Once interactions begin, you can monitor how the **Autonomous Cognitive Engine** reasons, plans, and executes tasks using **LangSmith**.
+
+
+
+## What You Can Observe
+
+With LangSmith tracing enabled, every run is captured with detailed visibility into:
+
+- **Supervisor decisions** (planning vs direct execution)
+- **Sub-agent invocations** (Code, Summarization, Web Search)
+- **Tool usage** (VFS operations, planning steps)
+- **Groq LLM calls** as the underlying language model
+- **State transitions** across long-horizon execution
+
+
+## Viewing Traces
+
+1. Open the LangSmith dashboard in your browser  
+2. Select the project configured in `.env`:
+   ```text
+   LANGSMITH_PROJECT=autonomous-cognitive-engine
+   ```
+ 
+  ## What You Can Observe in Traces
+
+LangSmith provides a structured, step-by-step view of the entire workflow, including:
+
+- **Supervisor Agent Decisions**
+  - Task understanding and intent analysis
+  - Planning vs direct execution decisions
+
+- **Task Planning**
+  - TODO generation steps
+  - Order and structure of sub-tasks
+
+- **Sub-Agent Execution (as Tools)**
+  - Code Agent, Summarization Agent, Web Search Agent
+  - Each sub-agent appears as an individual traced tool call
+  - Clear separation between LLM reasoning and tool execution
+
+- **LLM Calls (Groq)**
+  - Each Groq inference appears as an LLM run
+  - Prompt, response, and latency are visible
+
+- **Virtual File System Operations**
+  - File reads and writes (context offloading)
+  - Persistent memory usage across steps
+
+
+## Key Benefits of Trace Analysis
+
+By inspecting traces, you can:
+
+- Verify correct **task decomposition**
+- Confirm accurate **sub-agent delegation**
+- Detect unnecessary or repeated reasoning steps
+- Identify performance bottlenecks
+- Debug failures in long-horizon execution
+- Ensure state consistency across iterations
+
+
+
+## Improving the System Using Traces
+
+Traces can be used to iteratively improve the system by:
+
+- Refining intent-detection logic
+- Optimizing TODO generation prompts
+- Improving sub-agent boundaries
+- Adjusting memory storage strategies
+- Enhancing prompt quality for Groq LLM calls
+
+
+
+## Trace Organization
+
+All traces are grouped under the configured project name
+
+---
 ### **Challenges Faced**
 
 - Handling long-horizon tasks within limited LLM context windows  
