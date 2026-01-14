@@ -486,7 +486,7 @@ The Autonomous Cognitive Engine includes a **simple and lightweight UI** to inte
 
 
 ## UI Overview
-
+![ui](ui.png)
 The UI provides:
 
 - A **text input box** for user queries  
