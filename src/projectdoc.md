@@ -281,7 +281,83 @@ final_output = call_llm(
 All intermediate artifacts stored in the Virtual File System (VFS) are retrieved and synthesized into a final response. This response may take the form of a research report, technical analysis, or structured solution. The synthesis phase ensures coherence, completeness, and high-quality final outputs.
 
 ---
+## Setup and Usage
 
+This section explains how to set up and run the **Autonomous Cognitive Engine for Deep Research and Long-Horizon Tasks** locally.
+
+
+
+## Prerequisites
+
+- Python **3.11 or later**
+- pip (Python package manager)
+- Git
+- LLM API key (Groq)
+- (Optional) LangSmith account for tracing
+
+
+
+## Installation
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/your-username/Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Task.git
+cd Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Task
+```
+## Create a Virtual Environment (Recommended)
+
+Create a virtual environment to isolate project dependencies:
+
+```bash
+python -m venv venv
+```
+## Activate the Virtual Environment
+
+After creating the virtual environment, activate it using the appropriate command:
+
+### Linux / macOS
+```bash
+source venv/bin/activate
+```
+### Windows
+
+Activate the virtual environment using:
+
+```bash
+venv\Scripts\activate
+```
+## Install Dependencies
+
+Install all required Python packages using:
+
+```bash
+pip install -r requirements.txt
+```
+## Environment Configuration
+
+Create a `.env` file in the project root directory and add the following environment variables:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+LANGSMITH_API_KEY=your_langsmith_api_key
+LANGSMITH_TRACING=true
+LANGSMITH_PROJECT=autonomous-cognitive-engine
+```
+### Explanation
+
+The environment configuration enables secure access to external services and activates observability for the Autonomous Cognitive Engine.
+
+- **GROQ_API_KEY** is required to authenticate requests to the Groq Large Language Model (LLM), which powers reasoning, planning, and content generation across the system.
+
+- **LANGSMITH_API_KEY** connects the application to LangSmith, allowing detailed tracing of agent decisions, tool usage, and execution flows.
+
+- **LANGSMITH_TRACING** enables automatic tracing of all agent runs, making it possible to monitor long-horizon execution, debug failures, and analyze reasoning paths.
+
+- **LANGSMITH_PROJECT** groups all traces under a single project name in LangSmith, ensuring organized monitoring and easier comparison across multiple runs.
+
+Together, these environment variables ensure secure LLM access
+--- 
 ### **Challenges Faced**
 
 - Handling long-horizon tasks within limited LLM context windows  
