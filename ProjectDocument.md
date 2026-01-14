@@ -1,7 +1,5 @@
 # Autonomous Cognitive Engine – Project Report
 
----
-
 ## 1. Project Introduction
 
 The **Autonomous Cognitive Engine for Deep Research and Long-Horizon Tasks** is a modular, tool-driven AI system designed to execute complex, multi-step objectives with high reliability, memory safety, and structured reasoning.
@@ -45,11 +43,7 @@ The system is built around a **Supervisor Agent** that orchestrates sub-agents, 
 * Visualization pipeline
 * Comprehensive testing strategy
 
----
-
 ## 3. Project Modules
-
----
 
 ### 3.1 Supervisor Agent (`main/app.py`)
 
@@ -266,7 +260,6 @@ def test_vfs_write_read():
 * Long-horizon planning workflows
 * Multi-file synthesis tasks
 
----
 
 ## 4. Setup (Project Initialization)
 
@@ -308,7 +301,6 @@ GROQ_API_KEY=your_groq_api_key_here
 python src/main/app.py
 ```
 
----
 
 ## 6. Current Progress
 
@@ -328,7 +320,6 @@ A **production-grade autonomous reasoning system** with enforced correctness and
 
 The agent never *remembers* — it **reads**.
 
----
 
 ## 7. Challenges
 
@@ -347,7 +338,6 @@ The agent never *remembers* — it **reads**.
 * Increased token usage
 * Observability overhead
 
----
 
 ## 8. Future Scope
 
