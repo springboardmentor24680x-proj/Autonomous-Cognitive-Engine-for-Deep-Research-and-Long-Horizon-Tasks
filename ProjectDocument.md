@@ -268,7 +268,49 @@ def test_vfs_write_read():
 
 ---
 
-## 4. Current Progress
+## 4. Setup (Project Initialization)
+
+### Clone the Repository
+
+```
+git clone https://github.com/your-username/Autonomous-Cognitive-Engine-for-Deep-Research.git
+cd Autonomous-Cognitive-Engine-for-Deep-Research
+```
+
+### Create Virtual Environment
+
+```
+python -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
+```
+
+### Install Dependencies
+
+```
+pip install -r requirements.txt
+```
+
+### Set Environment Variables
+
+Create a `.env` file:
+
+```
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+---
+
+## 5. Usage
+
+### Start the Agent
+
+```
+python src/main/app.py
+```
+
+---
+
+## 6. Current Progress
 
 A **production-grade autonomous reasoning system** with enforced correctness and observability.
 
@@ -288,7 +330,7 @@ The agent never *remembers* — it **reads**.
 
 ---
 
-## 5. Challenges
+## 7. Challenges
 
 ### 1. System Complexity
 
@@ -307,7 +349,7 @@ The agent never *remembers* — it **reads**.
 
 ---
 
-## 6. Future Scope
+## 8. Future Scope
 
 ### Multi-Modal Cognition
 
@@ -324,3 +366,15 @@ The agent never *remembers* — it **reads**.
 * DAG-based planning
 * Self-reflection loops
 * Confidence scoring
+
+## 9. Conclusion
+
+The Autonomous Cognitive Engine for Deep Research and Long-Horizon Tasks successfully demonstrates a shift from traditional prompt-based AI systems toward deterministic, tool-governed, and memory-safe autonomous reasoning.
+
+By introducing a Supervisor-driven architecture, the system eliminates hidden reasoning paths and uncontrolled tool usage. Every action—whether research, summarization, file access, or visualization—is explicit, verifiable, and auditable. This design directly addresses critical limitations of conventional LLM applications, including hallucinations, context loss, and non-deterministic behavior.
+
+The integration of a Virtual File System as persistent external memory enables true long-horizon cognition. Instead of relying on transient conversational context, the system reads, writes, and reasons over structured artifacts, making it suitable for real-world tasks such as market analysis, strategic roadmapping, and executive reporting.
+
+Furthermore, strict enforcement of constraints—such as one tool call per turn, isolated sub-agent permissions, and validated visualization pipelines—ensures system reliability, safety, and maintainability.
+
+Overall, this project reflects a production-oriented approach to autonomous AI, aligning closely with enterprise requirements and modern research directions in agent-based systems. It serves as a strong foundation for building scalable, interpretable, and trustworthy AI assistants.
