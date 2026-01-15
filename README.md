@@ -1,103 +1,194 @@
-OB# Autonomous Cognitive Engine for Deep Research and Long-Horizon Tasks  
-**Springboard – Infosys Internship Project**
+# Autonomous Cognitive Engine
+
+The **Autonomous Cognitive Engine** is an AI system designed to perform **deep research** and **long-horizon tasks** using a structured, multi-agent workflow. Unlike traditional chat-based systems, this project focuses on **explicit reasoning, controlled tool usage, persistent memory, and testable execution**.
+
+It uses a **graph-based agent architecture** where different agents handle tasks like web search, research, summarization, and task management.
 
 ---
 
-## Overview
-The **Autonomous Cognitive Engine** is an LLM-driven multi-agent system designed to perform **deep research and long-horizon tasks** with minimal human intervention.
-
-The system decomposes complex user queries into structured TODOs, delegates execution to specialized sub-agents, persists memory across runs, and produces traceable, well-structured outputs.
-
-## Key Features
-
--  **Supervisor-driven Task Planning & TODO Enforcement**
--  **Persistent Memory using Virtual File System (VFS)**
--  **Sub-Agent Delegation Architecture**
--  **Research Agent for information gathering**
--  **Summarization Agent for condensed insights**
--  **Tool-based Execution** (file tools implemented, extensible)
--  **LangSmith Tracing for Observability**
--  **LangGraph-based StateGraph orchestration (in progress)**
-
----
-
-## System Architecture
-
-User  
-↓  
-Supervisor Agent  
-↓  
-Persistent Memory (VFS)  
-↓  
-Sub-Agents  
-├── Research Agent  
-└── Summarization Agent  
-↓  
-Tool Execution  
-↓  
-Final Structured Output
+## Table of Contents
+1. [Project Overview](#project-overview)  
+2. [Objectives](#objectives)  
+3. [Technologies Used](#technologies-used)  
+4. [Project Architecture](#project-architecture)  
+5. [Folder Structure](#folder-structure)  
+6. [Module Description](#module-description)  
+7. [Testing Strategy](#testing-strategy)  
+8. [Setup Instructions](#setup-instructions)  
+9. [Running the Application](#running-the-application)  
+10. [Current Status](#current-status)  
+11. [Challenges Faced](#challenges-faced)  
+12. [Future Enhancements](#future-enhancements)  
+13. [Conclusion](#conclusion)  
 
 ---
 
-## 🛠 Tech Stack
-
-- **Python**  
-- **LangChain**  
-- **LangGraph**  
-- **Groq LLM**  
-- **LangSmith** (Tracing & Observability)
+## Project Overview
+The system uses a **Supervisor–Sub Agent architecture**, implemented via LangGraph. Agents have specialized roles: **research, search, summarization, and task management**, while the graph controls execution and routing.
 
 ---
 
-## Project Structure
+## Objectives
+- Modular AI system with clear separation of responsibilities  
+- Long-horizon reasoning using persistent memory  
+- Controlled tool usage to prevent hallucinations  
+- Testable and verifiable execution  
+- Simple user interface for interaction  
 
-```text
-Autonomous-Cognitive-Engine-for-Deep-Research/
-├── src/graph/state_graph.py        # Supervisor & graph entry point
-├── src/app.py                      # Streamlit UI
-├── src/graph/research_graph.py     # Research sub-agent graph
-├── src/graph/summarizer_graph.py   # Summarization sub-agent graph
-├── src/graph/web_search_graph.py   # Web search delegation
-├── src/tools/llm_factory.py        # Centralized LLM configuration
-├── src/memory/vfs.py               # Persistent Virtual File System
-├── src/graph/state.py              # Shared agent state
-├── src/tools/shared_resources.py   # Shared tools and utilities
-├── venv/                            # Virtual environment (ignored)
-├── __pycache__/                     # Python cache (ignored)
-├── .gitignore
-├── LICENSE
-├── README.md
-└── requirements.txt
-Current Progress
-✔ Multi-agent delegation (Supervisor → Sub-agents)
-✔ Persistent memory across executions
-✔ Research and summarization workflows
-✔ Structured task planning and TODO enforcement
-✔ LangSmith-traced execution flow
+---
 
-Future Work
-Dedicated Planner Agent
+## Technologies Used
+- Python  
+- LangGraph  
+- LangChain  
+- OpenRouter API (LLM provider)  
+- Streamlit (UI)  
+- Pytest (testing)  
+- Virtual File System (VFS) for memory  
 
-Verification / Critic Agent
+---
 
-Advanced LangGraph StateGraph routing
+## Project Architecture
+- **Agents**: Specialized logic for research, search, summarization  
+- **Graphs**: Control execution flow and routing  
+- **State Management**: Shared `AgentState` across nodes  
+- **Memory (VFS)**: Persistent storage  
+- **Tools**: LLM access, web search, todo writing  
+- **Tests**: Validate each module independently  
 
-Long-term vector-based memory
+---
 
-Additional tool integrations (calendar, APIs)
+## Folder Structure
 
-Internship Outcome
-This project demonstrates:
+src/
+├── agents/
+│ ├── code_agent.py
+│ ├── research_agent.py
+│ ├── search_agent.py
+│ └── summarizer_agent.py
+├── graph/
+│ ├── state.py
+│ ├── state_graph.py
+│ ├── research_graph.py
+│ ├── web_search_graph.py
+│ └── summarizer_graph.py
+├── memory/
+│ └── vfs.py
+├── tools/
+│ ├── llm_factory.py
+│ ├── shared_resources.py
+│ └── write_todos.py
+├── app.py
 
-Autonomous reasoning
+tests/
+├── test_routing.py
+├── test_summarizer.py
+├── test_todo.py
+├── test_vfs.py
+└── test_web_search.py
 
-Multi-agent coordination
+markdown
+Copy code
 
-Long-horizon task execution
+---
 
-Observable and debuggable AI systems
+## Module Description
 
-Designed and implemented as part of the Infosys Springboard Internship Program.
+### Supervisor & Routing (Graph)
+- Controls the flow between agents  
+- Decides if input requires search, summarization, or direct response  
+- Implemented using LangGraph state transitions  
 
+### Research Agent
+- Performs factual research  
+- Uses controlled web search  
+- Returns structured content to the graph  
 
+### Web Search Module
+- Executes external searches  
+- Restricted to research-related tasks  
+- Returns results to the graph  
 
+### Summarizer Agent
+- Converts large research outputs into concise summaries  
+- Produces readable, structured content  
+
+### Virtual File System (VFS)
+- Persistent memory storage  
+- Supports `read`, `write`, and `list` operations  
+- Stores files like `search.txt`, `summary.txt`, and `todos.txt`  
+
+### Todo Generator
+- Extracts action items from user input or summaries  
+- Stores tasks in `todos.txt` via VFS  
+
+---
+
+## Testing Strategy
+Testing is done using **pytest** to ensure correctness and reliability.
+
+**Test Coverage**:  
+- Routing logic  
+- Summarizer output  
+- Web search execution  
+- VFS read/write operations  
+- Todo generation  
+
+All tests are isolated and independently verifiable.
+
+---
+
+## Setup Instructions
+
+### Clone Repository
+```bash
+git clone <repository-url>
+cd Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
+
+Create Virtual Environment
+bash
+Copy code
+python -m venv venv
+source venv/Scripts/activate   # Windows: venv\Scripts\activate
+
+Install Dependencies
+bash
+Copy code
+pip install -r requirements.txt
+Environment Variables
+Create a .env file with:
+
+ini
+Copy code
+OPENROUTER_API_KEY=your_api_key_here
+Running the Application
+bash
+Copy code
+streamlit run src/app.py
+Current Status
+Core agent workflow implemented
+
+Persistent memory via VFS working
+
+All major modules tested
+
+Streamlit UI integrated
+
+**Challenges Faced**
+Managing shared state across agents
+
+Preventing incorrect routing
+
+Handling long outputs safely
+
+Designing testable agent logic
+
+**Future Enhancements**
+
+Multi-modal inputs (PDFs, images)
+
+Advanced planning workflows
+
+Improved visualization support
+
+Agent self-evaluation and feedback loops
