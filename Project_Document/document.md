@@ -232,13 +232,12 @@ def summarize_node(state: SummaryState):
  *	The summary is limited to two sentences, keeping it brief and focused.
  *	Outputs the summary in a structured format, making it easy to use in further workflow steps.
 
----
-
 ## Streamlit User Interface
  
  The Streamlit UI provides an interactive chat-based interface for users.
 
 ```python
+
 import streamlit as st
 from agents.supervisor_agent import SupervisorAgent
 from memory.vfs import load_memory, clear_memory
@@ -246,7 +245,7 @@ from memory.vfs import load_memory, clear_memory
 ```
 ### Application User Interface
 
-![Autonomous Cognitive Agent UI](assets/streamlit_ui.png)
+![Autonomous Cognitive Agent UI](ui.png)
 
 *Figure : Streamlit-based user interface for the Autonomous Cognitive Agent.*
 
@@ -293,44 +292,6 @@ This workflow illustrates how all components work together in a controlled pipel
  Input → Supervisor → Search → Reasoning → Summarization → Memory → Output
 
  ```
-
-# Model Context Protocol (MCP)
-
-## Overview
-The **Model Context Protocol (MCP)** provides a standardized execution layer connecting the autonomous agent system with external tools and services such as search, APIs, databases, and workflows. MCP separates **reasoning** from **execution**, allowing the agent to focus on planning and decision-making.
-
-## How MCP Works in This App
-- **Supervisor Agent** acts as the MCP client.  
-- Plans are created based on user input.  
-- MCP is invoked when external data or actions are needed.  
-- MCP servers execute tasks and return structured results.  
-- Supervisor integrates results and generates the final response.  
-- Summarizer compresses the output before displaying to the user.
-
-## Features
-- Standardized client–server communication  
-- Clean separation of reasoning and execution  
-- Structured, predictable responses  
-- Easy integration with LangGraph workflows  
-- Supports multiple external tools and services  
-
-## Benefits
-- Scalable and maintainable architecture  
-- Loosely coupled agent and tool design  
-- Safe real-world execution  
-- Easy to extend with new tools  
-- Simplifies debugging and observability
-
-## MCP Architecture Diagram (Simpler Version)
-
-```python
-flowchart LR
-    User --> Supervisor[Supervisor Agent]
-    Supervisor --> MCP[MCP Client Layer]
-    MCP --> Servers[MCP Servers / Tools]
-    Servers --> Supervisor
-    Supervisor --> Output[Final Output to User]
-```
 
 ## Challenges I Faced
 
