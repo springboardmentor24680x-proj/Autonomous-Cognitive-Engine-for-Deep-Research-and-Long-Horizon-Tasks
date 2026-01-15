@@ -1,4 +1,3 @@
-# src/agents/supervisor_agent.py
 from typing import TypedDict
 from langgraph.graph import StateGraph, END
 from langchain_groq import ChatGroq
@@ -58,9 +57,10 @@ def summarize_node(state: SupervisorState):
     summary = SummarizerAgent.invoke({
         "input": f"User: {state['input']}\nAI: {state['response']}"
     })["output"]
-
+    
+    append_memory("summary", summary)
     return {
-        "output": f"{state['response']}\n\n---\n### Summary\n{summary}"
+        "output": f"{state['response']}\n\n---\n#### Summary\n{summary}"
     }
 
 # --- Graph Setup ---

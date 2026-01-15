@@ -1,8 +1,6 @@
 import streamlit as st
 from agents.supervisor_agent import SupervisorAgent
-from utils.logger import setup_logger
 
-logger = setup_logger("Streamlit-App")
 from memory.vfs import load_memory, clear_memory
 
 st.set_page_config(page_title="Autonomous Cognitive Agent", layout="wide")
@@ -18,18 +16,24 @@ with st.sidebar:
     else:
         for i, msg in enumerate(history):
             if msg["role"] == "user":
-                st.markdown(f"**Q{i//2 + 1}:** {msg['content'][:40]}...")
+                st.markdown(f"**Q{i//3 + 1}:** {msg['content'][:40]}...")
 
     st.divider()
     if st.button("Clear Chat", use_container_width=True):
         clear_memory()
-        st.experimental_rerun()
+        st.rerun()
 
 # ---------- MAIN CHAT ----------
-# Display full chat history
 for msg in load_memory():
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+    role = msg["role"]
+    content = msg["content"]
+    if role in ["user", "assistant"]:
+        with st.chat_message(role):
+            st.markdown(content)
+    elif role == "summary":
+        with st.chat_message("assistant"):
+            st.markdown(f"#### Summary\n{content}")
+
 
 # ---------- INPUT ----------
 if user_input := st.chat_input("Ask something..."):
@@ -49,12 +53,9 @@ if user_input := st.chat_input("Ask something..."):
                 full_output = result.get("output", "No output returned.")
 
                 # Handle long outputs by splitting into chunks
-                MAX_CHARS = 2000
-                chunks = [full_output[i:i + MAX_CHARS] for i in range(0, len(full_output), MAX_CHARS)]
-                for chunk in chunks:
-                    st.markdown(chunk)
+                for paragraph in full_output.split("\n\n"):  # split by paragraph
+                 st.markdown(paragraph)
 
             except Exception as e:
                 st.error(f"Error: {e}")
 
-            logger.info("Response delivered to user")

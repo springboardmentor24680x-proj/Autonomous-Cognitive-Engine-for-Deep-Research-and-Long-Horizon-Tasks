@@ -1,4 +1,3 @@
-# src/agents/search_agent.py
 from langgraph.graph import StateGraph, END
 from typing import TypedDict
 from tools.search_tool import web_search
@@ -11,8 +10,8 @@ def search_node(state: SearchState):
     return {"result": web_search.invoke(state["query"])}
 
 graph = StateGraph(SearchState)
-graph.add_node("search", search_node)
-graph.set_entry_point("search")
-graph.add_edge("search", END)
+graph.add_node("search_agent", search_node)
+graph.set_entry_point("search_agent")
+graph.add_edge("search_agent", END)
 
 SearchAgent = graph.compile()

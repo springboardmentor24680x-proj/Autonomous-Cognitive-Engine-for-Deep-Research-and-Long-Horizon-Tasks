@@ -1,4 +1,3 @@
-# src/agents/summarizer_agent.py
 from langgraph.graph import StateGraph, END
 from typing import TypedDict
 from tools.summarize_tool import summarize_text
@@ -12,8 +11,8 @@ def summarize_node(state: SummaryState):
     return {"output": summary}
 
 graph = StateGraph(SummaryState)
-graph.add_node("summarize", summarize_node)
-graph.set_entry_point("summarize")
-graph.add_edge("summarize", END)
+graph.add_node("summarize_agent", summarize_node)
+graph.set_entry_point("summarize_agent")
+graph.add_edge("summarize_agent", END)
 
 SummarizerAgent = graph.compile()
