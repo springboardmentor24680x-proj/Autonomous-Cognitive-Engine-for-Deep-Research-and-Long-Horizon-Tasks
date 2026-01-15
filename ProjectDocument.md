@@ -298,11 +298,43 @@ GROQ_API_KEY=your_groq_api_key_here
 ### Start the Agent
 
 ```
-python src/main/app.py
+ $env:PYTHONPATH="."
+>> streamlit run src/main/app.py
 ```
+After startup, the following components are initialized:
 
+* Supervisor Agent
+* Research and Summarization Sub-Agents
+* Virtual File System (persistent memory)
+* Tool registry
+The system then enters interactive execution mode.
 
-## 6. Current Progress
+UI Image 1 – Application Start Screen
+
+### User Interaction Workflow
+Step 1: Task Submission
+
+The user submits a complex task such as:
+* Market research request
+* Strategic planning objective
+* Data analysis or summarization task
+
+UI Image 2 – User Task Input Interface
+
+Step 2: Supervisor Agent Planning
+
+The Supervisor Agent:
+
+* Analyzes user intent
+* Breaks the task into subtasks
+* Selects the correct sub-agent or tool
+
+UI Image 3 – Supervisor Decision Logs
+
+Step 3: Langsmith Trace
+A LangSmith trace is a recording of the end-to-end execution of an AI application, capturing every step from input to final output. It is the core observability feature of the LangSmith platform, used to debug, monitor, and evaluate Large Language Model (LLM) workflows.
+
+## 6. Functionality
 
 A **production-grade autonomous reasoning system** with enforced correctness and observability.
 
