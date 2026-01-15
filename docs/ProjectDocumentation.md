@@ -40,7 +40,7 @@ The project follows a **Supervisor–Sub Agent architecture** implemented using 
 - **Tests**: Validate each module independently
 
 ---
-
+```
 ## 5. Folder Structure
 src/
 │
