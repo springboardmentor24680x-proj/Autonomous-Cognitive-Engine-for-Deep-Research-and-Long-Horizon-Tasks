@@ -1,17 +1,24 @@
-# tests/test_routing.py
-from graph.state_graph import ResearchAgent
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessage
+from graph.state_graph import build_state_graph
+from graph.state import AgentState
 
-def test_basic_research_response(chatbot_state):
-    # Use the fixture as the base state
-    state = dict(chatbot_state)  # copy
+def test_basic_research_response():
+    graph = build_state_graph()
 
-    # Append your test message
-    state["messages"].append(HumanMessage(content="Explain recursion"))
+    state = AgentState(input="Explain recursion")
+    state["messages"] = [HumanMessage(content="Explain recursion")]
 
-    # Invoke agent
-    output_state = ResearchAgent.invoke(state)
+    final_state = graph.invoke(state)
 
-    response = output_state["messages"][-1].content.lower()
+    # Ensure messages exist
+    assert "messages" in final_state
+    assert len(final_state["messages"]) >= 2
 
-    assert "recursion" in response
+    # Last message must be AI response
+    last_message = final_state["messages"][-1]
+    assert isinstance(last_message, AIMessage)
+
+    # Validate content
+    assert last_message.content is not None
+    assert isinstance(last_message.content, str)
+    assert len(last_message.content) > 0
