@@ -186,7 +186,7 @@ from tools.search_tool import web_search
 
 ```python
 def search_node(state: SearchState):
-    return {"result": web_search(state["query"])}
+    return {"result": web_search.invoke(state["query"])}
 ```
  
  This function takes a state object containing a search query, performs a web search using that query, and returns the search results in a dictionary under the key "result".
@@ -201,26 +201,38 @@ def search_node(state: SearchState):
 
 ### Responsibilities 
  *	Accept unstructured or verbose text input
- *	Use LLMs to generate clear, concise summaries
+ *	Fetch information using search tools and return structured results to the Supervisor Agent
  *	Highlight critical points, trends, or key information
  *	Deliver structured summaries to the supervisor or other agents
 
 ### Implementation :
 
- This node distills a conversation turn into a brief, two-sentence summary for the workflow.
+
+1. Input Collection
+After the Supervisor Agent generates the full answer, the Summary Agent receives a combined text that includes:
+ * the user’s prompt
+ * the assistant’s response
+
+2. Summarization Tool Execution
+The Summary Agent calls the summarize_text tool, which uses an LLM to:
+ * read the combined input
+ * extract only the core idea
+ * rewrite it into 2–3 concise sentences
 
 ```python
+from tools.summarize_tool import summarize_text
 def summarize_node(state: SummaryState):
-    res = llm.invoke(
-        f"Summarize the following in two concise sentences:\n{state['input']}"
-    )
-    return {"output": res.content}
-```    
+    summary = summarize_text.invoke(state["input"])
+    return {"output": summary}
+```
+ This node distills a conversation turn into a brief, two-sentence summary for the workflow.   
 
  *	summarize_node is a workflow step in My Summarizer.
  *	It takes input text and uses a language model to generate a concise summary.
  *	The summary is limited to two sentences, keeping it brief and focused.
  *	Outputs the summary in a structured format, making it easy to use in further workflow steps.
+
+---
 
 ## Streamlit User Interface
  
@@ -232,9 +244,18 @@ from agents.supervisor_agent import SupervisorAgent
 from memory.vfs import load_memory, clear_memory
 
 ```
+### Application User Interface
+
+![Autonomous Cognitive Agent UI](assets/streamlit_ui.png)
+
+*Figure : Streamlit-based user interface for the Autonomous Cognitive Agent.*
+
+### Run the Streamlit App
+```python
+streamlit run src/app.py
+```
  The UI makes the autonomous agent system accessible and easy to demonstrate. It loads conversation history from memory, displays agent responses clearly, and allows users to reset the system state when needed.
 
- This interface is ideal for mentor demonstrations and project evaluations.
  
 ### Features
 
