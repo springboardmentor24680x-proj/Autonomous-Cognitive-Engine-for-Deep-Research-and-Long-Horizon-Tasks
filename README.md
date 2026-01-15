@@ -59,7 +59,7 @@ The system uses a **Supervisor–Sub Agent architecture**, implemented via LangG
 ---
 
 ## Folder Structure
-
+```
 src/
 ├── agents/
 │ ├── code_agent.py
@@ -140,32 +140,34 @@ All tests are isolated and independently verifiable.
 
 ## Setup Instructions
 
-### Clone Repository
+### **1. Clone Repository**
 ```bash
 git clone <repository-url>
 cd Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
-
-Create Virtual Environment
+2. Create Virtual Environment
 bash
 Copy code
 python -m venv venv
-source venv/Scripts/activate   # Windows: venv\Scripts\activate
-
-Install Dependencies
+# Activate environment:
+# Linux / macOS
+source venv/bin/activate
+# Windows
+venv\Scripts\activate
+3. Install Dependencies
 bash
 Copy code
 pip install -r requirements.txt
-Environment Variables
-Create a .env file with:
+4. Set Environment Variables
+Create a .env file in the project root with the following content:
 
 ini
 Copy code
 OPENROUTER_API_KEY=your_api_key_here
-Running the Application
+5. Run the Application
 bash
 Copy code
 streamlit run src/app.py
-Current Status
+6. Current Status
 Core agent workflow implemented
 
 Persistent memory via VFS working
@@ -174,7 +176,7 @@ All major modules tested
 
 Streamlit UI integrated
 
-**Challenges Faced**
+7. Challenges Faced
 Managing shared state across agents
 
 Preventing incorrect routing
@@ -183,8 +185,7 @@ Handling long outputs safely
 
 Designing testable agent logic
 
-**Future Enhancements**
-
+8. Future Enhancements
 Multi-modal inputs (PDFs, images)
 
 Advanced planning workflows
