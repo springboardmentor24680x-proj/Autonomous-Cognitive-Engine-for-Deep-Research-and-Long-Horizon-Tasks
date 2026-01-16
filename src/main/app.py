@@ -50,7 +50,7 @@ with st.sidebar:
 # --------------------------------------------------
 # Main Chat UI
 # --------------------------------------------------
-st.title("Deep Agent: Todo & Calendar")
+st.title("Autonomous Cognitive Agent – Planning, Memory & Tools")
 
 if "messages" not in st.session_state:
     st.session_state.messages = [

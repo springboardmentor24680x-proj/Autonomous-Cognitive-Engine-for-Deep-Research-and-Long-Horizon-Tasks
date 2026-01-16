@@ -310,6 +310,7 @@ After startup, the following components are initialized:
 The system then enters interactive execution mode.
 
 UI Image 1 – Application Start Screen
+![alt text](image.png)
 
 ### User Interaction Workflow
 Step 1: Task Submission
@@ -320,6 +321,7 @@ The user submits a complex task such as:
 * Data analysis or summarization task
 
 UI Image 2 – User Task Input Interface
+![alt text](image-1.png)
 
 Step 2: Supervisor Agent Planning
 
@@ -329,10 +331,10 @@ The Supervisor Agent:
 * Breaks the task into subtasks
 * Selects the correct sub-agent or tool
 
-UI Image 3 – Supervisor Decision Logs
-
 Step 3: Langsmith Trace
 A LangSmith trace is a recording of the end-to-end execution of an AI application, capturing every step from input to final output. It is the core observability feature of the LangSmith platform, used to debug, monitor, and evaluate Large Language Model (LLM) workflows.
+
+![alt text](image-2.png)
 
 ## 6. Functionality
 
