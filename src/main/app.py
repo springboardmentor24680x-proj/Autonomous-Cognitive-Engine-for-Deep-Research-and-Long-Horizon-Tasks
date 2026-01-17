@@ -66,19 +66,128 @@ for msg in st.session_state.messages:
 # User Input
 if user_input := st.chat_input("What should I do?"):
     st.session_state.messages.append(HumanMessage(content=user_input))
-    
+
     with st.spinner("Processing..."):
         try:
-            # We pass the history to the agent so it remembers context, 
-            # but we slice it to the last 5 messages to avoid the 10k TPM limit.
+            #  1. FORCE TODO CREATION FIRST
+            # res=agent.agent.invoke({
+            #     "messages": [
+            #         HumanMessage(
+            #             content=f"Create todo: {user_input}",
+            #         )
+            #     ]
+            # })
+
+            #  2. RUN ACTUAL AGENT LOGIC
             history = st.session_state.messages[-5:]
-            
-            # Ensure the input matches what your AgentWrapper expects
-            result = agent.invoke(history) 
-            
+            result = agent.invoke(history)
+
             ans = result["messages"][-1].content
             st.session_state.messages.append(AIMessage(content=ans))
             st.rerun()
             
         except Exception as e:
             st.error(f"Error: {e}")
+
+# import streamlit as st
+# from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+# from src.memory.vfs import VFS
+# from src.tools.calendar_tools import EVENTS
+# from src.main.research_agent import setup_agent
+# from src.main.research_agent import create_work_todo  # adjust import if needed
+# import re
+
+# # --------------------------------------------------
+# # Streamlit Page Config
+# # --------------------------------------------------
+# st.set_page_config(page_title="Deep Agent UI", layout="wide")
+
+# # --------------------------------------------------
+# # Initialize Agent (Cached)
+# # --------------------------------------------------
+# @st.cache_resource
+# def load_agent():
+#     return setup_agent()
+
+# agent = load_agent()
+
+# # --------------------------------------------------
+# # Sidebar: Live Agent Storage
+# # --------------------------------------------------
+# with st.sidebar:
+#     st.title("Agent State")
+
+#     st.header("Virtual Files")
+#     if not VFS:
+#         st.info("No files in memory.")
+#     else:
+#         for filename, content in VFS.items():
+#             if filename.endswith(".png"):
+#                 st.image(content, caption=filename)
+#             else:
+#                 with st.expander(filename):
+#                     st.code(content, language="text")
+
+#     st.divider()
+
+#     st.header("Scheduled Events")
+#     if not EVENTS:
+#         st.info("No events found.")
+#     else:
+#         for i, event in enumerate(EVENTS):
+#             st.markdown(f"**{event['title']}**")
+#             st.caption(f"{event['date']} | {event['time']}")
+#             st.divider()
+
+# # --------------------------------------------------
+# # Helper: Deterministic TODO extraction (NO LLM)
+# # --------------------------------------------------
+# def extract_todos(prompt: str) -> list[str]:
+#     parts = re.split(r"[.\n]", prompt)
+#     return [p.strip() for p in parts if len(p.strip()) > 10]
+
+# # --------------------------------------------------
+# # Main Chat UI
+# # --------------------------------------------------
+# st.title("Autonomous Cognitive Agent – Planning, Memory & Tools")
+
+# if "messages" not in st.session_state:
+#     st.session_state.messages = [
+#         SystemMessage(content="Hello! I'm ready to manage your tasks.")
+#     ]
+
+# # Render chat history
+# for msg in st.session_state.messages:
+#     role = "user" if isinstance(msg, HumanMessage) else "assistant"
+#     with st.chat_message(role):
+#         st.markdown(msg.content)
+
+# # --------------------------------------------------
+# # User Input
+# # --------------------------------------------------
+# if user_input := st.chat_input("Enter a complex task..."):
+#     st.session_state.messages.append(HumanMessage(content=user_input))
+
+#     with st.spinner("Processing..."):
+#         try:
+#             # --------- 1. CREATE TODOS (PENDING) — NO LLM ----------
+#             todos = extract_todos(user_input)
+#             for t in todos:
+#                 create_work_todo(f"[PENDING] {t}")
+
+#             # --------- 2. SINGLE LLM CALL ----------
+#             result = agent.invoke([
+#                 HumanMessage(content=user_input)
+#             ])
+
+#             answer = result["messages"][-1].content
+#             st.session_state.messages.append(AIMessage(content=answer))
+
+#             # --------- 3. MARK TODOS COMPLETE ----------
+#             for t in todos:
+#                 create_work_todo(f"[COMPLETED] {t}")
+
+#             st.rerun()
+
+#         except Exception as e:
+#             st.error(f"Error: {e}")

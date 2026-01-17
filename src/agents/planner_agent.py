@@ -1,49 +1,57 @@
 from langchain_groq import ChatGroq
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import HumanMessage
+from langchain_core.tools import tool
+from dotenv import load_dotenv
 import os
-def build_planner_agent():
-    planner_llm = ChatGroq(
+
+load_dotenv()
+
+def build_planner_agent(create_work_todo_tool):
+    """
+    Planner agent:
+    - Takes a complex user request
+    - Breaks it into ordered TODO subtasks
+    - Writes TODOs using create_work_todo
+    """
+
+    llm = ChatGroq(
         api_key=os.getenv("GROQ_API_KEY"),
         model="moonshotai/kimi-k2-instruct-0905",
-        temperature=0.1
+        temperature=0.2
     )
 
-    planner_prompt = """
-You are a PLANNER SCRATCHPAD AGENT.
+    SYSTEM_PROMPT = """
+You are a PLANNING AGENT.
 
-STRICT RULES:
-- You NEVER call tools
-- You NEVER execute actions
-- You ONLY produce a PLAN
-- Each step MUST be exactly ONE tool call
-- Output MUST be deterministic and machine-readable
-- NO explanations, NO markdown, NO prose
+Your ONLY responsibility:
+1. Analyze the user's request
+2. Break it into a clear, ordered list of TODO subtasks
+3. Each TODO must be a short action-oriented sentence
 
-Available tools (signatures only):
-
-research_task(description: str, filename: str)
-create_visualization(source_file: str, chart_type: str)
-write_file(filename: str, content: str)
-add_event(title: str, time: str)
-
-OUTPUT FORMAT (MANDATORY):
-
-PLAN:
-1. tool_name(arg="...", arg="...")
-2. tool_name(arg="...", arg="...")
-
-If information is missing, output:
-PLAN:
-1. ask_user(question="...")
-
-Do NOT invent tools.
-
+Rules:
+- Do NOT execute tasks
+- Do NOT summarize or research
+- Do NOT explain
+- Output ONLY a numbered TODO list
 """
 
-    def plan(user_input: str) -> str:
-        return planner_llm.invoke([
-            SystemMessage(content=planner_prompt),
-            HumanMessage(content=user_input)
-        ]).content
+    def plan(user_request: str):
+        response = llm.invoke([
+            HumanMessage(content=SYSTEM_PROMPT),
+            HumanMessage(content=user_request)
+        ])
+
+        todos = response.content.split("\n")
+
+        for todo in todos:
+            todo = todo.strip()
+            if todo and todo[0].isdigit():
+                task = todo.split(".", 1)[1].strip()
+                create_work_todo_tool.invoke({
+                    "task_text": task,
+                    "status": "PENDING"
+                })
+
+        return "Planning completed. TODO list created."
 
     return plan

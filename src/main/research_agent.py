@@ -46,7 +46,10 @@ def setup_agent():
     # SYSTEM PROMPT 
     system_prompt = f"""
    You are a STRICT SUPERVISOR AGENT.
-
+    CORE RULE:
+    For EVERY user request, ALWAYS create a TODO list using the built-in todo system.
+    Return TODOS only. Never return normal text.
+    
     You DO NOT perform research, summarization, visualization, file edits, or scheduling yourself.
     You ONLY delegate work via tools.
 
@@ -252,155 +255,28 @@ def setup_agent():
         return f"SUCCESS: Summary of {clean_filename} saved to {summary_file}"
 
     @tool
-    def create_work_todo(task_text: str) -> str:
+    def create_work_todo(task_text: str, status: str = "PENDING") -> str:
         """
-        Creates or appends a task to the work todo list (todos_work.txt).
-        Use this ONLY for work-related tasks.
+        Creates or updates todos.
+        status = PENDING | COMPLETED
         """
+
         filename = "todos_work.txt"
-        existing_content = read_file(filename)
-        
-        # Check if file exists or is empty
-        if isinstance(existing_content, str) and "not found" in existing_content:
-            write_file(filename, f"WORK TODO LIST:\n- {task_text}")
-        else:
-            edit_file(filename, f"{existing_content}\n- {task_text}")
-            
-        return f"Successfully added '{task_text}' to {filename}"
-    
-    # @tool
-    # def create_visualization(
-    #     source_file: str,
-    #     chart_type: str,
-    #     title: str = ""
-    # ) -> str:
-    #     """
-    #     Unified visualization tool with strict validation.
-    #     Reads data ONLY from 'DATA FOR GRAPHING' section and
-    #     prevents invalid chart-data combinations.
-    #     """
+        existing = read_file(filename)
 
-    #     import re
-    #     import io
-    #     import matplotlib.pyplot as plt
+        if status == "PENDING":
+            content = existing if isinstance(existing, str) and not existing.startswith("File") else "WORK TODO LIST\n\n"
+            content += f"- {task_text} [PENDING]\n"
+            write_file(filename, content)
+            return "Todo created (PENDING)."
 
-    #     # ---------- FILE READ ----------
-    #     content = read_file(source_file)
+        if status == "COMPLETED":
+            if isinstance(existing, str):
+                updated = existing.replace("[PENDING]", "[COMPLETED]")
+                write_file(filename, updated)
+                return "Todos marked COMPLETED."
 
-    #     if isinstance(content, str) and content.startswith("File"):
-    #         return f"Error: {content}"
-
-    #     # ---------- DATA BLOCK EXTRACTION ----------
-    #     if "DATA FOR GRAPHING" in content:
-    #         relevant_text = content.split("DATA FOR GRAPHING")[-1].strip()
-    #     elif "DATA BLOCK" in content:
-    #         relevant_text = content.split("DATA BLOCK")[-1].strip()
-    #     else:
-    #         return (
-    #             "Visualization failed: No 'DATA FOR GRAPHING' section found. "
-    #             "Ensure the research output includes a dedicated graphing block."
-    #         )
-
-    #     if not relevant_text:
-    #         return "Visualization failed: Graphing data section is empty."
-
-    #     chart_type = chart_type.lower()
-
-    #     # ---------- LINE / AREA ----------
-    #     if chart_type in {"line", "area"}:
-    #         matches = re.findall(r"(\d{4})\s*:\s*(\d+(?:\.\d+)?)", relevant_text)
-
-    #         if not matches:
-    #             return (
-    #                 "Invalid data for line/area chart. "
-    #                 "Expected format: Year: Value (e.g., 2023: 120)"
-    #             )
-
-    #         x = [int(m[0]) for m in matches]
-    #         y = [float(m[1]) for m in matches]
-    #         x, y = zip(*sorted(zip(x, y)))
-
-    #         plt.figure(figsize=(10, 6))
-    #         if chart_type == "line":
-    #             plt.plot(x, y, marker="o", linewidth=2)
-    #         else:
-    #             plt.fill_between(x, y, alpha=0.6)
-
-    #         plt.xlabel("Year")
-    #         plt.ylabel("Value")
-
-    #     # ---------- BAR / HORIZONTAL BAR / PIE ----------
-    #     elif chart_type in {"bar", "horizontal_bar", "pie"}:
-    #         matches = re.findall(r"([a-zA-Z\s]+):\s*(\d+(?:\.\d+)?)", relevant_text)
-
-    #         if not matches:
-    #             return (
-    #                 "Invalid data for bar/pie chart. "
-    #                 "Expected format: Label: Value (e.g., Online: 40)"
-    #             )
-
-    #         labels = [m[0].strip() for m in matches]
-    #         values = [float(m[1]) for m in matches]
-
-    #         plt.figure(figsize=(10, 6))
-
-    #         if chart_type == "bar":
-    #             plt.bar(labels, values)
-    #             plt.xticks(rotation=45, ha="right")
-
-    #         elif chart_type == "horizontal_bar":
-    #             plt.barh(labels, values)
-
-    #         else:  # pie
-    #             plt.pie(values, labels=labels, autopct="%1.1f%%")
-
-    #         plt.ylabel("Value")
-
-    #     # ---------- SCATTER ----------
-    #     elif chart_type == "scatter":
-    #         # Guard against categorical data misuse
-    #         if ":" in relevant_text:
-    #             return (
-    #                 "Invalid chart choice: Scatter plots require numeric X,Y pairs. "
-    #                 "Use 'pie' or 'bar' for category-value data."
-    #             )
-
-    #         matches = re.findall(r"([\d\.]+)\s*,\s*([\d\.]+)", relevant_text)
-
-    #         if not matches:
-    #             return (
-    #                 "Invalid data for scatter plot. "
-    #                 "Expected format: X, Y (numeric pairs)."
-    #             )
-
-    #         x = [float(m[0]) for m in matches]
-    #         y = [float(m[1]) for m in matches]
-
-    #         plt.figure(figsize=(8, 6))
-    #         plt.scatter(x, y)
-    #         plt.xlabel("X")
-    #         plt.ylabel("Y")
-
-    #     # ---------- UNSUPPORTED ----------
-    #     else:
-    #         return (
-    #             f"Unsupported chart type: '{chart_type}'. "
-    #             "Supported types: line, area, bar, horizontal_bar, pie, scatter."
-    #         )
-
-    #     # ---------- FINALIZE ----------
-    #     final_title = title if title else f"{chart_type.title()} Visualization"
-    #     plt.title(final_title)
-    #     plt.tight_layout()
-
-    #     buf = io.BytesIO()
-    #     plt.savefig(buf, format="png")
-    #     plt.close()
-
-    #     output_name = source_file.replace(".txt", f"_{chart_type}.png").lstrip("/")
-    #     VFS[output_name] = buf.getvalue()
-
-    #     return f"SUCCESS: {chart_type} chart saved to VFS as {output_name}"
+            return "Todo update skipped."
 
     @tool
     def create_visualization(
