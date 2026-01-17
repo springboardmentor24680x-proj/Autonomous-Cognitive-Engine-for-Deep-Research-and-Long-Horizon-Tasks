@@ -1,15 +1,21 @@
-from langchain_core.runnables import RunnableLambda
+from typing import Dict, Any
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableLambda
 from langchain_groq import ChatGroq
 import os
+import re
+import json
 from dotenv import load_dotenv
+
+
+from .utils import AgentState
 
 load_dotenv()
 
-# Initialize LLM
+# LLM configuration 
 llm = ChatGroq(
     model="llama-3.3-70b-versatile",
-    temperature=0.4,
+    temperature=0.35,
     max_tokens=2048,
     groq_api_key=os.getenv("GROQ_API_KEY")
 )
@@ -18,370 +24,255 @@ llm = ChatGroq(
 def create_sub_agent(
     name: str,
     system_prompt: str,
-    can_visualize: bool = False,
-    can_read_state: bool = False
+    can_read_state: bool = False,
+    can_create_tasks: bool = False
 ):
     """
-    Factory to create traceable sub-agents
-    Now each sub-agent will appear as a separate node in LangSmith
-    """
+    Factory function to create traceable, reusable sub-agents.
     
-    def build_prompt(input_dict):
-        """Build the full prompt with context"""
+    Args:
+        name: Agent identifier (used in tracing & logs)
+        system_prompt: Base system instructions
+        can_read_state: Whether agent can see current todos/calendar/files summary
+        can_create_tasks: Whether agent is allowed to extract & create todos from its output
+    """
+    def build_context(input_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """Prepare enriched context for the prompt"""
         messages = input_dict.get("messages", [])
-        state = input_dict.get("state", {})
+        state: AgentState = input_dict.get("state", {})
         
-        # Extract user request
-        user_text = messages[-1].get("content", "") if messages else ""
+        user_text = ""
+        if messages:
+            last_msg = messages[-1]
+            if isinstance(last_msg, dict):
+                user_text = last_msg.get("content", "")
+            else:
+                user_text = last_msg.content if hasattr(last_msg, "content") else str(last_msg)
         
-        # Build context if agent can read state
         context_parts = []
         
         if can_read_state and state:
             todos = state.get("todos", [])
             if todos:
-                pending = [t for t in todos if not t.get("completed")]
-                completed = [t for t in todos if t.get("completed")]
-                
-                high = len([t for t in pending if t.get("priority") == "high"])
-                medium = len([t for t in pending if t.get("priority") == "medium"])
-                low = len([t for t in pending if t.get("priority") == "low"])
-                
-                context_parts.append(f"""## Current Tasks
-- Total: {len(todos)} tasks
-- Completed: {len(completed)} ({len(completed)/len(todos)*100:.0f}%)
-- Pending: {len(pending)}
-  - High priority: {high}
-  - Medium priority: {medium}
-  - Low priority: {low}
-""")
-            
-            calendar = state.get("calendar", [])
-            if calendar:
-                context_parts.append(f"## Calendar\n{len(calendar)} upcoming events")
+                pending = len([t for t in todos if not t.get("completed", False)])
+                context_parts.append(
+                    f"Current tasks: {len(todos)} total, {pending} still pending"
+                )
             
             files = state.get("files", {})
             if files:
-                context_parts.append(f"## Files\n{len(files)} files: {', '.join(list(files.keys())[:5])}")
+                context_parts.append(f"Files in memory: {len(files)}")
+            
+            calendar = state.get("calendar", [])
+            if calendar:
+                context_parts.append(f"Calendar events: {len(calendar)}")
         
-        # Add visualization instructions for capable agents
-        if can_visualize:
-            context_parts.append("""
-## Visualization Instructions
-When data visualization would help, end your response with these EXACT trigger lines:
-
-- `CHART: task_completion_doughnut` - Shows completed vs pending tasks
-- `CHART: priority_distribution_pie` - Shows distribution of pending tasks by priority
-- `CHART: priority_bar` - Bar chart of tasks by priority level
-
-Use ONE chart trigger per response. The system will automatically render it.
-Do NOT output JSON or code - just use the trigger phrase.
-""")
+        context_text = "\n".join(context_parts) if context_parts else "No additional state context available."
         
-        context_text = "\n".join(context_parts)
-        
-        # Return formatted prompt
         return {
             "context": context_text,
             "user_request": user_text,
-            "state": state  
+            "state_snapshot": state 
         }
-    
-    def process_response(llm_output):
-        """Process LLM response and extract charts"""
-        response_text = llm_output.content if hasattr(llm_output, 'content') else str(llm_output)
-        state = llm_output.get("state", {}) if isinstance(llm_output, dict) else {}
-        
-        # Extract charts if this agent can visualize
-        render_components = []
-        if can_visualize:
-            render_components = _extract_charts(response_text, state)
-        
-        # Clean response (remove CHART: lines)
-        clean_response = _remove_chart_triggers(response_text)
-        
-        return {
-            "messages": [{"role": "assistant", "content": clean_response}],
-            "render_components": render_components
-        }
-    
-    # Create prompt template
+
+    # Base prompt structure
     prompt = ChatPromptTemplate.from_messages([
-        ("system", system_prompt + "\n\n{context}"),
+        ("system", system_prompt + "\n\nCurrent context:\n{context}"),
         ("human", "{user_request}")
     ])
-    
-    # Build chain: input → prompt → LLM → process
-    # This chain will be traced in LangSmith with the agent name
+
+    # Main processing chain
     chain = (
-        RunnableLambda(build_prompt).with_config({"run_name": f"{name}_build_context"})
+        RunnableLambda(build_context).with_config({"run_name": f"{name}_prepare_context"})
         | prompt.with_config({"run_name": f"{name}_prompt"})
         | llm.with_config({"run_name": f"{name}_llm_call"})
-        | RunnableLambda(lambda x: {"content": x.content, "state": None}).with_config({"run_name": f"{name}_extract"})
+        | RunnableLambda(lambda x: {"content": x.content}).with_config({"run_name": f"{name}_extract"})
     )
-    
-    def agent_function(input_dict):
-        """Wrapper that calls the chain and processes result"""
-        state = input_dict.get("state", {})
-        
-        # Invoke the chain (this will be traced)
+
+    def agent_executor(input_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """Main entry point for the sub-agent"""
         result = chain.invoke(input_dict)
-        
-        response_text = result.get("content", "")
-        
-        # Extract charts
-        render_components = []
-        if can_visualize:
-            render_components = _extract_charts(response_text, state)
-        
-        # Clean response
-        clean_response = _remove_chart_triggers(response_text)
-        
-        return {
-            "messages": [{"role": "assistant", "content": clean_response}],
-            "render_components": render_components
+        response_text = result.get("content", "No response generated.")
+
+        state = input_dict.get("state", {})
+        return_data = {
+            "messages": [{"role": "assistant", "content": response_text}]
         }
-    
-    # Return as a RunnableLambda so it's traced
-    return RunnableLambda(agent_function).with_config({"run_name": f"SubAgent_{name}"})
+
+        # Optional: auto-extract tasks if allowed
+        if can_create_tasks and state is not None:
+            tasks_created = _try_extract_and_create_tasks(response_text, state, name)
+            if tasks_created > 0:
+                response_text += f"\n\n[Auto-created {tasks_created} follow-up tasks]"
+
+        # Always pass back the (potentially modified) state
+        return_data["state"] = state
+        return return_data
+
+    return RunnableLambda(agent_executor).with_config({"run_name": f"SubAgent_{name}"})
 
 
-def _extract_charts(response_text: str, state: dict) -> list:
-    """Extract and generate chart configs from response"""
-    charts = []
-    
-    # Calculate task stats
-    todos = state.get("todos", [])
-    if not todos:
-        return charts
-    
-    pending = [t for t in todos if not t.get("completed")]
-    completed = len(todos) - len(pending)
-    
-    high = len([t for t in pending if t.get("priority") == "high"])
-    medium = len([t for t in pending if t.get("priority") == "medium"])
-    low = len([t for t in pending if t.get("priority") == "low"])
-    
-    # Check for chart triggers
-    if "CHART: task_completion_doughnut" in response_text or "CHART: task_completion" in response_text:
-        charts.append({
-            "type": "doughnut",
-            "data": {
-                "labels": ["Completed", "Pending"],
-                "datasets": [{
-                    "data": [completed, len(pending)],
-                    "backgroundColor": ["#22c55e", "#ef4444"],
-                    "borderColor": ["#ffffff", "#ffffff"],
-                    "borderWidth": 4
-                }]
-            },
-            "options": {
-                "responsive": True,
-                "maintainAspectRatio": False,
-                "plugins": {
-                    "legend": {"position": "bottom", "labels": {"font": {"size": 14}}},
-                    "title": {
-                        "display": True,
-                        "text": "Task Completion Status",
-                        "font": {"size": 18, "weight": "bold"}
-                    }
-                }
-            }
-        })
-    
-    if "CHART: priority_distribution" in response_text or "CHART: priority_pie" in response_text:
-        charts.append({
-            "type": "pie",
-            "data": {
-                "labels": ["High Priority", "Medium Priority", "Low Priority"],
-                "datasets": [{
-                    "data": [high, medium, low],
-                    "backgroundColor": ["#ef4444", "#f59e0b", "#3b82f6"],
-                    "borderColor": ["#ffffff", "#ffffff", "#ffffff"],
-                    "borderWidth": 3
-                }]
-            },
-            "options": {
-                "responsive": True,
-                "maintainAspectRatio": False,
-                "plugins": {
-                    "legend": {"position": "right", "labels": {"font": {"size": 14}}},
-                    "title": {
-                        "display": True,
-                        "text": "Priority Distribution (Pending Tasks)",
-                        "font": {"size": 18, "weight": "bold"}
-                    }
-                }
-            }
-        })
-    
-    if "CHART: priority_bar" in response_text or "CHART: tasks_by_priority" in response_text:
-        charts.append({
-            "type": "bar",
-            "data": {
-                "labels": ["High", "Medium", "Low"],
-                "datasets": [{
-                    "label": "Pending Tasks",
-                    "data": [high, medium, low],
-                    "backgroundColor": ["#ef4444", "#f59e0b", "#3b82f6"],
-                    "borderColor": ["#991b1b", "#9a3412", "#1e40af"],
-                    "borderWidth": 2
-                }]
-            },
-            "options": {
-                "responsive": True,
-                "maintainAspectRatio": False,
-                "plugins": {
-                    "title": {
-                        "display": True,
-                        "text": "Pending Tasks by Priority",
-                        "font": {"size": 18, "weight": "bold"}
-                    },
-                    "legend": {"display": False}
-                },
-                "scales": {
-                    "y": {"beginAtZero": True, "ticks": {"stepSize": 1}}
-                }
-            }
-        })
-    
-    return charts
+def _try_extract_and_create_tasks(response: str, state: Dict[str, Any], agent_name: str) -> int:
+    """
+    Attempt to detect task-like items in the response and create todos.
+    Very basic pattern matching — can be improved with structured output later.
+    """
+    from .tools import ToolExecutor  
+
+    patterns = [
+        r'(?:^|\n)\s*[-*•]\s*(.+?)(?:\n|$)',
+        r'(?:^|\n)\s*\d+[.)]\s*(.+?)(?:\n|$)',
+        r'(?:^|\n)\s*Task\s*\d*:\s*(.+?)(?:\n|$)',
+    ]
+
+    potential_tasks = []
+    for pattern in patterns:
+        matches = re.findall(pattern, response, re.MULTILINE)
+        potential_tasks.extend([t.strip() for t in matches if len(t.strip()) > 8])
+
+    if not potential_tasks:
+        return 0
+
+    task_keywords = {
+        'create', 'implement', 'build', 'setup', 'prepare', 'write', 'research',
+        'analyze', 'review', 'test', 'deploy', 'document', 'plan', 'organize'
+    }
+
+    actual_tasks = [
+        t for t in potential_tasks
+        if any(kw in t.lower() for kw in task_keywords)
+    ]
+
+    if not actual_tasks:
+        return 0
+
+    # Limit to reasonable number to avoid spamming
+    actual_tasks = actual_tasks[:6]
+
+    todos_list = [
+        {
+            "title": task,
+            "description": f"Generated by {agent_name} sub-agent",
+            "priority": "medium",
+            "source_agent": agent_name
+        }
+        for task in actual_tasks
+    ]
+
+    try:
+        ToolExecutor.create_multiple_todos(state, todos_list=todos_list)
+        print(f"[AUTO] {agent_name} created {len(todos_list)} tasks")
+        return len(todos_list)
+    except Exception as e:
+        print(f"Auto-task creation failed in {agent_name}: {e}")
+        return 0
 
 
-def _remove_chart_triggers(text: str) -> str:
-    """Remove CHART: trigger lines from response"""
-    lines = text.split("\n")
-    clean_lines = [line for line in lines if not line.strip().startswith("CHART:")]
-    return "\n".join(clean_lines).strip()
+# ──────────────────────────────────────────────────────────────────────────────
+#                Individual Sub-Agent Definitions
+# ──────────────────────────────────────────────────────────────────────────────
 
+planning_agent = create_sub_agent(
+    name="planning",
+    system_prompt="""You are a strategic planning expert.
+Your role is to break down complex goals into clear, actionable phases and tasks.
 
-# ============================================================================
-# SPECIALIZED SUB-AGENTS (Now properly traced in LangSmith)
-# ============================================================================
+Always structure your response with:
+1. Overview of the plan
+2. Numbered phases with goals
+3. Concrete, specific tasks under each phase
+   Use format: - Task: [clear title] (priority: high/medium/low)
 
-visualizer_agent = create_sub_agent(
-    name="visualizer",
-    system_prompt="""You are an expert data visualization specialist.
-Your role is to create beautiful, insightful charts that make complex data easy to understand.
+Be realistic about dependencies, effort and sequence.""",
+    can_read_state=True,
+    can_create_tasks=True
+)
 
-When analyzing tasks:
-- Always suggest the most appropriate visualization
-- Provide brief insights about the data
-- Use CHART: triggers to generate actual visualizations
+web_search_agent = create_sub_agent(
+    name="web_search",
+    system_prompt="""You are a precise web research assistant.
+Provide factual, up-to-date information with clear sources when possible.
+Structure answers:
+- Summary
+- Key facts (bullet points)
+- Sources / references
+Stay objective. Do not speculate.""",
+    can_read_state=False,
+    can_create_tasks=False
+)
 
-Be concise and focus on visual insights.""",
-    can_visualize=True,
-    can_read_state=True
+summarizer_agent = create_sub_agent(
+    name="summarizer",
+    system_prompt="""You are an expert summarizer.
+Create concise, structured summaries that preserve meaning and key details.
+Use:
+- Main conclusion first
+- Hierarchical bullet points
+- Highlight important facts/numbers
+Keep tone neutral and accurate.""",
+    can_read_state=True,
+    can_create_tasks=False
 )
 
 analyzer_agent = create_sub_agent(
     name="analyzer",
-    system_prompt="""You are a deep analytical thinker specializing in productivity analysis.
-
-Provide:
-- Clear insights from the data
-- Identify patterns and trends
-- Highlight potential issues
-- Give actionable recommendations
-
-Support your analysis with visualizations when helpful.""",
-    can_visualize=True,
-    can_read_state=True
+    system_prompt="""You are a sharp data/patterns analyst.
+When given information or state:
+- Identify trends and patterns
+- Highlight anomalies or risks
+- Provide clear, data-driven insights
+- Suggest next actions
+Be thorough but concise.""",
+    can_read_state=True,
+    can_create_tasks=False
 )
 
 report_generator_agent = create_sub_agent(
     name="report_generator",
     system_prompt="""You are a professional report writer.
-
-Create structured reports with:
-- **Executive Summary** (2-3 sentences)
-- **Key Metrics** (bullet points)
-- **Detailed Findings**
-- **Recommendations**
-- **Visual Summary** (use chart triggers)
-
-Use markdown formatting. Be professional yet concise.""",
-    can_visualize=True,
-    can_read_state=True
-)
-
-planning_agent = create_sub_agent(
-    name="planning",
-    system_prompt="""You are a strategic planning expert.
-
-Break down goals into:
-1. Clear phases/milestones
-2. Specific actionable tasks
-3. Priority assignments
-4. Estimated timelines
-
-Provide structured, step-by-step plans.""",
-    can_visualize=True,
-    can_read_state=True
-)
-
-web_search_agent = create_sub_agent(
-    name="web_search",
-    system_prompt="""You are a precise research specialist.
-
-Provide well-sourced, accurate information:
-- Start with a brief summary
-- Include key facts in bullet points
-- Cite sources when possible
-- Stay objective and factual""",
-    can_visualize=False,
-    can_read_state=False
-)
-
-summarizer_agent = create_sub_agent(
-    name="summarizer",
-    system_prompt="""You are an expert at distilling information into clear, concise summaries.
-
-Create summaries that:
-- Capture all key points
-- Use hierarchical structure
-- Are easy to scan
-- Maintain accuracy""",
-    can_visualize=False,
-    can_read_state=True
+Create well-structured markdown reports including:
+- Executive Summary
+- Key Findings
+- Detailed Analysis
+- Recommendations / Next Steps
+Use proper headings, bullets, and tables when appropriate.""",
+    can_read_state=True,
+    can_create_tasks=False
 )
 
 
-# ============================================================================
-# SUB-AGENT REGISTRY
-# ============================================================================
-
+# Registry for supervisor / router to use
 SUB_AGENTS = {
+    "planning": {
+        "agent": planning_agent,
+        "description": "Breaks down goals into structured tasks and phases",
+        "capabilities": ["task decomposition", "planning", "auto-task creation"]
+    },
     "web_search": {
         "agent": web_search_agent,
-        "description": "Real-time web research and information gathering",
-        "capabilities": ["research", "fact-finding", "current events"]
+        "description": "Performs factual web research",
+        "capabilities": ["research", "fact checking"]
     },
     "summarizer": {
         "agent": summarizer_agent,
-        "description": "Summarize content into concise key points",
+        "description": "Creates concise, structured summaries",
         "capabilities": ["summarization", "distillation"]
     },
     "analyzer": {
         "agent": analyzer_agent,
-        "description": "Deep analysis with insights and visualizations",
-        "capabilities": ["analysis", "patterns", "charts"]
+        "description": "Deep analysis of data, patterns and insights",
+        "capabilities": ["analysis", "insight generation"]
     },
     "report_generator": {
         "agent": report_generator_agent,
-        "description": "Professional structured reports with visuals",
-        "capabilities": ["reporting", "documentation", "charts"]
-    },
-    "planning": {
-        "agent": planning_agent,
-        "description": "Strategic planning and task breakdown",
-        "capabilities": ["planning", "prioritization", "strategy"]
+        "description": "Creates professional formatted reports",
+        "capabilities": ["reporting", "professional writing"]
     }
 }
 
 
-def get_agent_info() -> dict:
-    """Get info about available sub-agents"""
+def get_available_agents_info() -> Dict[str, Dict[str, Any]]:
+    """Returns structured info about all sub-agents for supervisor/router"""
     return {
         name: {
             "description": info["description"],
