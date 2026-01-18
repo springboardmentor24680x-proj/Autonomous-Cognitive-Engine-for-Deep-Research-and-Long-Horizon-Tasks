@@ -228,10 +228,14 @@ python src/main/app.py
 
 ## Current Progress
 
-* Research and summarization delegation
-* Persistent memory implementation
-* Strict TODO management
-* Observable sub-agent execution
+### Research & Summarization Delegation
+The system successfully delegates factual research and content condensation to specialized sub-agents. All research tasks are handled by a dedicated research sub-agent, while summarization is performed by a separate summarization sub-agent, ensuring modularity and clear separation of responsibilities.
+
+### Persistent Memory via Virtual File System (VFS)
+A virtual file system is implemented to store and retrieve intermediate and final outputs such as research notes, summaries, visualizations, and TODO lists. This enables stateful, long-horizon task execution across multiple steps without relying on repeated model context.
+
+### Observable Sub-Agent Execution
+All agent and sub-agent interactions are observable through tracing and UI state inspection. Tool calls, delegated sub-agent executions, file system updates, and calendar operations are transparently visible, enabling easier debugging and performance analysis.
 
 ---
 
@@ -242,3 +246,6 @@ python src/main/app.py
 * Vector database-backed memory
 * Role-based access control
 * FastAPI deployment
+* Advanced Planning
+* Dynamic Agent Scaling
+* Multi-Modal Cognition

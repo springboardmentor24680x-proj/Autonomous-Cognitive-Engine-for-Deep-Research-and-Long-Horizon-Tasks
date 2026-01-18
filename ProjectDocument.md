@@ -334,7 +334,7 @@ The Supervisor Agent:
 Step 3: Langsmith Trace
 A LangSmith trace is a recording of the end-to-end execution of an AI application, capturing every step from input to final output. It is the core observability feature of the LangSmith platform, used to debug, monitor, and evaluate Large Language Model (LLM) workflows.
 
-![alt text](image-2.png)
+![alt text](image-3.png)
 
 ## 6. Functionality
 
@@ -342,9 +342,9 @@ A **production-grade autonomous reasoning system** with enforced correctness and
 
 ### Fully Autonomous Agent
 
-* No implicit reasoning
-* No hidden execution
-* No untracked state changes
+* Explicit, auditable reasoning flow — all decisions are externally visible and traceable
+* Deterministic execution via tool-bound actions — no implicit or side-effect operations
+* Strict state mutation control — every state change is logged, validated, and observable
 
 ### Memory-Safe Execution
 
@@ -375,21 +375,26 @@ The agent never *remembers* — it **reads**.
 
 ## 8. Future Scope
 
-### Multi-Modal Cognition
+### 1. LangGraph-Based Orchestration
+Integration with LangGraph for explicit state management and execution control
+Visual, DAG-based workflows enabling better debugging, retries, and branching logic.
+
+### 2. Multi-Modal Cognition
 
 * PDFs, images, spreadsheets
 * Audio-based inputs
 
-### Dynamic Agent Scaling
+### 3. Dynamic Agent Scaling
 
 * Domain-specific agents
 * Auto-spawn and retirement
 
-### Advanced Planning
+### 4. Advanced Planning
 
 * DAG-based planning
 * Self-reflection loops
 * Confidence scoring
+
 
 ## 9. Conclusion
 

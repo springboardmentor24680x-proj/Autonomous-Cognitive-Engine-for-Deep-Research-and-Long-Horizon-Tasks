@@ -1,57 +1,51 @@
-from langchain_groq import ChatGroq
-from langchain_core.messages import HumanMessage
+# planner_agent.py
+from typing import List, Dict
+from langchain_core.messages import SystemMessage
 from langchain_core.tools import tool
-from dotenv import load_dotenv
-import os
+from deepagents import create_deep_agent
 
-load_dotenv()
+PLANNER_SYSTEM_PROMPT = """
+You are a STRICT PLANNER AGENT.
 
-def build_planner_agent(create_work_todo_tool):
-    """
-    Planner agent:
-    - Takes a complex user request
-    - Breaks it into ordered TODO subtasks
-    - Writes TODOs using create_work_todo
-    """
+RULES:
+- For every user request, you MUST generate a TODO list.
+- Break tasks into clear, ordered, interlinked TODOs.
+- Each TODO must map to an available tool or sub-agent.
+- Do NOT execute tasks.
+- Do NOT summarize, research, visualize, or write files yourself.
+- Output ONLY structured TODOs.
 
-    llm = ChatGroq(
-        api_key=os.getenv("GROQ_API_KEY"),
-        model="moonshotai/kimi-k2-instruct-0905",
-        temperature=0.2
-    )
+AVAILABLE CAPABILITIES:
+- web_search
+- write_file
+- read_file
+- edit_file
+- create_visualization
+- summarization_task
+- add_event (calendar)
 
-    SYSTEM_PROMPT = """
-You are a PLANNING AGENT.
-
-Your ONLY responsibility:
-1. Analyze the user's request
-2. Break it into a clear, ordered list of TODO subtasks
-3. Each TODO must be a short action-oriented sentence
-
-Rules:
-- Do NOT execute tasks
-- Do NOT summarize or research
-- Do NOT explain
-- Output ONLY a numbered TODO list
+Output format (JSON ONLY):
+{
+  "todos": [
+    {
+      "id": "todo-1",
+      "action": "<tool_or_agent_name>",
+      "description": "<what needs to be done>",
+      "depends_on": []
+    }
+  ]
+}
 """
 
-    def plan(user_request: str):
-        response = llm.invoke([
-            HumanMessage(content=SYSTEM_PROMPT),
-            HumanMessage(content=user_request)
-        ])
+planner_agent = create_deep_agent(
+    name="planner_agent",
+    system_message=SystemMessage(content=PLANNER_SYSTEM_PROMPT),
+    tools=[],  # planner does NOT execute tools
+)
 
-        todos = response.content.split("\n")
-
-        for todo in todos:
-            todo = todo.strip()
-            if todo and todo[0].isdigit():
-                task = todo.split(".", 1)[1].strip()
-                create_work_todo_tool.invoke({
-                    "task_text": task,
-                    "status": "PENDING"
-                })
-
-        return "Planning completed. TODO list created."
-
-    return plan
+def plan(user_request: str) -> Dict:
+    """
+    Entry point for planning.
+    Returns a TODO plan only.
+    """
+    return planner_agent.invoke(user_request)
