@@ -65,14 +65,13 @@ The **Autonomous Cognitive Engine** is an advanced AI Agent Framework designed t
 │   ├── agents/          # Logic for Supervisor, Search, and Summarizer agents
 │   ├── memory/          # VFS (Virtual File System) manager implementation
 │   ├── tools/           # Custom toolset (Write_file, Read_file, Search, Todos)
-│   ├── graph/           # StateGraph and workflow node definitions
-│   └── app.py           # Streamlit Web Interface
+│   └── graph/           # StateGraph and workflow node definitions
 │
 ├── notebooks/           # Development history and Milestone logs (1, 2, 3)
-├── main.py              # Application entry point & graph compilation
+├── app.py               # Streamlit Web Interface (Main Entry Point)
+├── main.py              # CLI Application entry point & graph compilation
 ├── .env                 # API Credentials and Environment config
 └── README.md            # Documentation
-
 ```
 
 ---
@@ -101,7 +100,7 @@ LANGSMITH_API_KEY=your_langsmith_api_key_here
 ### 3. Run the Application
 
 ```bash
-streamlit run src/app.py
+streamlit run app.py
 
 ```
 
