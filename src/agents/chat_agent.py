@@ -1,8 +1,10 @@
-
 import json
+import uuid
 from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
+
+from langsmith import traceable, get_current_run_tree
 
 from tools.vfs_tools import (
     ensure_files, ls, read, write, edit, delete, clear, rename, help_text
@@ -11,9 +13,16 @@ from utils.llm import call_llm, clean_text
 from agents.delegation_tool import delegate_task
 
 # ================= CONFIG =================
+
 MAX_MEMORY_TURNS = 4
-TODOS_FILE = "todos.json"
+PLANS_FILE = "plans.json"
 CALENDAR_FILE = "calendar.json"
+
+# ================= SESSION =================
+
+def ensure_conversation_id(state):
+    if "conversation_id" not in state:
+        state["conversation_id"] = str(uuid.uuid4())
 
 # ================= CHAT MEMORY =================
 
@@ -21,7 +30,11 @@ def ensure_memory(state):
     state.setdefault("chat_history", [])
 
 def add_to_memory(state, role, content):
-    state["chat_history"].append({"role": role, "content": content})
+    state["chat_history"].append({
+        "role": role,
+        "content": content,
+        "time": datetime.utcnow().isoformat()
+    })
     state["chat_history"] = state["chat_history"][-MAX_MEMORY_TURNS * 2:]
 
 def build_llm_prompt(state, user_text):
@@ -34,186 +47,185 @@ def build_llm_prompt(state, user_text):
     lines.append("Assistant:")
     return "\n".join(lines)
 
-# ================= VFS JSON HELPERS =================
+# ================= INTERNAL AUTO PLANNING =================
 
-def ensure_json_file(state, filename, default):
+def ensure_plans(state):
     state.setdefault("files", {})
-    if filename not in state["files"]:
-        state["files"][filename] = json.dumps(default, indent=2)
+    if PLANS_FILE not in state["files"]:
+        state["files"][PLANS_FILE] = json.dumps({"plans": []}, indent=2)
 
-def read_json(state, filename):
-    return json.loads(state["files"][filename])
-
-def write_json(state, filename, data):
-    state["files"][filename] = json.dumps(data, indent=2)
-
-# ================= TODO =================
-
-def ensure_todos(state):
-    ensure_json_file(state, TODOS_FILE, {"todos": []})
-
-def clean_steps(raw_text, max_steps):
-    steps = []
-    for line in raw_text.splitlines():
-        line = line.strip().lstrip("-•0123456789. ").strip()
-        if line and 2 <= len(line.split()) <= 10:
-            steps.append(line)
-    return steps[:max_steps]
-
-def todo_plan(state, task, n_steps=10):
-    ensure_todos(state)
+@traceable(name="Auto Task Planning")
+def auto_todo_plan(state, task: str):
+    """
+    Internal planning ONLY (never shown to user)
+    """
+    ensure_plans(state)
 
     prompt = f"""
-Create {n_steps} TODO steps for the following task.
-Rules:
-- No numbering
+Break the following task into 3–5 short actionable steps.
 
-Task: {task}
+Task:
+{task}
 """
     raw = call_llm(prompt)
-    steps = clean_steps(raw, n_steps)
 
-    if not steps:
-        steps = [f"Work on: {task} (step {i+1})" for i in range(n_steps)]
+    steps = [
+        l.strip("-•0123456789. ").strip()
+        for l in raw.splitlines()
+        if len(l.split()) >= 2
+    ]
 
-    data = read_json(state, TODOS_FILE)
-    data["todos"].append({
+    data = json.loads(state["files"][PLANS_FILE])
+    data["plans"].append({
         "task": task,
         "steps": steps,
         "created": datetime.utcnow().isoformat()
     })
-    write_json(state, TODOS_FILE, data)
+    state["files"][PLANS_FILE] = json.dumps(data, indent=2)
 
-    return (
-        " **TODO plan created successfully.**\n\n"
-        + "\n".join(f"{i+1}. {s}" for i, s in enumerate(steps))
-    )
+    return steps
 
-def list_todos(state):
-    ensure_todos(state)
-    return state["files"][TODOS_FILE]
+@traceable(name="Plan Requirement Check")
+def requires_plan(text: str, agents: list) -> bool:
+    if len(agents) > 1:
+        return True
+    if len(text.split()) > 15:
+        return True
+    return False
 
 # ================= CALENDAR =================
 
 def ensure_calendar(state):
-    ensure_json_file(state, CALENDAR_FILE, {"events": []})
+    state.setdefault("files", {})
+    if CALENDAR_FILE not in state["files"]:
+        state["files"][CALENDAR_FILE] = json.dumps({"events": []}, indent=2)
 
+@traceable(
+    name="Calendar Add",
+      run_type="tool" ,
+    tags=["calendar", "tool"]
+    
+)
 def add_calendar_event(state, title, when):
     ensure_calendar(state)
 
-    data = read_json(state, CALENDAR_FILE)
+    data = json.loads(state["files"][CALENDAR_FILE])
     data["events"].append({
         "title": title,
         "time": when,
         "created": datetime.utcnow().isoformat()
     })
-    write_json(state, CALENDAR_FILE, data)
 
-    return f" **Event added:** {title} → {when}"
+    state["files"][CALENDAR_FILE] = json.dumps(data, indent=2)
+    return f"📅 Event added: {title} → {when}"
 
-def list_calendar_events(state):
-    ensure_calendar(state)
-    data = read_json(state, CALENDAR_FILE)
+# ================= MULTI-AGENT DECISION =================
 
-    if not data["events"]:
-        return " No calendar events saved yet."
-
-    return "\n".join(
-        f"{i+1}. {e['title']} → {e['time']}"
-        for i, e in enumerate(data["events"])
-    )
-
-# ================= DELEGATION DECISION =================
-
+@traceable(name="Delegation Decision")
 def should_delegate(text: str):
-    """
-    Decide whether the task should be delegated
-    to a specialized sub-agent.
-    """
     low = text.lower()
+    agents = []
 
-    # Summarization intent
-    if low.startswith("summarize"):
-        return "summarize"
+    if any(k in low for k in ["search", "find", "lookup"]):
+        agents.append("web_search")
 
-    # Web search intent
-    if low.startswith("search") or low.startswith("web search"):
-        return "web_search"
+    if any(k in low for k in ["code", "python", "java", "debug", "error"]):
+        agents.append("code")
 
-    return None
+    if "summarize" in low or "summary" in low:
+        agents.append("summarize")
 
-# ================= MAIN HANDLER =================
+    return agents
 
+@traceable(name="ChatSession", tags=["chat", "main-session"])
 def handle_message(state: dict, user_text: str):
+    # ---------- SESSION SETUP ----------
+    ensure_conversation_id(state)
     ensure_files(state)
     ensure_memory(state)
-    ensure_todos(state)
+    ensure_plans(state)
     ensure_calendar(state)
 
-    text = user_text.strip()
-    low = text.lower()
+    # 🔗 Attach LangSmith metadata
+    run = get_current_run_tree()
+    if run:
+        run.metadata["conversation_id"] = state["conversation_id"]
+        run.metadata["turn"] = len(state["chat_history"]) // 2 + 1
+        run.metadata["input"] = user_text
 
-    # -------- HELP --------
-    if low in ("help", "vfs.help"):
+    text = user_text.strip()
+
+    # ---------- HELP ----------
+    if text.lower() in ("help", "vfs.help"):
         return state, help_text()
 
-    # -------- VFS --------
-    if low == "ls":
-        files = ls(state)
-        return state, ("\n".join(files) if files else "No files available.")
+    # ---------- VFS COMMANDS ----------
+    if text == "ls":
+        return state, "\n".join(ls(state))
 
-    if low.startswith("read "):
+    if text.startswith("read "):
         return state, read(state, text.split(" ", 1)[1])
 
-    if low.startswith("write "):
-        parts = text.split(" ", 2)
-        return state, write(state, parts[1], parts[2])
+    if text.startswith("write "):
+        _, f, c = text.split(" ", 2)
+        return state, write(state, f, c)
 
-    if low.startswith("edit! "):
-        parts = text.split(" ", 2)
-        return state, edit(state, parts[1], parts[2], mode="overwrite")
+    if text.startswith("edit! "):
+        _, f, c = text.split(" ", 2)
+        return state, edit(state, f, c, mode="overwrite")
 
-    if low.startswith("edit "):
-        parts = text.split(" ", 2)
-        return state, edit(state, parts[1], parts[2])
+    if text.startswith("edit "):
+        _, f, c = text.split(" ", 2)
+        return state, edit(state, f, c)
 
-    if low.startswith("delete "):
+    if text.startswith("delete "):
         return state, delete(state, text.split(" ", 1)[1])
 
-    if low.startswith("clear "):
+    if text.startswith("clear "):
         return state, clear(state, text.split(" ", 1)[1])
 
-    if low.startswith("rename "):
-        parts = text.split(" ", 2)
-        return state, rename(state, parts[1], parts[2])
+    if text.startswith("rename "):
+        _, o, n = text.split(" ", 2)
+        return state, rename(state, o, n)
 
-    # -------- TODO --------
-    if low.startswith("todo.plan"):
-        task = text[len("todo.plan"):].strip()
-        return state, todo_plan(state, task)
+    # ---------- CALENDAR COMMAND ----------
+    # Example: calendar.add Birthday 2026-09-01
+    if text.lower().startswith("calendar.add"):
+        try:
+            _, title, date = text.split(" ", 2)
+            reply = add_calendar_event(state, title, date)
+            add_to_memory(state, "assistant", reply)
+            return state, reply
+        except:
+            reply = " Usage: calendar.add <title> <YYYY-MM-DD>"
+            add_to_memory(state, "assistant", reply)
+            return state, reply
 
-    if low == "todo.list":
-        return state, list_todos(state)
+    # ---------- NORMAL CHAT ----------
+    add_to_memory(state, "user", user_text)
 
-    # -------- CALENDAR --------
-    if low.startswith("calendar.add"):
-        title, when = map(str.strip, text[len("calendar.add"):].split("|", 1))
-        return state, add_calendar_event(state, title, when)
+    #  Decide sub-agents
+    agents = should_delegate(user_text)
 
-    if low == "calendar.list":
-        return state, list_calendar_events(state)
+    #  INTERNAL AUTO PLANNING (TRACING ONLY, NOT SHOWN IN UI)
+    if requires_plan(user_text, agents):
+        auto_todo_plan(state, user_text)
 
-    # -------- CHAT + SUB-AGENT DELEGATION --------
-    add_to_memory(state, "user", text)
+    # 🤝 SUB-AGENT EXECUTION
+    outputs = []
+    for agent in agents:
+        result = delegate_task(agent, user_text)
+        outputs.append(f"🤝 **{agent} agent:**\n{result}")
 
-    delegation_type = should_delegate(text)
-
-    if delegation_type:
-        result = delegate_task(delegation_type, text)
-        reply = f" **Delegated to {delegation_type} agent:**\n\n{result}"
+    # SUPERVISOR LLM IF NO AGENT
+    if outputs:
+        reply = "\n\n".join(outputs)
     else:
-        prompt = build_llm_prompt(state, text)
-        reply = clean_text(call_llm(prompt))
+        prompt = build_llm_prompt(state, user_text)
+        raw = call_llm(prompt)
+        reply = clean_text(raw)
 
+    # ---------- SAVE MEMORY ----------
     add_to_memory(state, "assistant", reply)
+
     return state, reply
