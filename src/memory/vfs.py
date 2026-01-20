@@ -9,7 +9,6 @@ VFS = st.session_state["VFS"]
 # ----------------------------
 # In-memory VFS
 # ----------------------------
-VFS = {}
 def normalize_filename(filename: str) -> str:
     return filename.lstrip("/")
 
