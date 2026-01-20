@@ -153,13 +153,6 @@ This project is a functional, research-grade autonomous agent system with **plan
 - Streamlit-based interactive user interface
 
 
-## Ongoing Work
-
-- Improved planning strategies and memory retrieval
-- Addition of more specialized agents
-- Performance, reliability, and scalability enhancements
-
-
 Overall, the system is **stable, extensible, and well-suited for autonomous research, long-horizon reasoning, and future production experimentation**.
 
 ---
