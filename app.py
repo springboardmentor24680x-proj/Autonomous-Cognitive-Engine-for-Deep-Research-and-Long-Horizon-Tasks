@@ -1,59 +1,67 @@
 import streamlit as st
-from main import graph
+import time
+import uuid
 from langchain_core.messages import HumanMessage
+from src.graph.state_graph import state_graph
+from src.memory.vfs import vfs
 
-st.set_page_config(page_title="Deep Agent OS", layout="wide")
+st.set_page_config(page_title="Autonomous Cognitive Engine", layout="wide")
+st.title("Autonomous Cognitive Engine")
+st.markdown("Production Single-Pass Multi-Agent Framework")
 
-if "messages" not in st.session_state: st.session_state.messages = []
-if "vfs" not in st.session_state: st.session_state.vfs = {}
-if "todos" not in st.session_state: st.session_state.todos = []
-
-# --- RECTIFIED SIDEBAR ---
 with st.sidebar:
-    st.title("🛠️ Workspace")
+    st.header("Agent Status")
+    st.info("Production Ready\n\nArchitecture:\n• 3 LLM Agents\n• Linear Flow\n• Internal VFS")
     
-    st.header("📋 Task Plan")
-    for t in st.session_state.todos:
-        st.info(str(t))
+    files = vfs.list_reports()
+    if files:
+        st.subheader("Generated Reports")
+        for file in files:
+            filepath = f"data/{file}"
+            with open(filepath, 'r') as f:
+                st.download_button(
+                    label=f"Download {file}",
+                    data=f.read(),
+                    file_name=file,
+                    mime="text/plain"
+                )
     
-    st.divider()
+    if st.button("Clear Chat"):
+        st.session_state.messages = []
+        st.rerun()
 
-    st.header("📂 Virtual Files")
-    # This loop ensures we see files individually, not as a raw list
-    if st.session_state.vfs:
-        for filename, content in st.session_state.vfs.items():
-            with st.expander(f"📄 {filename}"):
-                st.markdown(content)
-                st.download_button("Download", content, filename, key=filename)
-    else:
-        st.caption("No files in VFS.")
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# --- CHAT INTERFACE ---
-st.title("🤖 Autonomous Agent Lab")
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
-for m in st.session_state.messages:
-    if m.content and isinstance(m.content, str):
-        role = "user" if isinstance(m, HumanMessage) else "assistant"
-        with st.chat_message(role):
-            st.markdown(m.content)
+if prompt := st.chat_input("Enter research query..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-if prompt := st.chat_input("Enter your request..."):
-    st.session_state.messages.append(HumanMessage(content=prompt))
-    with st.chat_message("user"): st.markdown(prompt)
-    
-    with st.spinner("Executing..."):
+    inputs = {"messages": [HumanMessage(content=prompt)]}
+
+    with st.chat_message("assistant"):
+        status = st.status("Executing workflow...", expanded=True)
+        thoughts = st.container()
+        
+        full_response = ""
         try:
-            # High recursion limit to allow deep research
-            config = {"recursion_limit": 50}
-            final = graph.invoke({
-                "messages": st.session_state.messages, 
-                "vfs": st.session_state.vfs,
-                "todos": st.session_state.todos
-            }, config=config)
+            with status:
+                for event in state_graph.stream(inputs):
+                    for node, state in event.items():
+                        if "messages" in state and state["messages"]:
+                            content = state["messages"][-1].content[:1000]
+                            full_response += f"{node.upper()}:\n{content}\n\n"
+                            with thoughts.container():
+                                st.markdown(full_response)
             
-            st.session_state.messages = final["messages"]
-            st.session_state.vfs = final["vfs"]
-            st.session_state.todos = final["todos"]
-            st.rerun()
+            st.success("Execution Complete")
         except Exception as e:
-            st.error(f"System Error: {str(e)}")
+            st.error(f"Error: {str(e)}")
+        
+        st.session_state.messages.append({"role": "assistant", "content": full_response.strip()})
+    st.rerun()

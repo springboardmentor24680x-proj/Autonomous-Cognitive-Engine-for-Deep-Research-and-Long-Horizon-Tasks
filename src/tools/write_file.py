@@ -1,14 +1,11 @@
 from langchain_core.tools import tool
 
 @tool
-def write_file(filename: str, content: str) -> str:
-    """
-    Saves or updates a file in the virtual workspace. 
-    Use this to offload research summaries or final reports.
-    
-    Args:
-        filename: Name of the file (e.g., 'research_summary.txt')
-        content: The text content to be saved.
-    """
-    # The actual saving logic is handled by the state_updater_node in main.py
-    return f"File '{filename}' has been successfully written to the workspace."
+def write_file(filename: str, content: str):
+    """Write content to a file. Use for saving research results."""
+    try:
+        with open(filename, 'w') as f:
+            f.write(content)
+        return f"Saved to {filename}"
+    except Exception as e:
+        return f"Error writing {filename}: {str(e)}"

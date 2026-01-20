@@ -1,51 +1,71 @@
 import os
-import sys
 from dotenv import load_dotenv
+from langchain_core.messages import HumanMessage
+from langchain_groq import ChatGroq
+import warnings
 
-# Load environment variables from .env
-# This enables GROQ_API_KEY and LANGSMITH_TRACING
+warnings.filterwarnings("ignore")
 load_dotenv()
+# Change this line in main.py:
+#from src.graph.state_graph import state_graph  # Now works correctly
 
-# Ensure the root directory is in the python path for modular imports
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+print("Autonomous Cognitive Engine")
+print("Deep Research & Long-Horizon Task Framework")
+print("--- Engine Active ---")
 
-from src.graph.state_graph import create_graph
+try:
+    from src.agents.supervisor_agent import supervisor_node
+    from src.agents.search_agent import research_node  
+    from src.agents.summarizer_agent import summarizer_node
+    from src.graph.state_graph import state_graph
+    print("All agents and graph loaded successfully")
+except ImportError as e:
+    print(f"Import error: {e}")
+    print("Run: pip install -U langchain-groq langchain-tavily python-dotenv")
+    exit(1)
 
-# --- 1. CONFIGURATION CHECK ---
-def check_environment():
-    """Verify that essential API keys are present before starting."""
-    required_keys = ["GROQ_API_KEY"]
-    missing = [key for key in required_keys if not os.getenv(key)]
+def run_interactive_agent():
+    llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
     
-    if missing:
-        print(f"CRITICAL ERROR: Missing environment variables: {', '.join(missing)}")
-        print("Please check your .env file.")
-        return False
-    
-    if os.getenv("LANGSMITH_TRACING") == "true":
-        print("LangSmith Tracing: ENABLED")
-    return True
+    while True:
+        try:
+            query = input("\nWhat complex task should I perform? ").strip()
+            if not query or query.lower() in ['exit', 'quit', 'bye']:
+                print("Engine shutdown complete.")
+                break
+            
+            print(f"Processing: {query}")
+            
+            inputs = {
+                "messages": [HumanMessage(content=query)],
+                "todos": [],
+                "next": "supervisor"
+            }
+            
+            print("Agent Execution")
+            for step_num, event in enumerate(state_graph.stream(inputs, {"recursion_limit": 25})):
+                node_name = list(event.keys())[0]
+                step_data = event[node_name]
+                
+                print(f"Step {step_num+1}: {node_name.upper()}")
+                if "messages" in step_data:
+                    last_msg = step_data["messages"][-1]
+                    print(f"  Output: {last_msg.content[:100]}...")
+                
+                if "todos" in step_data:
+                    todos = step_data["todos"]
+                    remaining = len([t for t in todos if not t.get('done', False)])
+                    print(f"  TODOs: {remaining} remaining")
+            
+            print("Task execution complete.")
+            print("Ready for next task")
+            
+        except KeyboardInterrupt:
+            print("Interrupted by user.")
+            break
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            print("Engine remains active for next attempt...")
 
-# --- 2. GRAPH INITIALIZATION ---
-# We initialize the graph here so it can be imported by app.py
-# or the Jupyter notebooks.
-if check_environment():
-    # create_graph() builds the LangGraph workflow with Supervisor, 
-    # Sub-Agents, and the Virtual File System (VFS).
-    graph = create_graph()
-else:
-    graph = None
-
-# --- 3. CLI EXECUTION (Optional) ---
 if __name__ == "__main__":
-    """
-    If you run 'python main.py' directly, it performs a system check.
-    To start the UI, run 'streamlit run app.py'.
-    """
-    if graph:
-        print("\n[✔] Autonomous Agent Graph Compiled Successfully.")
-        print("[✔] Modular structure detected (src.agents, src.tools, src.memory).")
-        print("\nTo launch the dashboard, run:")
-        print(">>> streamlit run app.py")
-    else:
-        print("\n[✘] Graph initialization failed. Check your .env configuration.")
+    run_interactive_agent()
