@@ -1,20 +1,29 @@
-import os
-from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage
+
+# src/agents/summarizer_agent.py
+
+from langsmith import traceable
+from tools.summarizer_tool import summarizer
 
 
-load_dotenv()
+@traceable(name="summarizer_agent")
+def summarizer_node(state: dict) -> dict:
+    """
+    Summarizer agent node.
+    Calls the summarizer TOOL so it appears in tracing.
+    """
 
-llm = ChatOpenAI(
-    api_key=os.getenv("OPENROUTER_API_KEY"),
-    base_url="https://openrouter.ai/api/v1",
-    model="gpt-4o-mini",
-)
+    content = (
+        state.get("research")
+        or state.get("search_results")
+        or ""
+    )
 
-def summarize(text: str) -> str:
-    messages = [
-        SystemMessage(content="You summarize text concisely."),
-        HumanMessage(content=text)
-    ]
-    return llm.invoke(messages).content
+    if not content:
+        state["summary"] = "No content available to summarize."
+        return state
+
+    # 🔑 CALL THE TOOL (this is what enables tracing)
+    summary = summarizer.invoke({"text": content})
+
+    state["summary"] = summary
+    return state

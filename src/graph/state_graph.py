@@ -1,31 +1,27 @@
+# src/graph/state_graph.py
+
 from langgraph.graph import StateGraph, END
 from graph.state import AgentState
-from graph.web_search_graph import web_search_node
-from graph.summarizer_graph import summary_node
 
-def router(state: AgentState) -> str:
-    query = state["messages"][-1].content.lower()
-    if any(k in query for k in ["summarize", "summary", "explain", "lessons"]):
-        return "summary"
-    return "search"
+from agents.planner_agent import planner_node
+from agents.agents.research_agent import research_node
+from agents.agents.summarizer_agent import summarizer_node
 
-def build_state_graph():
+
+def build_graph():
     graph = StateGraph(AgentState)
 
-    graph.add_node("search", web_search_node)
-    graph.add_node("summary", summary_node)
+    # ---------------- Nodes ----------------
+    graph.add_node("planner", planner_node)
+    graph.add_node("research", research_node)
+    graph.add_node("summarizer", summarizer_node)
 
-    graph.set_entry_point("search")
+    # ------------- Entry Point -------------
+    graph.set_entry_point("planner")
 
-    graph.add_conditional_edges(
-        "search",
-        router,
-        {
-            "search": END,
-            "summary": "summary",
-        },
-    )
-
-    graph.add_edge("summary", END)
+    # --------- Sequential Execution --------
+    graph.add_edge("planner", "research")
+    graph.add_edge("research", "summarizer")
+    graph.add_edge("summarizer", END)
 
     return graph.compile()

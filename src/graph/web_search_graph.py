@@ -1,42 +1,17 @@
-import os
-from dotenv import load_dotenv
-from tavily import TavilyClient
-from langchain_core.messages import AIMessage
+# graph/web_search_graph.py
 from graph.state import AgentState
-from memory.vfs import vfs
-
-load_dotenv()
+from tools.llm_factory import make_llm
 
 def web_search_node(state: AgentState) -> AgentState:
-    api_key = os.getenv("TAVILY_API_KEY")
-    if not api_key:
-        raise RuntimeError("TAVILY_API_KEY not found")
+    query = state.get("query")
+    if not query:
+        state["search_results"] = ""
+        return state
 
-    tavily = TavilyClient(api_key=api_key)
-
-    query = state["messages"][-1].content.strip()
-
-    response = tavily.search(
-        query=query,
-        max_results=5,
-        include_answer=False,
-    )
-
-    # ✅ Correct extraction
-    results = response.get("results", [])
-
-    formatted_blocks = []
-    for r in results:
-        formatted_blocks.append(
-            f"TITLE: {r.get('title', 'N/A')}\n"
-            f"URL: {r.get('url', 'N/A')}\n"
-            f"CONTENT: {r.get('content', '')}\n"
-        )
-
-    combined = "\n\n".join(formatted_blocks)
-
-    state["search_results"] = combined
-    state.setdefault("messages", []).append(AIMessage(content=combined))
-
-    vfs.write_file("search.txt", query, combined)
+    # Using Tavily API for search
+    search_client = make_llm(provider="tavily")
+    results = search_client.search(query)  # replace with actual API method
+    # Combine results into string
+    content = "\n".join([r.get("snippet", "") for r in results])
+    state["search_results"] = content
     return state

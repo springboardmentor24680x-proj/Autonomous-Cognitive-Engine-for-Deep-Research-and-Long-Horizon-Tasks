@@ -1,19 +1,10 @@
-import os
-from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage
+# agents/search_agent.py
+from graph.state import AgentState
+from graph.web_search_graph import web_search_node
 
-load_dotenv()
-
-llm = ChatOpenAI(
-    api_key=os.getenv("OPENROUTER_API_KEY"),
-    base_url="https://openrouter.ai/api/v1",
-    model="gpt-4o-mini",
-)
-
-def search(query: str) -> str:
-    messages = [
-        SystemMessage(content="You search and explain information."),
-        HumanMessage(content=query)
-    ]
-    return llm.invoke(messages).content
+def search_agent(state: AgentState) -> AgentState:
+    """
+    Performs web search using web_search_node and updates state
+    """
+    state = web_search_node(state)
+    return state

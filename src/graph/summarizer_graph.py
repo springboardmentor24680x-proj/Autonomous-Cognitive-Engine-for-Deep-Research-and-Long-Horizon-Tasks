@@ -1,38 +1,29 @@
-from langchain_core.messages import HumanMessage, AIMessage
+# graph/summarizer_graph.py
 from graph.state import AgentState
 from tools.llm_factory import make_llm
-from memory.vfs import vfs
 
 def summary_node(state: AgentState) -> AgentState:
-    content = state.get("search_results")
+    content = state.get("search_results", "")
     if not content:
+        state["summary"] = "No content to summarize."
         return state
 
-    llm = make_llm()
+    # Get configured client
+    openai_client = make_llm(provider="openrouter")
 
-    prompt = HumanMessage(
-        content=(
-            "You are a professional research analyst.\n\n"
-            "TASK:\n"
-            "1. Identify TOP 3 REAL case studies.\n"
-            "2. For EACH case study provide:\n"
-            "   - Organization\n"
-            "   - Use case\n"
-            "   - Impact / outcome\n"
-            "   - Source link\n"
-            "3. Extract lessons for SMALL BUSINESSES.\n\n"
-            "FORMAT:\n"
-            "- Headings\n"
-            "- Bullet points\n"
-            "- Clear explanations\n\n"
-            f"CONTENT:\n{content}"
-        )
+    prompt = [
+        {"role": "system", "content": "You are a helpful assistant that summarizes text."},
+        {"role": "user", "content": content}
+    ]
+
+    # Use Chat Completions
+    response = openai_client.ChatCompletion.create(
+        model="gpt-4o-mini",  # you can change to any valid OpenRouter model
+        messages=prompt,
+        max_tokens=300,
     )
 
-    response = llm.invoke([prompt])
+    summary_text = response.choices[0].message["content"]
 
-    state["summary"] = response.content
-    state.setdefault("messages", []).append(AIMessage(content=response.content))
-
-    vfs.write_file("summary.txt", prompt.content, response.content)
+    state["summary"] = summary_text
     return state

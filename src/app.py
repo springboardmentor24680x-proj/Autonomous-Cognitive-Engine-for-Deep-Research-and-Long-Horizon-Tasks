@@ -1,64 +1,123 @@
-import streamlit as st
-import json
+# --------------------------------------------------
+# 🔴 MUST BE FIRST: Load .env for LangSmith Tracing
+# --------------------------------------------------
+import os
 from dotenv import load_dotenv
-from langchain_core.messages import HumanMessage
-from graph.state_graph import build_state_graph
-from memory.vfs import vfs
 
-load_dotenv()
+load_dotenv()  # REQUIRED for LANGCHAIN_TRACING_V2
 
-st.set_page_config(page_title="AI Research Agent", layout="wide")
-st.title("AI Research Agent")
 
-if "graph" not in st.session_state:
-    st.session_state.graph = build_state_graph()
+# --------------------------------------------------
+# Streamlit
+# --------------------------------------------------
+import streamlit as st
 
-if "history" not in st.session_state:
-    st.session_state.history = []
+# LangChain message objects (ONLY for UI history)
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
-query = st.text_input(
-    "Ask anything (search / summary / both):",
-    placeholder="Research real-world case studies with sources and insights"
+# Shared memory
+from memory.vfs import VFS
+
+# LangGraph
+from graph.state_graph import build_graph
+
+
+# --------------------------------------------------
+# Streamlit Page Config
+# --------------------------------------------------
+st.set_page_config(
+    page_title="Deep Agent UI",
+    layout="wide"
 )
 
-if st.button("Send") and query.strip():
-    state = {"messages": [HumanMessage(content=query)]}
-    result = st.session_state.graph.invoke(state)
 
-    st.session_state.history.append({
-        "question": query,
-        "search": result.get("search_results"),
-        "summary": result.get("summary"),
-    })
+# --------------------------------------------------
+# Initialize LangGraph (Cached)
+# --------------------------------------------------
+@st.cache_resource
+def load_graph():
+    return build_graph()
 
-st.divider()
+graph = load_graph()
 
-for h in reversed(st.session_state.history):
-    st.markdown("### Question")
-    st.write(h["question"])
 
-    if h.get("summary"):
-        st.markdown("### Answer")
-        st.write(h["summary"])
-    elif h.get("search"):
-        st.markdown("### Search Result")
-        st.write(h["search"])
-
-    st.divider()
-
+# --------------------------------------------------
+# Sidebar: Agent State (VFS only)
+# --------------------------------------------------
 with st.sidebar:
-    st.header("Memory (VFS)")
-    files = vfs.ls()
-    if files:
-        f = st.selectbox("Files", files)
-        st.text_area("Content", vfs.read_file(f), height=300)
-    else:
-        st.write("No files yet")
+    st.title("Agent State")
 
-    if st.session_state.history:
-        st.download_button(
-            "Export JSON",
-            json.dumps(st.session_state.history, indent=2),
-            file_name="research.json",
-            mime="application/json",
+    # ---------- Virtual Files ----------
+    st.header("📁 Virtual Files")
+
+    if not VFS:
+        st.info("No files in memory.")
+    else:
+        for filename, content in VFS.items():
+            with st.expander(f"📄 {filename}"):
+                st.code(content, language="text")
+
+    # ---- OPTIONAL: Debug tracing (remove later) ----
+    st.divider()
+    st.caption("🔍 Tracing Debug")
+    st.write("Tracing:", os.getenv("LANGCHAIN_TRACING_V2"))
+    st.write("Project:", os.getenv("LANGCHAIN_PROJECT"))
+
+
+# --------------------------------------------------
+# Main Chat UI
+# --------------------------------------------------
+st.title("Autonomous Cognitive Agent")
+
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        SystemMessage(
+            content="Hello! I can plan tasks, research topics, and summarize results."
         )
+    ]
+
+
+# ---------- Display Chat History ----------
+for msg in st.session_state.messages:
+    role = "user" if isinstance(msg, HumanMessage) else "assistant"
+    with st.chat_message(role):
+        st.markdown(msg.content)
+
+
+# --------------------------------------------------
+# User Input
+# --------------------------------------------------
+if user_input := st.chat_input("What should I do?"):
+    # Store user message (UI only)
+    st.session_state.messages.append(
+        HumanMessage(content=user_input)
+    )
+
+    with st.spinner("Thinking..."):
+        try:
+            # 🔹 LangGraph expects STATE, not messages
+            result = graph.invoke(
+                {"query": user_input}
+            )
+
+            # 🔹 Compose assistant response
+            response_parts = []
+
+            if "todos" in result:
+                response_parts.append("### 📋 Planned Tasks")
+                response_parts.append(f"```json\n{result['todos']}\n```")
+
+            if "summary" in result:
+                response_parts.append("### 📝 Summary")
+                response_parts.append(result["summary"])
+
+            final_answer = "\n\n".join(response_parts) or "Done."
+
+            st.session_state.messages.append(
+                AIMessage(content=final_answer)
+            )
+
+            st.rerun()
+
+        except Exception as e:
+            st.error(f"Execution error: {e}")

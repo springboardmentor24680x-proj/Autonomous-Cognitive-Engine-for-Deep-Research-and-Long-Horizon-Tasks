@@ -1,7 +1,7 @@
-from typing import TypedDict, List, Optional
-from langchain_core.messages import BaseMessage
+from typing import TypedDict
 
 class AgentState(TypedDict, total=False):
-    messages: List[BaseMessage]
-    search_results: str
+    query: str
+    todos: str
+    research: str
     summary: str
