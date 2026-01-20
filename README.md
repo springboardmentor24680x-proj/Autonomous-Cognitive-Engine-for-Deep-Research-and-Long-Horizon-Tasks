@@ -78,7 +78,7 @@ TAVILY_API_KEY=tvly-xxxxxxxxxxxxxxxx
 * Writes TODOs to VFS
 * Appears in LangSmith as `planner_agent`
 
-### 🔍 Search Agent (`search_agent.py`)
+###  Search Agent (`search_agent.py`)
 
 * Calls the `web_search` tool
 * No reasoning leakage to UI
@@ -168,7 +168,7 @@ streamlit run src/app.py
 
 ---
 
-## 🧪 Typical Flow
+##  Typical Flow
 
 1. User enters a query
 2. Planner creates TODOs
@@ -201,4 +201,4 @@ This architecture is built to be:
 * Multi-session persistence
 
 ---
- **This README matches your current folder structure and tracing-first architecture.**
+
