@@ -1,195 +1,204 @@
-# Autonomous Cognitive Engine
+#  Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
 
-The **Autonomous Cognitive Engine** is an AI system designed to perform **deep research** and **long-horizon tasks** using a structured, multi-agent workflow. Unlike traditional chat-based systems, this project focuses on **explicit reasoning, controlled tool usage, persistent memory, and testable execution**.
-
-It uses a **graph-based agent architecture** where different agents handle tasks like web search, research, summarization, and task management.
+This project implements a **multi-agent research system** using **LangGraph**, **LangChain**, **LangSmith tracing**, and **Streamlit UI**. The system is designed to clearly separate **planning**, **research**, **search**, and **summarization** responsibilities, while keeping **all reasoning and execution traces inside LangSmith** and **only final outputs + files visible in the UI**.
 
 ---
 
-## Table of Contents
-1. [Project Overview](#project-overview)  
-2. [Objectives](#objectives)  
-3. [Technologies Used](#technologies-used)  
-4. [Project Architecture](#project-architecture)  
-5. [Folder Structure](#folder-structure)  
-6. [Module Description](#module-description)  
-7. [Testing Strategy](#testing-strategy)  
-8. [Setup Instructions](#setup-instructions)  
-9. [Running the Application](#running-the-application)  
-10. [Current Status](#current-status)  
-11. [Challenges Faced](#challenges-faced)  
-12. [Future Enhancements](#future-enhancements)  
-13. [Conclusion](#conclusion)  
+##  Key Features
+
+*  **Planner Agent** – Breaks a user query into structured TODOs
+*  **Search Agent** – Executes web searches using Tavily
+*  **Research Agent** – Coordinates tools and prepares content
+*  **Summarizer Agent** – Produces concise summaries
+*  **Virtual File System (VFS)** – Shared memory across agents
+*  **LangSmith Tracing** – Full internal visibility (planner → tools → agents)
+*  **Streamlit UI** – Clean UI with sidebar files only (no internal thoughts)
 
 ---
 
-## Project Overview
-The system uses a **Supervisor–Sub Agent architecture**, implemented via LangGraph. Agents have specialized roles: **research, search, summarization, and task management**, while the graph controls execution and routing.
+##  Project Structure
 
----
-
-## Objectives
-- Modular AI system with clear separation of responsibilities  
-- Long-horizon reasoning using persistent memory  
-- Controlled tool usage to prevent hallucinations  
-- Testable and verifiable execution  
-- Simple user interface for interaction  
-
----
-
-## Technologies Used
-- Python  
-- LangGraph  
-- LangChain  
-- OpenRouter API (LLM provider)  
-- Streamlit (UI)  
-- Pytest (testing)  
-- Virtual File System (VFS) for memory  
-
----
-
-## Project Architecture
-- **Agents**: Specialized logic for research, search, summarization  
-- **Graphs**: Control execution flow and routing  
-- **State Management**: Shared `AgentState` across nodes  
-- **Memory (VFS)**: Persistent storage  
-- **Tools**: LLM access, web search, todo writing  
-- **Tests**: Validate each module independently  
-
----
-
-## Folder Structure
 ```
 src/
+├── app.py                     # Streamlit UI entry point
+│
 ├── agents/
-│ ├── code_agent.py
-│ ├── research_agent.py
-│ ├── search_agent.py
-│ └── summarizer_agent.py
+│   └── agents/
+│       ├── planner_agent.py   # Task planning agent (TODO generator)
+│       ├── research_agent.py  # Orchestrates research flow
+│       ├── search_agent.py    # Calls web search tool
+│       └── summarizer_agent.py# Summarization agent
+│
 ├── graph/
-│ ├── state.py
-│ ├── state_graph.py
-│ ├── research_graph.py
-│ ├── web_search_graph.py
-│ └── summarizer_graph.py
+│   ├── state.py               # AgentState definition
+│   ├── state_graph.py         # Main LangGraph construction
+│   └── research_graph.py      # Research execution flow
+│
 ├── memory/
-│ └── vfs.py
+│   └── vfs.py                 # Virtual File System (shared memory)
+│
 ├── tools/
-│ ├── llm_factory.py
-│ ├── shared_resources.py
-│ └── write_todos.py
-├── app.py
-
-tests/
-├── test_routing.py
-├── test_summarizer.py
-├── test_todo.py
-├── test_vfs.py
-└── test_web_search.py
-
-markdown
-Copy code
+│   ├── llm_factory.py         # Centralized LLM creation (OpenRouter)
+│   ├── web_search.py          # Tavily web search tool (traceable)
+│   ├── summarizer_tool.py     # Summarizer tool (traceable)
+│   ├── write_todos.py         # Writes planner TODOs into VFS
+│   └── shared_resources.py    # Shared constants / helpers
+│
+└── __pycache__/               # Python cache files
+```
 
 ---
 
-## Module Description
+##  Environment Variables
 
-### Supervisor & Routing (Graph)
-- Controls the flow between agents  
-- Decides if input requires search, summarization, or direct response  
-- Implemented using LangGraph state transitions  
+Create a `.env` file at the project root:
 
-### Research Agent
-- Performs factual research  
-- Uses controlled web search  
-- Returns structured content to the graph  
+```env
+# LangSmith Tracing
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_API_KEY=your_langsmith_key
+LANGCHAIN_PROJECT=deep-agent-system
 
-### Web Search Module
-- Executes external searches  
-- Restricted to research-related tasks  
-- Returns results to the graph  
+# LLM (OpenRouter)
+OPENROUTER_API_KEY=sk-or-xxxxxxxxxxxxxxxx
 
-### Summarizer Agent
-- Converts large research outputs into concise summaries  
-- Produces readable, structured content  
+# Web Search
+TAVILY_API_KEY=tvly-xxxxxxxxxxxxxxxx
+```
 
-### Virtual File System (VFS)
-- Persistent memory storage  
-- Supports `read`, `write`, and `list` operations  
-- Stores files like `search.txt`, `summary.txt`, and `todos.txt`  
-
-### Todo Generator
-- Extracts action items from user input or summaries  
-- Stores tasks in `todos.txt` via VFS  
+**Important**: OpenRouter keys **must NOT** be used with `ChatOpenAI`. All LLMs are created via `llm_factory.py`.
 
 ---
 
-## Testing Strategy
-Testing is done using **pytest** to ensure correctness and reliability.
+##  Agent Responsibilities
 
-**Test Coverage**:  
-- Routing logic  
-- Summarizer output  
-- Web search execution  
-- VFS read/write operations  
-- Todo generation  
+###  Planner Agent (`planner_agent.py`)
 
-All tests are isolated and independently verifiable.
+* Converts user query into structured TODOs
+* Writes TODOs to VFS
+* Appears in LangSmith as `planner_agent`
+
+### 🔍 Search Agent (`search_agent.py`)
+
+* Calls the `web_search` tool
+* No reasoning leakage to UI
+* Fully traceable
+
+###  Research Agent (`research_agent.py`)
+
+* Decides which tools to call
+* Aggregates search results
+* Passes content to summarizer
+
+###  Summarizer Agent (`summarizer_agent.py`)
+
+* Produces final summary
+* Uses LLM directly
+* Appears as `summarizer_agent` in traces
 
 ---
 
-## Setup Instructions
+##  Tools
 
-### **1. Clone Repository**
+###  Web Search Tool (`tools/web_search.py`)
+
+* Uses Tavily API
+* Decorated with `@traceable`
+* Appears as a tool node in LangSmith
+
+###  Summarizer Tool (`tools/summarizer_tool.py`)
+
+* Standalone summarization tool
+* Traceable
+* Can be reused independently if needed
+
+---
+
+##  Virtual File System (VFS)
+
+* Implemented in `memory/vfs.py`
+* Acts as shared memory between agents
+* Displayed **only in Streamlit sidebar**
+* Examples:
+
+  * `todos.json`
+  * `research.txt`
+  * `summary.md`
+
+---
+
+##  LangSmith Tracing (Critical Design)
+
+**What goes into tracing**
+
+* Planner decisions
+* Tool calls
+* LLM calls
+* Agent transitions
+ **What does NOT go into UI**
+
+* Chain-of-thought
+* Intermediate reasoning
+* Tool internals
+
+This ensures mentor-level observability **without leaking reasoning**.
+
+---
+
+##  Running the App
+
 ```bash
-git clone <repository-url>
-cd Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
-2. Create Virtual Environment
-bash
-Copy code
-python -m venv venv
-# Activate environment:
-# Linux / macOS
-source venv/bin/activate
-# Windows
-venv\Scripts\activate
-3. Install Dependencies
-bash
-Copy code
-pip install -r requirements.txt
-4. Set Environment Variables
-Create a .env file in the project root with the following content:
+# Activate venv
+source venv/bin/activate  # or venv\\Scripts\\activate
 
-ini
-Copy code
-OPENROUTER_API_KEY=your_api_key_here
-5. Run the Application
-bash
-Copy code
+# Run Streamlit
 streamlit run src/app.py
-6. Current Status
-Core agent workflow implemented
+```
 
-Persistent memory via VFS working
+---
 
-All major modules tested
+##  UI Behavior
 
-Streamlit UI integrated
+* **Main Chat**: User query → planned tasks → final summary
+* **Sidebar**:
 
-7. Challenges Faced
-Managing shared state across agents
+  * Virtual files only
+  * No agent thoughts
+* **Tracing**: View everything in LangSmith dashboard
 
-Preventing incorrect routing
+---
 
-Handling long outputs safely
+## 🧪 Typical Flow
 
-Designing testable agent logic
+1. User enters a query
+2. Planner creates TODOs
+3. Research agent invokes search
+4. Search agent calls web tool
+5. Summarizer agent produces summary
+6. Files written to VFS
+7. UI shows summary + files
 
-8. Future Enhancements
-Multi-modal inputs (PDFs, images)
+---
 
-Advanced planning workflows
+##  Design Philosophy
 
-Improved visualization support
+> **UI is for results. Tracing is for thinking.**
 
-Agent self-evaluation and feedback loops
+This architecture is built to be:
+
+* Mentor-review friendly
+* Debuggable
+* Extensible (code agent, math agent, etc.)
+* Production-aligned
+
+---
+
+##  Future Extensions
+
+* Code Agent
+* PDF ingestion
+* Vector store memory
+* Multi-session persistence
+
+---
+ **This README matches your current folder structure and tracing-first architecture.**
