@@ -1,8 +1,6 @@
-
-# src/agents/summarizer_agent.py
-
 from langsmith import traceable
 from tools.summarizer_tool import summarizer
+from memory.vfs import write_file
 
 
 @traceable(name="summarizer_agent")
@@ -22,8 +20,13 @@ def summarizer_node(state: dict) -> dict:
         state["summary"] = "No content available to summarize."
         return state
 
-    # 🔑 CALL THE TOOL (this is what enables tracing)
     summary = summarizer.invoke({"text": content})
 
     state["summary"] = summary
+
+    write_file.invoke({
+        "filename": "summary.txt",
+        "content": summary
+    })
+
     return state

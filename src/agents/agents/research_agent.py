@@ -5,6 +5,7 @@ from langsmith import traceable
 
 from tools.llm_factory import make_llm
 from tools.web_search import web_search
+from memory.vfs import write_file
 
 
 RESEARCH_PROMPT = """
@@ -55,4 +56,8 @@ Follow ALL rules strictly.
     response = llm.invoke(messages)
 
     state["research"] = response.content
+    write_file.invoke({
+    "filename": "research.txt",
+    "content": response.content
+    })
     return state

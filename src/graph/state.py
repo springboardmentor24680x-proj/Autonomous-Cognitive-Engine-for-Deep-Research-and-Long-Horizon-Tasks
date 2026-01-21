@@ -5,3 +5,4 @@ class AgentState(TypedDict, total=False):
     todos: str
     research: str
     summary: str
+    files_written: bool

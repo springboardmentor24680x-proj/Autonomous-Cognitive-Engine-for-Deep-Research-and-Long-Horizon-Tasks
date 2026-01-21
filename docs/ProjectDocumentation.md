@@ -1,51 +1,57 @@
-# Autonomous Cognitive Engine – Project Documentation
-
-## 1. Project Overview
-The Autonomous Cognitive Engine is an AI-based system designed to perform deep research and long-horizon tasks using a structured, multi-agent workflow.  
-Unlike traditional chat-based systems, this project focuses on **explicit reasoning, controlled tool usage, persistent memory, and testable execution**.
-
-The system uses a **graph-based agent architecture** where different agents handle specific responsibilities such as web search, research, summarization, and task management.
+# LangGraph-Based Autonomous Research Agent  
+## Project Report & Technical Documentation
 
 ---
 
-## 2. Objectives
-- Build a modular AI system with clear separation of responsibilities
-- Enable long-horizon reasoning using persistent memory
-- Prevent uncontrolled tool usage and hallucinations
-- Ensure correctness using automated tests
-- Provide a simple UI for user interaction
+## 1. Project Introduction
+
+This project implements an **Autonomous Research Agent** using **LangGraph**, **LangChain**, and **LangSmith tracing**.  
+The system is designed to handle multi-step research workflows by decomposing a user query into planning, research, and summarization phases.
+
+Unlike simple chatbots, this agent:
+
+- Uses explicit state management  
+- Separates responsibilities across specialized agents  
+- Executes tasks in a deterministic, traceable pipeline  
+- Provides full observability using LangSmith  
+
+The application exposes a **Streamlit-based UI** while keeping all reasoning, planning, and execution details **outside the UI and inside LangSmith traces**.
 
 ---
 
-## 3. Technologies Used
-- **Python**
-- **LangGraph**
-- **LangChain**
-- **OpenRouter API (LLM provider)**
-- **Streamlit** (UI)
-- **Pytest** (testing)
-- **Virtual File System (VFS)** for memory
+## 2. Overall Architecture
+
+The system follows a **linear LangGraph execution pipeline**:
+
+User Query
+↓
+Planner Agent
+↓
+Research Agent → Web Search Tool
+↓
+Summarizer Agent → Summarizer Tool
+↓
+Final Output
+
+yaml
+Copy code
+
+### Key Architectural Principles
+
+- Planner does not execute  
+- Research agent is the only agent with web access  
+- Summarization is delegated to a tool  
+- All state transitions are explicit  
+- All execution steps are traceable  
 
 ---
 
-## 4. Project Architecture
-The project follows a **Supervisor–Sub Agent architecture** implemented using LangGraph.
+## 3. Project Folder Structure
 
-### Key Components
-- **Agents**: Specialized logic for research, search, summarization
-- **Graphs**: Control execution flow and routing
-- **State Management**: Shared `AgentState` passed across nodes
-- **Memory (VFS)**: File-based persistent storage
-- **Tools**: LLM access, web search, todo writing
-- **Tests**: Validate each module independently
-
----
-```
-## 5. Folder Structure
 src/
-│
 ├── agents/
-│ ├── code_agent.py
+│ ├── planner_agent.py
+│ └── agents/
 │ ├── research_agent.py
 │ ├── search_agent.py
 │ └── summarizer_agent.py
@@ -54,143 +60,305 @@ src/
 │ ├── state.py
 │ ├── state_graph.py
 │ ├── research_graph.py
-│ ├── web_search_graph.py
-│ └── summarizer_graph.py
 │
 ├── memory/
 │ └── vfs.py
 │
 ├── tools/
 │ ├── llm_factory.py
-│ ├── shared_resources.py
-│ └── write_todos.py
+│ ├── web_search.py
+│ ├── summarizer_tool.py
+│ ├── write_todos.py
+│ └── shared_resources.py
 │
-├── app.py
-│
-tests/
-│
-├── test_routing.py
-├── test_summarizer.py
-├── test_todo.py
-├── test_vfs.py
-└── test_web_search.py
+└── app.py
 
+markdown
+Copy code
 
 ---
 
-## 6. Module Description
+## 4. Core Components
 
-### 6.1 Supervisor & Routing (Graph)
-- Controls the flow between agents
-- Decides whether input needs search, summarization, or direct response
-- Implemented using LangGraph state transitions
+### 4.1 Streamlit Application (`app.py`)
 
----
+#### Purpose
 
-### 6.2 Research Agent
-- Performs factual research
-- Uses controlled web search
-- Returns structured content to the graph
+- Acts as the **UI layer only**
+- Sends user input to LangGraph
+- Displays final outputs
+- Does **not** handle reasoning or tool calls
 
----
+#### Responsibilities
 
-### 6.3 Web Search Module
-- Executes external searches
-- Restricted to research-related tasks
-- Results are passed back through the graph
+- Load environment variables  
+- Initialize LangGraph  
+- Render chat interface  
+- Display Virtual File System contents  
+- Invoke the graph with a state object  
 
----
+#### Key Concept
 
-### 6.4 Summarizer Agent
-- Converts large research outputs into concise summaries
-- Produces readable and structured content
+LangGraph expects **state**, not messages:
 
----
+```python
+result = graph.invoke({"query": user_input})
+## 4.2 Agent State Definition (graph/state.py)
+Purpose
+Defines the shared state schema passed between agents.
 
-### 6.5 Virtual File System (VFS)
-- Acts as persistent memory
-- Stores files like:
-  - `search.txt`
-  - `summary.txt`
-  - `todos.txt`
-- Supports write, read, and list operations
+Typical State Fields
+query
 
----
+todos
 
-### 6.6 Todo Generator
-- Extracts action items from user input or summaries
-- Stores tasks in `todos.txt` using VFS
+research
 
----
+summary
 
-## 7. Testing Strategy
-Testing is done using **pytest** to ensure correctness and reliability.
+This ensures:
 
-### Test Coverage
-- Routing logic
-- Summarizer output
-- Web search execution
-- VFS read/write operations
-- Todo generation
+Predictable execution
 
-All tests are isolated and independently verifiable.
+Clear data flow
 
----
+Debuggable failures
 
-## 8. Setup Instructions
+4.3 LangGraph Orchestration (graph/state_graph.py)
+Purpose
+Defines how agents are connected and executed.
 
-### Clone Repository
-```bash
-git clone <repository-url>
-cd Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
+Execution Order
+powershell
+Copy code
+planner → research → summarizer → END
+Key Properties
+Single entry point (planner)
 
-Create Virtual Environment
-python -m venv venv
-source venv/Scripts/activate
+Explicit edges
 
-Install Dependencies
-pip install -r requirements.txt
+No hidden branching
 
-Environment Variables
+Fully traceable DAG
 
-Create a .env file:
+4.4 Planner Agent (agents/planner_agent.py)
+Role
+Responsible for:
 
-OPENROUTER_API_KEY=your_api_key_here
+Understanding user intent
 
-9. Running the Application
-streamlit run src/app.py
+Generating a structured TODO list
 
-10. Current Status
+Deciding what should happen, not doing it
 
-Core agent workflow implemented
+Rules Enforced
+Always outputs TODOs
 
-Persistent memory via VFS working
+Never performs research
 
-All major modules tested
+Never calls tools
 
-Streamlit UI integrated
+Never summarizes
 
-11. Challenges Faced
+Output Example
+json
+Copy code
+{
+  "todos": [
+    {
+      "id": "todo-1",
+      "action": "web_search",
+      "description": "Research AI in healthcare",
+      "depends_on": []
+    },
+    {
+      "id": "todo-2",
+      "action": "summarizer",
+      "description": "Summarize research findings",
+      "depends_on": ["todo-1"]
+    }
+  ]
+}
+4.5 Research Agent (agents/agents/research_agent.py)
+Role
+Responsible for factual data collection.
 
-Managing shared state across agents
+Capabilities
+Receives query from state
 
-Preventing incorrect routing
+Calls the web_search tool at most once
 
-Handling long outputs safely
+Produces structured research output
 
-Designing testable agent logic
+Writes results back to state
 
-12. Future Enhancements
+Restrictions
+No file writing
 
-Multi-modal inputs (PDFs, images)
+No summarization
 
-Advanced planning workflows
+No planning
 
-Improved visualization support
+4.6 Web Search Tool (tools/web_search.py)
+Purpose
+Provides controlled and traceable web access.
 
-Agent self-evaluation and feedback loops
+Properties
+Uses Tavily API
 
-13. Conclusion
+Returns clean textual results
 
-This project demonstrates a structured approach to building autonomous AI systems using agent graphs, persistent memory, and controlled tool usage.
-It avoids implicit reasoning and focuses on clarity, correctness, and maintainability, making it suitable for real-world research and planning tasks.
+Fully traceable in LangSmith
+
+python
+Copy code
+@tool
+@traceable(name="web_search")
+def web_search(query: str) -> str:
+    ...
+Benefits
+No hallucinated browsing
+
+Tool usage is auditable
+
+Exact timing and tokens are visible
+
+4.7 Summarizer Agent (agents/agents/summarizer_agent.py)
+Role
+Acts as a controller, not an executor.
+
+Responsibilities
+Select content from state
+
+Delegate summarization to the tool
+
+Store final summary in state
+
+python
+Copy code
+state["summary"] = summarizer.invoke(content)
+4.8 Summarizer Tool (tools/summarizer_tool.py)
+Purpose
+Performs the actual summarization.
+
+Why a Tool?
+Clear separation of concerns
+
+Independent tracing
+
+Cleaner observability
+
+python
+Copy code
+@tool
+@traceable(name="summarizer")
+def summarizer(text: str) -> str:
+    ...
+LangSmith Trace View
+nginx
+Copy code
+summarizer_agent
+ └─ summarizer
+     └─ ChatOpenAI
+4.9 Virtual File System (memory/vfs.py)
+Purpose
+Acts as in-memory persistent storage.
+
+Usage
+Store intermediate artifacts
+
+Display files in the sidebar
+
+Enable future long-horizon reasoning
+
+Benefits
+Deterministic memory
+
+No reliance on implicit LLM recall
+
+Debuggable state inspection
+
+5. LangSmith Tracing
+LangSmith provides full execution observability.
+
+What Is Traced
+LangGraph root run
+
+Each agent invocation
+
+Each tool call
+
+Each LLM request
+
+Trace Hierarchy
+markdown
+Copy code
+LangGraph
+ ├─ planner_agent
+ │   └─ ChatOpenAI
+ ├─ research_agent
+ │   ├─ web_search
+ │   └─ ChatOpenAI
+ └─ summarizer_agent
+     ├─ summarizer
+     └─ ChatOpenAI
+Why This Matters
+Debugging becomes trivial
+
+Latency bottlenecks are visible
+
+Token usage is transparent
+
+Reasoning is auditable
+
+6. Execution Workflow
+User submits a query in the UI
+
+Planner generates TODOs
+
+Research agent fetches data
+
+Summarizer agent compresses content
+
+Final output is displayed
+
+Full trace is stored in LangSmith
+
+7. Key Advantages
+Deterministic execution
+
+Strict role separation
+
+Tool-governed reasoning
+
+Production-grade observability
+
+Clean UI / logic separation
+
+8. Challenges
+Higher architectural complexity
+
+Increased token usage
+
+Multi-step latency
+
+9. Future Enhancements
+Conditional branching in LangGraph
+
+Retry and failure recovery nodes
+
+Long-term persistent storage
+
+Multi-agent parallel execution
+
+Evaluation and feedback loops
+
+10. Conclusion
+This project demonstrates a modern, production-aligned agent architecture using LangGraph and LangSmith.
+
+By separating planning, research, and summarization into independent agents and tools—and by enforcing explicit state transitions—the system eliminates hidden reasoning and uncontrolled behavior.
+
+The result is a transparent, debuggable, and scalable autonomous research agent suitable for real-world analytical workflows.
+
+markdown
+Copy code
