@@ -94,6 +94,7 @@ Create a `.env` file in the root directory:
 ```text
 GROQ_API_KEY=your_groq_api_key_here
 LANGSMITH_API_KEY=your_langsmith_api_key_here
+travily_API_KEY=your_travily_api_key_here
 
 ```
 
