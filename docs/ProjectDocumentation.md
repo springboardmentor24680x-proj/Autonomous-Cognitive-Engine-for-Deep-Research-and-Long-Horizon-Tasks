@@ -106,7 +106,6 @@ Note: All LLMs are created via llm_factory.py. OpenRouter keys must not be used 
 4. Search agent calls web tool  
 5. Summarizer agent produces summary  
 6. Results written to VFS and displayed in Streamlit  
-[Streamlit UI Screenshot](Screenshot%202026-01-21%20180206.png)
 
 ---
 
