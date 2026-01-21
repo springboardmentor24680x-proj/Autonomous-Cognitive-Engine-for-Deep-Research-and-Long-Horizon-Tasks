@@ -1,3 +1,7 @@
+from src.main.research_agent import setup_agent
+from langchain_core.messages import HumanMessage
+from src.memory.vfs import ls
+
 def test_visual_generation_flow():
     agent = setup_agent()
     

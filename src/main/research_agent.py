@@ -267,28 +267,21 @@ def setup_agent():
         return f"SUCCESS: Summary of {clean_filename} saved to {summary_file}"
 
     @tool
-    def create_work_todo(task_text: str, status: str = "PENDING") -> str:
+    def create_work_todo(task_text: str) -> str:
         """
-        Creates or updates todos.
-        status = PENDING | COMPLETED
+        Creates or appends a task to the work todo list (todos_work.txt).
+        Use this ONLY for work-related tasks.
         """
-
         filename = "todos_work.txt"
-        existing = read_file(filename)
+        existing_content = read_file(filename)
 
-        if status == "PENDING":
-            content = existing if isinstance(existing, str) and not existing.startswith("File") else "WORK TODO LIST\n\n"
-            content += f"- {task_text} [PENDING]\n"
-            write_file(filename, content)
-            return "Todo created (PENDING)."
+        # Check if file exists or is empty
+        if isinstance(existing_content, str) and "not found" in existing_content:
+            write_file(filename, f"WORK TODO LIST:\n- {task_text}")
+        else:
+            edit_file(filename, f"{existing_content}\n- {task_text}")
 
-        if status == "COMPLETED":
-            if isinstance(existing, str):
-                updated = existing.replace("[PENDING]", "[COMPLETED]")
-                write_file(filename, updated)
-                return "Todos marked COMPLETED."
-
-            return "Todo update skipped."
+        return f"Successfully added '{task_text}' to {filename}"
 
     @tool
     def create_visualization(
