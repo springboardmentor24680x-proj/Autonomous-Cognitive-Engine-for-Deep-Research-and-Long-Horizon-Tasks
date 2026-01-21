@@ -91,67 +91,99 @@ OPENROUTER_API_KEY=sk-or-xxxxxxxxxxxxxxxx
 
 # Web Search
 TAVILY_API_KEY=tvly-xxxxxxxxxxxxxxxx
-Note: All LLMs are created via llm_factory.py. OpenRouter keys must not be used with ChatOpenAI.
+**Note:**
+All LLMs are instantiated via `llm_factory.py`.  
+Do not use OpenRouter keys directly with ChatOpenAI.
+
+---
+
 ## 5. UI Behavior and Typical Flow
+---
 
-**UI Behavior:**  
-- Main chat displays final summary outputs  
-- Sidebar shows files from VFS only  
-- Internal reasoning and agent thought process remain hidden  
+### UI Behavior
+---
 
-**Typical Flow:**  
-1. User enters query  
-2. Planner creates TODOs  
-3. Research agent invokes search  
-4. Search agent calls web tool  
-5. Summarizer agent produces summary  
-6. Results written to VFS and displayed in Streamlit  
+- Main chat displays final summaries only  
+- Sidebar displays files stored in the VFS  
+- Internal reasoning and chain-of-thought remain hidden  
+
+---
+
+### Typical Execution Flow
+---
+
+- User submits a query  
+- Planner generates structured TODOs  
+- Research agent orchestrates data collection  
+- Search agent performs web search  
+- Summarizer generates final output  
+- Results are stored in VFS and displayed in the UI  
 
 ---
 
 ## 6. LangSmith Tracing
+---
 
-- **Tracks:** Planner decisions, agent transitions, tool calls, LLM calls  
-- **Hidden from UI:** Chain-of-thought, intermediate reasoning, tool internals  
-- **Benefits:** Observability, debugging, auditability  
-c:\Users\Chandhana\Pictures\Screenshots\Screenshot 2026-01-20 214139.png
+LangSmith provides full observability of:
+
+- Planner decisions  
+- Agent transitions  
+- Tool invocations  
+- LLM calls  
+
+**Hidden from UI**
+- Chain-of-thought  
+- Internal agent reasoning  
+
+**Benefits**
+- Debugging  
+- Auditing  
+- Performance analysis  
+- Mentor-level visibility  
+
 ---
 
 ## 7. Key Features
+---
 
-- **Planner Agent:** Structured TODO generation  
-- **Search & Research Agents:** Intelligent, parallel data retrieval  
-- **Summarizer Agent:** Coherent final summaries  
-- **Virtual File System (VFS):** Persistent memory across agents  
-- **Traceable Tools:** Full observability of agent-tool interactions  
-- **Streamlit UI:** Clean, results-only interface  
+- Structured planner-based execution  
+- Modular and specialized agents  
+- Deterministic and auditable workflows  
+- Persistent memory via VFS  
+- Fully traceable tools and agents  
+- Clean, results-only Streamlit UI  
 
 ---
 
 ## 8. Challenges
+---
 
-- **System Complexity:** Multiple interacting agents require careful design  
-- **Latency:** Multi-step workflows and external tool calls  
-- **Cost Management:** LLM token usage and tracing overhead  
+- **System Complexity** – Coordination among multiple agents  
+- **Latency** – External tool calls and multi-step execution  
+- **Cost Management** – LLM usage and tracing overhead  
 
 ---
 
 ## 9. Future Scope
+---
 
-- Integration with multi-modal inputs (PDFs, spreadsheets, images, audio)  
-- Dynamic agent scaling and domain-specific sub-agents  
-- DAG-based planning, retries, and self-reflection loops  
+- Multi-modal inputs (PDFs, spreadsheets, images, audio)  
+- Dynamic agent scaling  
+- Domain-specific sub-agents  
+- DAG-based planning and retries  
+- Self-reflection and validation loops  
 - Vector memory and multi-session persistence  
 
 ---
 
 ## 10. Conclusion
+---
 
-The **Autonomous Cognitive Engine** demonstrates a shift from traditional monolithic LLM agents to a **deterministic, tool-governed, memory-safe system**.  
+The **Autonomous Cognitive Engine** demonstrates a shift from monolithic LLM systems to a **deterministic, tool-governed, multi-agent architecture**.
 
-- Supervisor-driven architecture ensures **auditable, verifiable execution**  
-- VFS enables **long-horizon reasoning and memory persistence**  
-- LangSmith tracing provides **full observability for mentors and developers**  
-- Streamlit UI shows only results, keeping **internal reasoning hidden**  
+- Supervisor-driven design ensures auditable execution  
+- VFS enables long-horizon reasoning and memory persistence  
+- LangSmith provides full system observability  
+- Streamlit UI cleanly separates reasoning from results  
 
-This design provides a **scalable, production-ready foundation** for multi-agent autonomous AI systems.
+This architecture forms a **scalable, production-ready foundation** for autonomous AI research systems.
