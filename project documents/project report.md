@@ -189,27 +189,27 @@ echo GROQ_API_KEY=your_key > .env
 ```
 
 ## 7. Usage
-
-1. Clone Repository
+### Clone Repository
 git clone https://github.com/rajeswari/autonomous-cognitive-engine.git cd autonomous-cognitive-engine
 
-2. Activate Virtual Environment
-# Windows
+### Activate Virtual Environment
+#### Windows
 .venv\Scripts\activate
 
-# Mac/Linux  
+#### Mac/Linux  
 source .venv/bin/activate
 
-3. Install & Run
+### Install & Run
+```powershell
 pip install -r requirements.txt
 echo "GROQ_API_KEY=your_key" > .env
 
 # Production Demos
 python main.py                 # CLI Demo
 streamlit run app.py           # Web UI (localhost:8501)
+```
 
-
-### 4.1 CLI Demo (`main.py`)
+### CLI Demo (`main.py`)
 
 ```powershell
 python main.py
@@ -222,7 +222,7 @@ Step 2: RESEARCH → Key findings
 Step 3: SUMMARIZER → Report saved 
 ```
 
-### 4.2 Web UI (`app.py`)
+###  Web UI (`app.py`)
 
 ```powershell
 streamlit run app.py
@@ -304,10 +304,10 @@ All Solved: 4-step execution working perfectly
 
 This **Autonomous Cognitive Engine** represents **production-grade multi-agent AI** that successfully eliminates key limitations of traditional LLM systems:
 
-✅ **No hallucinations** - Tool-grounded execution  
-✅ **No context loss** - VFS persistent memory
-✅ **No tool chaos** - Supervisor + LangGraph control
-✅ **No demo failures** - 100% self-contained
+- **No hallucinations** - Tool-grounded execution  
+-  **No context loss** - VFS persistent memory
+- **No tool chaos** - Supervisor + LangGraph control
+- **No demo failures** - 100% self-contained
 
 **Key Innovation:** **LangGraph state machine** + **Supervisor decomposition** + **VFS memory** = **Reliable long-horizon reasoning**.
 
@@ -315,5 +315,5 @@ The system transforms *"Research EV market 2026"* into **executable 3-step plans
 
 **Perfect for enterprise use cases:** Market research, competitive intelligence, technical roadmapping, strategic planning.
 
-***
+
 
