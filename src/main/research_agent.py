@@ -205,11 +205,18 @@ def setup_agent():
 
         # 2. Invoke the sub-agent
         result = research_agent.invoke(
-            {"messages": [{"role": "user", "content": description}]},
-            config=config
+            {"input": description}, 
+            config={
+                "run_name": "ResearchSubAgent",
+                "tags": ["research"]
+            }
         )
-
-        research_output = result["messages"][-1].content
+        
+        if isinstance(result, str):
+            research_output = result
+        else:
+            research_output = result["messages"][-1].content
+    
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
         entry = (
@@ -226,8 +233,8 @@ def setup_agent():
         else:
             write_file(target_file, entry)
 
-        summary_text = (research_output[:500] + "...") if len(research_output) > 500 else research_output
-        return f"Research completed. Data saved to {target_file}. Summary: {summary_text}"
+        return f"Research completed. Data saved to {target_file}."
+
     
     @tool
     def summarization_task(text: str, config: RunnableConfig = None) -> str: 
@@ -237,10 +244,17 @@ def setup_agent():
         """
         # The agent often forgets to pass config, so we make it optional in the signature
         result = summarization_agent.invoke(
-            {"input": text},
-            config=config
+            {"input": text},  
+            config={
+                "run_name": "SummarizationSubAgent",
+                "tags": ["summary"]
+            }
         )
-        return result if isinstance(result, str) else result.content
+
+
+        if isinstance(result, str):
+            return result
+        return result["messages"][-1].content
 
     @tool
     def summarize_file(filename: str, config: RunnableConfig = None) -> str:
@@ -257,8 +271,13 @@ def setup_agent():
         # Directly use the logic to ensure trace visibility
         summary_result = summarization_agent.invoke(
             {"input": content},
-            config=config
+            config={
+                "run_name": "SummarizationSubAgent",
+                "tags": ["subagent", "summary"]
+            }
         )
+
+
         
         summary = summary_result if isinstance(summary_result, str) else summary_result.content
         summary_file = clean_filename.replace(".txt", "_summary.txt")
@@ -437,8 +456,15 @@ def setup_agent():
             if not is_requested and "create_visualization" in user_text:
                 return {"messages": [HumanMessage(content="System: Visualization tool is locked unless explicitly requested with chart type.")]}
 
-            return self.agent.invoke({"messages": input_messages}, **kwargs)
-
+            return self.agent.invoke(
+                {
+                    "messages": input_messages
+                },
+                    config={
+                        "run_name": "SupervisorAgent",
+                        "tags": ["supervisor"]
+                    }
+            )
     return AgentWrapper(agent)
 
 
