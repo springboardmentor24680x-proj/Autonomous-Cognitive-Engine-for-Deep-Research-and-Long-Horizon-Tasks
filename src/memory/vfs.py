@@ -27,5 +27,10 @@ Filename: {filename}
     
     def list_reports(self):
         return [f.name for f in self.data_dir.glob("*.txt")]
+    
+    # ===== ADD THIS 4-LINE METHOD =====
+    def ls(self):
+        """List ALL files (app.py + supervisor_agent.py compatibility)"""
+        return [f.name for f in self.data_dir.iterdir() if f.is_file()]
 
 vfs = VirtualFileSystem()

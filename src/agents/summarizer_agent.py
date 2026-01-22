@@ -1,38 +1,41 @@
 from langchain_groq import ChatGroq
 from langchain_core.messages import AIMessage
 from src.memory.vfs import vfs
+from langsmith import traceable
+from src.tools.summarize_tool import summarize_tool
 
+@traceable(name="summarizer_agent")
 class SummarizerAgent:
     def __init__(self):
-        self.llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
+        # We might not need direct LLM here anymore if using the tool,
+        # but let's keep it if we need any other logic later.
+        pass
     
     def node(self, state):
-        query = state["messages"][0].content.lower()
-        filename = f"{query[:30].replace(' ', '_')}.txt"
+        query = state["messages"][0].content
+        research_data = state["messages"][-1].content # Get research results
         
-        context = "\n".join([msg.content for msg in state["messages"][-3:]])
-        prompt = f"""
-        SUMMARIZER AGENT: Create final report for: {query}
+        # USE THE TOOL
+        summary_content = summarize_tool.summarize(
+            text=research_data, 
+            context=f"The user original query was: {query}. Create a final report."
+        )
         
-        Context: {context}
+        # Save to VFS
+        filename = f"{query.replace(' ', '_')}_report.txt"
+        vfs.write_report(filename, summary_content)
         
-        Format exactly:
-        Executive Summary: [Topic] Project Report
+        # RECTIFICATION: Mark 'summarize' as done
+        current_todos = state.get("todos", [])
+        updated_todos = [
+            {**t, "done": True} if t['agent'] == 'summarize' else t 
+            for t in current_todos
+        ]
         
-        Key Insights:
-        • Point 1
-        • Point 2  
-        • Point 3
-        
-        Actionable Recommendations:
-        • Rec 1
-        • Rec 2
-        """
-        
-        response = self.llm.invoke(prompt)
-        save_result = vfs.write_report(filename, response.content)
-        
-        final_output = f"{response.content}\n\n{save_result}"
-        return {"messages": [AIMessage(content=final_output)]}
+        return {
+            "messages": [AIMessage(content=f"Report saved to {filename}")],
+            "todos": updated_todos,
+            "next": "supervisor"
+        }
 
 summarizer_node = SummarizerAgent().node

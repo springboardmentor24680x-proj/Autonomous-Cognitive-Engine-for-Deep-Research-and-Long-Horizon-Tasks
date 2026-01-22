@@ -1,41 +1,39 @@
 from langchain_groq import ChatGroq
 from langchain_core.messages import AIMessage
 from langsmith import traceable
-from src.tools import delegate_task  # M3 Tool
-from src.memory.vfs import vfs      # Your M2 VFS
 
 @traceable(name="supervisor_agent")
 class SupervisorAgent:
     def __init__(self):
-        self.llm = ChatGroq(
-            model="llama-3.1-8b-instant", 
-            temperature=0,
-        )
+        self.llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
     
     def node(self, state):
-        query = state["messages"][-1].content
-        files = vfs.ls()  # Your M2 VFS
+        messages = state.get("messages", [])
+        query = messages[0].content if messages else "No Query"
+        todos = state.get("todos", [])
         
-        prompt = f"""
-        SUPERVISOR: Complete research workflow for "{query}"
+        # 1. INITIALIZE: Todo list okkasari mathrame create avthundi
+        if not todos:
+            todos = [
+                {"id": 1, "task": f"Research {query}", "done": False, "agent": "research"},
+                {"id": 2, "task": f"Summarize findings", "done": False, "agent": "summarize"}
+            ]
+            return {
+                "todos": todos,
+                "next": "research",
+                "messages": [AIMessage(content="Plan created. Routing to Research.")]
+            }
         
-        Workspace: {files}
-        Available tools: delegate_task('research'|'summarize'), vfs.write_report()
+        # 2. ROUTE: Next unfinished task emundo chusi akkadiki pampisthundi
+        next_todo = next((t for t in todos if not t.get('done')), None)
         
-        CREATE EXECUTABLE 3-STEP PLAN:
-        1. delegate_task('research', 'research topic')
-        2. delegate_task('summarize', 'analyze findings') 
-        3. vfs.write_report('final_report.md', 'final content')
+        if next_todo:
+            return {
+                "next": next_todo['agent'],
+                "messages": [AIMessage(content=f"Proceeding to {next_todo['agent']}.")]
+            }
         
-        EXACT FORMAT - numbered list only:
-        """
-        
-        response = self.llm.invoke(prompt)
-        todos = response.content.split('\n')[:3]  # Extract first 3 steps
-        
-        return {
-            "messages": [AIMessage(content="\n".join(todos))],
-            "todos": todos  # M4: Pass todos to state
-        }
+        # 3. FINISH: Anni tasks ayipothe flow end chestundi
+        return {"next": "__end__", "messages": [AIMessage(content="Workflow complete.")]}
 
 supervisor_node = SupervisorAgent().node

@@ -1,16 +1,24 @@
 """Tavily Search Tool - Phase 3 Enhancement"""
+import os
 from langchain_community.tools.tavily_search import TavilySearchResults
 from typing import Optional
 
 class TavilySearchTool:
     def __init__(self):
-        # DISABLED for production stability
-        self.tool = None  # TavilySearchResults(max_results=3)
+        self.tool = None
+        # Check if API Key is available immediately
+        if os.getenv("TAVILY_API_KEY"):
+            self.tool = TavilySearchResults(max_results=3)
+        else:
+            print("WARNING: TAVILY_API_KEY not found. Search disabled.")
     
     def search(self, query: str) -> Optional[str]:
-        """Tavily web search (disabled in production)"""
+        """Tavily web search"""
         if self.tool:
-            return self.tool.invoke({"query": query})
+            try:
+                return self.tool.invoke({"query": query})
+            except Exception as e:
+                return f"Search Error: {str(e)}"
         return "Tavily disabled - using LLM research"
     
     def enable(self, api_key: str):

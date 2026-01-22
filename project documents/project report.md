@@ -42,14 +42,38 @@ research_agent.py  summarizer_agent.py (M3: Sub-Agents)
      ↓           ↓
 vfs.py (M2: read_file/write_file Memory)
      ↓
-📥 Download Reports (Streamlit UI)
+ Download Reports (Streamlit UI)
 ```
 
-## 3. Core Modules
+## 3. Key Features 
 
-### 3.1 LangGraph State Machine (`src/graph/state_graph.py`)
+```
+All milestones complete
+100% Self-contained (No external APIs)
+Production CLI + Web UI
+LangSmith full tracing  
+ VFS persistence working
+ 3 specialized Groq Llama3.1 agents
+ Downloadable research reports
+ Zero hallucination (tool-grounded)
+```
 
-**M4: Production Orchestration Layer**
+## 4. Technology Features
+
+| **Feature** | **Implementation** | **Production Status** |
+|-------------|-------------------|----------------------|
+| Stateful Orchestration | LangGraph + todos state | Live |
+| Agent Specialization | 3x Groq Llama3.1 | Specialized |
+| Memory Safety | VFS read/write_file | Persistent |
+| Observability | LangSmith @traceable | Full traces |
+| UI/UX | Streamlit + live stream | Production |
+| Error Handling | Try-catch everywhere | Robust |
+
+## 5. Core Modules
+
+### 5.1 LangGraph State Machine (`src/graph/state_graph.py`)
+
+**Production Orchestration Layer**
 
 ```python
 class AgentState(TypedDict):
@@ -70,9 +94,9 @@ workflow.add_conditional_edges("supervisor", route_supervisor)  # Dynamic routin
 - **LangSmith tracing** for every step
 - **Recursion limit**: 25 steps
 
-### 3.2 Supervisor Agent (`src/agents/supervisor_agent.py`)
+### 5.2 Supervisor Agent (`src/agents/supervisor_agent.py`)
 
-**M1: Intelligent Task Decomposition**
+**Intelligent Task Decomposition**
 
 ```python
 @traceable(name="supervisor_agent")
@@ -96,9 +120,9 @@ class SupervisorAgent:
 - Tracks workspace state (`vfs.ls()`)
 - Passes `todos` to LangGraph router
 
-### 3.3 Research Agent (`src/agents/search_agent.py`)
+### 5.3 Research Agent (`src/agents/search_agent.py`)
 
-**M3: Factual Knowledge Generation**
+**Factual Knowledge Generation**
 
 ```python
 @traceable(name="research_agent")
@@ -112,9 +136,9 @@ class SearchAgent:
         return {"messages": [AIMessage(content=research_output)]}
 ```
 
-### 3.4 Summarizer Agent (`src/agents/summarizer_agent.py`)
+### 5.4 Summarizer Agent (`src/agents/summarizer_agent.py`)
 
-**M3: Executive Reporting**
+**Executive Reporting**
 
 ```python
 class SummarizerAgent:
@@ -131,9 +155,9 @@ Key Insights: • Point 1 • Point 2 • Point 3
 Actionable Recommendations: • Rec 1 • Rec 2
 ```
 
-### 3.5 Virtual File System (`src/memory/vfs.py`)
+### 5.5 Virtual File System (`src/memory/vfs.py`)
 
-**M2: Persistent External Memory**
+**Persistent External Memory**
 
 ```python
 @tool
@@ -148,7 +172,42 @@ def read_file(filename: str):
 def ls(): return os.listdir('data/')
 ```
 
-## 4. Production Deployment
+## 6. Setup
+
+```powershell
+# Clone & Setup
+git clone <your-repo>
+cd autonomous-agent
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+
+# Environment
+echo GROQ_API_KEY=your_key > .env
+
+
+```
+
+## 7. Usage
+
+1. Clone Repository
+git clone https://github.com/rajeswari/autonomous-cognitive-engine.git cd autonomous-cognitive-engine
+
+2. Activate Virtual Environment
+# Windows
+.venv\Scripts\activate
+
+# Mac/Linux  
+source .venv/bin/activate
+
+3. Install & Run
+pip install -r requirements.txt
+echo "GROQ_API_KEY=your_key" > .env
+
+# Production Demos
+python main.py                 # CLI Demo
+streamlit run app.py           # Web UI (localhost:8501)
+
 
 ### 4.1 CLI Demo (`main.py`)
 
@@ -160,7 +219,7 @@ Autonomous Cognitive Engine
 What complex task? > "Research EV market 2026"
 Step 1: SUPERVISOR → 3-step plan
 Step 2: RESEARCH → Key findings  
-Step 3: SUMMARIZER → Report saved ✅
+Step 3: SUMMARIZER → Report saved 
 ```
 
 ### 4.2 Web UI (`app.py`)
@@ -176,8 +235,9 @@ streamlit run app.py
 - VFS file downloads
 - Session persistence
 - Production status indicators
+![alt text](<Screenshot 2026-01-22 182109.png>)
 
-## 5. Live Execution Example
+## 8. Live Execution Example
 
 ```
 User Input: "Research Hyderabad AI startups 2026"
@@ -200,49 +260,47 @@ Actionable: • Partner with T-Hub • Focus GenAI
 ✅ File Saved: hyderabad_ai_report.md [Download]
 ```
 
-## 6. Key Achievements
+## 9.Limitations and Challenges
+## 9.1 Limitations
 
-```
-✅ M1-M4: All milestones complete
-✅ 100% Self-contained (No external APIs)
-✅ Production CLI + Web UI
-✅ LangSmith full tracing  
-✅ VFS persistence working
-✅ 3 specialized Groq Llama3.1 agents
-✅ Downloadable research reports
-✅ Zero hallucination (tool-grounded)
-```
+### Technical:
 
-## 7. Technical Excellence
+- Sequential execution (no parallel)
 
-| **Feature** | **Implementation** | **Production Status** |
-|-------------|-------------------|----------------------|
-| Stateful Orchestration | LangGraph + todos state | ✅ Live |
-| Agent Specialization | 3x Groq Llama3.1 | ✅ Specialized |
-| Memory Safety | VFS read/write_file | ✅ Persistent |
-| Observability | LangSmith @traceable | ✅ Full traces |
-| UI/UX | Streamlit + live stream | ✅ Production |
-| Error Handling | Try-catch everywhere | ✅ Robust |
+- Local VFS only
 
-## 8. Setup Instructions
+- Fixed 3-step workflow
 
-```powershell
-# Clone & Setup
-git clone <your-repo>
-cd autonomous-agent
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
+### Performance:
 
-# Environment
-echo GROQ_API_KEY=your_key > .env
+- Travily API rate limits
 
-# Production Demos
-python main.py                    # CLI
-streamlit run app.py              # Web UI
-```
+- 8-15s total latency
 
-## 9. Conclusion
+- Future: Cloud VFS + dynamic workflows
+
+## 9.2 Challenges
+
+### Development:
+
+- Infinite loop debugging (State preservation)
+
+- LangGraph routing complexity
+
+- Agent state synchronization
+
+### Production:
+
+- Travily API reliability
+
+- Sequential latency optimization
+
+- VFS cloud migration
+
+All Solved: 4-step execution working perfectly
+
+
+## 10. Conclusion
 
 This **Autonomous Cognitive Engine** represents **production-grade multi-agent AI** that successfully eliminates key limitations of traditional LLM systems:
 
