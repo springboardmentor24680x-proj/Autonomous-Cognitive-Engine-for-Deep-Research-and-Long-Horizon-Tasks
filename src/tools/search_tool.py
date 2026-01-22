@@ -11,3 +11,4 @@ def web_search(query: str) -> str:
         "FACT: Microlearning modules are usually 5–10 minutes long "
         "and significantly improve learner engagement."
     )
+

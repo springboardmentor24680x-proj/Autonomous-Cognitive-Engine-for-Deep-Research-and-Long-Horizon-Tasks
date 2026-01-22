@@ -58,4 +58,3 @@ if user_input := st.chat_input("Ask something..."):
 
             except Exception as e:
                 st.error(f"Error: {e}")
-
