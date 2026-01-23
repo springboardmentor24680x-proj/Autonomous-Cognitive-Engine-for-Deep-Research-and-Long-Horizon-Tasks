@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant - Simple Layout</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: #2563eb;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .chat-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-bubble {
+            max-width: 75%;
+            padding: 16px 20px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .message.user .message-bubble {
+            background: #2563eb;
+            color: white;
+        }
+
+        .message.agent .message-bubble {
+            background: white;
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+        }
+
+        .chat-input-area {
+            padding: 25px 30px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 25px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            min-height: 52px;
+            max-height: 150px;
+        }
+
+        .message-input:focus {
+            border-color: #2563eb;
+        }
+
+        .send-button {
+            width: 52px;
+            height: 52px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .send-button:hover {
+            background: #1d4ed8;
+        }
+
+        .send-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .file-button {
+            width: 52px;
+            height: 52px;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .file-button:hover {
+            background: #4b5563;
+        }
+
+        .thinking {
+            font-style: italic;
+            color: #6b7280;
+        }
+
+        .thinking::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '...'; }
+            40% { content: '....'; }
+            60% { content: '.....'; }
+            80%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>AI Assistant</h1>
+            <p>Multi-agent cognitive system with file upload support</p>
+        </div>
+        
+        <div class="chat-messages" id="chat-messages">
+            <div class="message agent">
+                <div class="message-bubble">
+                    Welcome! I'm your AI assistant with specialized sub-agents. I can help with research, planning, coding, data analysis, and more. Upload a CSV file or just ask me anything!
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input-area">
+            <div class="input-row">
+                <input type="file" id="file-input" accept=".csv,.json,.txt" style="display: none;">
+                <button class="file-button" id="file-button" title="Upload file">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <textarea 
+                    class="message-input" 
+                    id="message-input" 
+                    placeholder="Type your message or upload a file..."
+                    rows="1"
+                ></textarea>
+                <button class="send-button" id="send-button" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        const messagesContainer = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const fileButton = document.getElementById('file-button');
+        const fileInput = document.getElementById('file-input');
+
+        let isThinking = false;
+        let uploadedFile = null;
+        let uploadedFileContent = null;
+
+        // Socket events
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        socket.on('thinking', () => {
+            showThinking();
+        });
+
+        socket.on('response', (data) => {
+            hideThinking();
+            addMessage('agent', data.message);
+        });
+
+        socket.on('error', (data) => {
+            hideThinking();
+            addMessage('agent', 'Error: ' + data.message);
+        });
+
+        // Functions
+        function addMessage(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            bubbleDiv.textContent = text;
+            
+            messageDiv.appendChild(bubbleDiv);
+            messagesContainer.appendChild(messageDiv);
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showThinking() {
+            if (isThinking) return;
+            isThinking = true;
+            
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.className = 'message agent';
+            thinkingDiv.id = 'thinking-message';
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble thinking';
+            bubbleDiv.textContent = 'AI is thinking';
+            
+            thinkingDiv.appendChild(bubbleDiv);
+            messagesContainer.appendChild(thinkingDiv);
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideThinking() {
+            isThinking = false;
+            const thinkingMessage = document.getElementById('thinking-message');
+            if (thinkingMessage) {
+                thinkingMessage.remove();
+            }
+        }
+
+        function sendMessage() {
+            let message = messageInput.value.trim();
+            
+            if (uploadedFile && uploadedFileContent) {
+                if (!message) {
+                    message = `Analyze this ${uploadedFile.name} file.`;
+                }
+                message += `\n\nFile: ${uploadedFile.name}\n${uploadedFileContent}`;
+            }
+            
+            if (!message || isThinking) return;
+            
+            addMessage('user', messageInput.value.trim());
+            socket.emit('chat_message', { message });
+            
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            sendButton.disabled = true;
+            
+            if (uploadedFile) {
+                uploadedFile = null;
+                uploadedFileContent = null;
+                fileButton.style.background = '#6b7280';
+            }
+        }
+
+        function handleFileSelect(file) {
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedFile = file;
+                uploadedFileContent = e.target.result;
+                fileButton.style.background = '#10b981';
+                messageInput.placeholder = `File "${file.name}" ready. Ask me to analyze it!`;
+            };
+            reader.readAsText(file);
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        messageInput.addEventListener('input', () => {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = Math.min(messageInput.scrollHeight, 150) + 'px';
+            sendButton.disabled = !messageInput.value.trim() || isThinking;
+        });
+
+        fileButton.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleFileSelect(file);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "session_id": "d8a7eb7a-e576-4c12-98f2-ec1328e33b2e",
+  "created_at": "2026-01-23T02:00:35.675013",
+  "last_updated": "2026-01-23T02:00:35.675858",
+  "messages": [
+    {
+      "id": "99039191-26eb-4383-921f-ecfa2162e918",
+      "role": "user",
+      "content": "research on current trends in AI",
+      "timestamp": "2026-01-23T02:00:35.675837",
+      "session_id": "d8a7eb7a-e576-4c12-98f2-ec1328e33b2e",
+      "agent_used": null,
+      "tools_used": 0,
+      "metadata": {}
+    }
+  ],
+  "user_preferences": {},
+  "context_summary": "",
+  "conversation_title": "Research current trends",
+  "total_messages": 1,
+  "active": true
+}

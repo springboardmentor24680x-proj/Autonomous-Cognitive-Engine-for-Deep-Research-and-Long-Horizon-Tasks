@@ -1,0 +1,32 @@
+{
+  "session_id": "test-session",
+  "created_at": "2026-01-23T02:24:03.181137",
+  "last_updated": "2026-01-23T02:24:07.130384",
+  "messages": [
+    {
+      "id": "b62d3183-f1c4-4e27-8d1a-bdb5de0dfbff",
+      "role": "user",
+      "content": "Create a project plan for launching a new mobile app",
+      "timestamp": "2026-01-23T02:24:03.182643",
+      "session_id": "test-session",
+      "agent_used": null,
+      "tools_used": 0,
+      "metadata": {}
+    },
+    {
+      "id": "923bf554-b7b4-4503-a1ec-6277d72a617a",
+      "role": "assistant",
+      "content": "## Overview\nLaunch a new mobile app within 6 months, ensuring a well-planned and executed project that meets business objectives and user expectations.\n\n## Key Steps\n1. **Define Project Scope and Requirements**: Conduct market research, gather user feedback, and establish clear project goals, timelines, and budget.\n2. **Design and Develop the App**: Collaborate with designers and developers to create a visually appealing and user-friendly app, incorporating necessary features and functionalities.\n3. **Test and Refine the App**: Conduct thorough testing, gather user feedback, and make necessary adjustments to ensure a smooth and engaging user experience.\n4. **Plan Marketing and Launch Strategy**: Develop a comprehensive marketing plan, including social media promotion, influencer partnerships, and paid advertising to generate buzz and drive downloads.\n5. **Prepare for Launch and Post-Launch Evaluation**: Coordinate with stakeholders, set up analytics tools, and establish a plan for post-launch evaluation and improvement.\n\n## Timeline\n- Month 1-2: Define project scope and requirements, design and develop the app\n- Month 3-4: Test and refine the app, plan marketing and launch strategy\n- Month 5-6: Prepare for launch, execute marketing plan, and launch the app\n\n## Budget/Resources\nEstimated budget: $200,000 - $300,000\nResources: Development team, designers, marketers, project manager\n\n## Success Tips\n1. **Establish a Strong Project Management Framework**: Use Agile methodologies and project management tools to ensure timely and efficient progress.\n2. **Conduct Thorough Testing and Feedback**: Gather user feedback and make necessary adjustments to ensure a high-quality user experience.\n3. **Monitor and Adjust the Marketing Strategy**: Continuously evaluate the marketing plan's effectiveness and make adjustments as needed to optimize results.\n\n---\n*Powered by PlanningAgent*",
+      "timestamp": "2026-01-23T02:24:07.130369",
+      "session_id": "test-session",
+      "agent_used": "PlanningAgent",
+      "tools_used": 2,
+      "metadata": {}
+    }
+  ],
+  "user_preferences": {},
+  "context_summary": "",
+  "conversation_title": "Create project plan for",
+  "total_messages": 2,
+  "active": true
+}

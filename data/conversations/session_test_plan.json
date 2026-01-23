@@ -1,0 +1,32 @@
+{
+  "session_id": "test_plan",
+  "created_at": "2026-01-23T02:24:39.188166",
+  "last_updated": "2026-01-23T02:24:42.253433",
+  "messages": [
+    {
+      "id": "49f89e3d-e7eb-4f3c-ab73-c7da0406ee4e",
+      "role": "user",
+      "content": "Plan a marketing strategy",
+      "timestamp": "2026-01-23T02:24:39.189435",
+      "session_id": "test_plan",
+      "agent_used": null,
+      "tools_used": 0,
+      "metadata": {}
+    },
+    {
+      "id": "419d337e-4ead-4248-82ab-fc8a3a812a08",
+      "role": "assistant",
+      "content": "## Overview\nDevelop a comprehensive marketing strategy to increase brand visibility, engage target audiences, and drive business growth. This plan will focus on identifying key marketing channels, creating a content calendar, and allocating resources effectively.\n\n## Key Steps\n1. **Market Analysis**: Conduct a thorough analysis of the target audience, industry trends, and competitors to identify marketing opportunities and challenges.\n2. **Channel Selection**: Choose the most effective marketing channels (e.g., social media, email, content marketing, paid advertising) based on the target audience and business goals.\n3. **Content Calendar**: Create a content calendar that outlines the types of content to be created, published, and promoted across all marketing channels.\n4. **Budget Allocation**: Allocate resources (e.g., personnel, budget, technology) to support the marketing strategy and ensure effective execution.\n5. **Performance Monitoring**: Establish key performance indicators (KPIs) to track the success of the marketing strategy and make data-driven decisions.\n\n## Timeline\n- Week 1-2: Conduct market analysis and channel selection\n- Week 3-4: Create content calendar and allocate resources\n- Week 5-12: Implement and execute marketing strategy\n- Week 13-26: Monitor performance and adjust strategy as needed\n\n## Budget/Resources\n- Personnel: 1-2 full-time employees or contractors\n- Budget: $10,000 - $50,000 (dependent on scope and channels)\n- Technology: Marketing automation tools, social media scheduling software, and content creation tools\n\n## Success Tips\n1. **Stay flexible**: Be prepared to adjust the marketing strategy based on performance data and changing market conditions.\n2. **Measure and track**: Regularly monitor KPIs to ensure the marketing strategy is meeting its objectives.\n3. **Collaborate with teams**: Ensure cross-functional collaboration to ensure effective execution and maximize resource utilization.\n\n---\n*Powered by PlanningAgent*",
+      "timestamp": "2026-01-23T02:24:42.253421",
+      "session_id": "test_plan",
+      "agent_used": "PlanningAgent",
+      "tools_used": 2,
+      "metadata": {}
+    }
+  ],
+  "user_preferences": {},
+  "context_summary": "",
+  "conversation_title": "Plan marketing strategy",
+  "total_messages": 2,
+  "active": true
+}

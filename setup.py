@@ -68,9 +68,9 @@ def setup_environment():
     print("\n Setup complete!")
     print("\nNext steps:")
     print("1. Add your API keys to the .env file:")
-    print("   - ANTHROPIC_API_KEY (required)")
-    print("   - TAVILY_API_KEY (optional, for web search)")
-    print("   - LANGCHAIN_API_KEY (optional, for LangSmith tracing)")
+    print(f"   - ANTHROPIC_API_KEY (required)")
+    print(f"   - TAVILY_API_KEY (optional, for web search)")
+    print(f"   - LANGCHAIN_API_KEY (optional, for LangSmith tracing)")
     print("2. Run: python main.py")
     print("3. Or test Milestone 1: python test_milestone1.py")
     

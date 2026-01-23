@@ -18,7 +18,7 @@ load_dotenv()
 
 def main():
     """Main interactive loop for the cognitive engine."""
-    print("🤖 Autonomous Cognitive Engine - Restructured")
+    print("Autonomous Cognitive Engine - Restructured")
     print("=" * 50)
     print("Multi-agent workflow automation system")
     print("Type 'quit' to exit, 'help' for commands")
@@ -26,17 +26,17 @@ def main():
     
     # Check API key
     if not os.getenv("GROQ_API_KEY"):
-        print("❌ GROQ_API_KEY not found in environment variables")
+        print("GROQ_API_KEY not found in environment variables")
         print("Please add your Groq API key to the .env file")
         return
     
     # Initialize the system
     try:
-        print("🔄 Initializing supervisor agent...")
+        print("Initializing supervisor agent...")
         supervisor = SupervisorAgent()
         
-        print("✅ System ready!")
-        print(f"📊 Available capabilities:")
+        print("System ready!")
+        print(f"Available capabilities:")
         print(f"   - Natural conversation with context")
         print(f"   - Context-aware responses")
         print(f"   - Virtual file system for memory")
@@ -44,7 +44,7 @@ def main():
         print()
         
     except Exception as e:
-        print(f"❌ Initialization failed: {e}")
+        print(f"Initialization failed: {e}")
         return
     
     # Interactive loop with conversation context
@@ -52,7 +52,7 @@ def main():
     
     while True:
         try:
-            user_input = input("🧠 Enter your request: ").strip()
+            user_input = input("Enter your request: ").strip()
             
             if not user_input:
                 continue
@@ -80,7 +80,7 @@ def main():
             if len(conversation_history) > 20:
                 conversation_history = conversation_history[-20:]
             
-            print("🔄 Processing with supervisor agent...")
+            print("Processing with supervisor agent...")
             result = supervisor.run_with_context(user_input, conversation_history)
             
             # Add response to history
@@ -94,14 +94,14 @@ def main():
             # Display results
             print("\n" + "="*60)
             if result["success"]:
-                print("✅ Task completed successfully!")
-                print(f"🛠️ Tools used: {result.get('tools_used', 0)}")
+                print("Task completed successfully!")
+                print(f"Tools used: {result.get('tools_used', 0)}")
                 if result.get('execution_plan'):
-                    print(f"📋 Plan: {result['execution_plan']}")
-                print("\n📝 Response:")
+                    print(f"Plan: {result['execution_plan']}")
+                print("\nResponse:")
                 print(result["final_response"])
             else:
-                print("❌ Task failed:")
+                print("Task failed:")
                 print(result.get("error", "Unknown error"))
             
             print("="*60 + "\n")
@@ -110,15 +110,15 @@ def main():
             print("\n👋 Goodbye!")
             break
         except Exception as e:
-            print(f"❌ Error: {e}")
+            print(f"Error: {e}")
 
 def print_help():
     """Print help information."""
-    print("\n📚 Available Commands:")
+    print("\nAvailable Commands:")
     print("  help, h     - Show this help message")
     print("  status      - Show system status")
     print("  quit, exit  - Exit the program")
-    print("\n💡 Example requests:")
+    print("\nExample requests:")
     print("  'What are good study tips?'")
     print("  'Plan a budget for $3000 monthly income'")
     print("  'Create a weekend trip itinerary for Paris'")
@@ -129,7 +129,7 @@ def print_help():
 
 def print_status(supervisor):
     """Print system status."""
-    print("\n📊 System Status:")
+    print("\nSystem Status:")
     status = supervisor.get_status()
     for key, value in status.items():
         print(f"  {key}: {value}")

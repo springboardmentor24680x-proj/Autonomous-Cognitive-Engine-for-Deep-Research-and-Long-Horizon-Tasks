@@ -1,0 +1,32 @@
+{
+  "session_id": "test_trans",
+  "created_at": "2026-01-23T02:24:29.357797",
+  "last_updated": "2026-01-23T02:24:35.086144",
+  "messages": [
+    {
+      "id": "3c30d1ed-3d5b-4e7f-a02b-b6d9edcf8395",
+      "role": "user",
+      "content": "Translate to Spanish: Hello world",
+      "timestamp": "2026-01-23T02:24:29.361756",
+      "session_id": "test_trans",
+      "agent_used": null,
+      "tools_used": 0,
+      "metadata": {}
+    },
+    {
+      "id": "2d4a5bf8-3d7b-44c8-8086-7d5eca20b23c",
+      "role": "assistant",
+      "content": "## Translation\nHola mundo\n\n## Cultural Notes\nThis translation is a direct equivalent of the English phrase \"Hello world,\" which is often used as a test phrase in programming and other contexts. In Spanish, the phrase is widely recognized and used in a similar way.\n\n## Confidence Level\nHigh\n\n---\n*Powered by TranslationAgent*",
+      "timestamp": "2026-01-23T02:24:35.086120",
+      "session_id": "test_trans",
+      "agent_used": "TranslationAgent",
+      "tools_used": 2,
+      "metadata": {}
+    }
+  ],
+  "user_preferences": {},
+  "context_summary": "",
+  "conversation_title": "Translate Spanish: world",
+  "total_messages": 2,
+  "active": true
+}

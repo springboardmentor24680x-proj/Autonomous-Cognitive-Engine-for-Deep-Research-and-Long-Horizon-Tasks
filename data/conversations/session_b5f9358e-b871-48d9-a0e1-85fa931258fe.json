@@ -1,0 +1,32 @@
+{
+  "session_id": "b5f9358e-b871-48d9-a0e1-85fa931258fe",
+  "created_at": "2026-01-23T02:01:52.787423",
+  "last_updated": "2026-01-23T02:01:56.774163",
+  "messages": [
+    {
+      "id": "31072914-22fc-43a3-81b8-214fcde7f98e",
+      "role": "user",
+      "content": "Research the latest developments and trends in artificial intelligence technology for 2024",
+      "timestamp": "2026-01-23T02:01:52.788959",
+      "session_id": "b5f9358e-b871-48d9-a0e1-85fa931258fe",
+      "agent_used": null,
+      "tools_used": 0,
+      "metadata": {}
+    },
+    {
+      "id": "b949f4f6-70d5-4275-8c46-889f5e76d678",
+      "role": "assistant",
+      "content": "Research the latest developments and trends in artificial intelligence technology for 2024\n\n---\n*Powered by SearchAgent*",
+      "timestamp": "2026-01-23T02:01:56.774117",
+      "session_id": "b5f9358e-b871-48d9-a0e1-85fa931258fe",
+      "agent_used": "SearchAgent",
+      "tools_used": 2,
+      "metadata": {}
+    }
+  ],
+  "user_preferences": {},
+  "context_summary": "",
+  "conversation_title": "Research the latest developments",
+  "total_messages": 2,
+  "active": true
+}

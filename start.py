@@ -20,8 +20,8 @@ def check_requirements():
         from dotenv import load_dotenv
         return True
     except ImportError as e:
-        print(f"❌ Missing dependency: {e}")
-        print("💡 Run: pip install -r requirements.txt")
+        print(f" Missing dependency: {e}")
+        print(" Run: pip install -r requirements.txt")
         return False
 
 def check_env():
@@ -31,16 +31,16 @@ def check_env():
     
     groq_key = os.getenv("GROQ_API_KEY")
     if not groq_key:
-        print("❌ GROQ_API_KEY not found in .env file")
-        print("💡 Add your Groq API key to .env file")
+        print(" GROQ_API_KEY not found in .env file")
+        print(" Add your Groq API key to .env file")
         return False
     
-    print(f"✅ GROQ_API_KEY configured (starts with: {groq_key[:10]}...)")
+    print(f" GROQ_API_KEY configured (starts with: {groq_key[:10]}...)")
     return True
 
 def main():
     """Main startup function."""
-    print("🚀 Autonomous Cognitive Engine")
+    print(" Autonomous Cognitive Engine")
     print("=" * 50)
     
     # Check requirements
@@ -52,7 +52,7 @@ def main():
         return False
     
     # Start the web UI
-    print("🌐 Starting Web UI...")
+    print(" Starting Web UI...")
     print("📍 URL: http://localhost:5000")
     print("🛑 Press Ctrl+C to stop")
     print("=" * 50)
@@ -64,7 +64,7 @@ def main():
     except KeyboardInterrupt:
         print("\n👋 Shutting down...")
     except Exception as e:
-        print(f"❌ Error starting web UI: {e}")
+        print(f" Error starting web UI: {e}")
         return False
     
     return True

@@ -21,6 +21,8 @@ class SearchAgent:
     Specialized agent for web search, research, and information gathering.
     Handles research tasks delegated by the supervisor agent.
     """
+
+    
     
     def __init__(self, model_name: str = "llama-3.1-8b-instant"):
         """Initialize the search agent."""
@@ -47,37 +49,53 @@ CURRENT DATE & TIME:
 - Month: {now.strftime("%B %Y")}
 """
         
-        return f"""You are a Search Agent, specialized in web research and information gathering.
+        return f"""You are an expert Research Intelligence Agent with deep expertise in information gathering, market analysis, and strategic research. You provide comprehensive, well-structured research reports that deliver actionable insights.
 
 {current_info}
 
-CORE CAPABILITIES:
-- Conduct comprehensive web research
-- Gather current and accurate information
-- Synthesize findings from multiple sources
-- Fact-checking and verification
-- Trend analysis and market research
+RESPONSE STYLE:
+- Professional and analytical, like a senior research consultant
+- Well-structured with clear headers and sections
+- Comprehensive yet focused on key insights
+- Include data-driven findings and strategic implications
+- Provide actionable recommendations based on research
 
-RESEARCH METHODOLOGY:
-1. **Query Planning**: Develop effective search strategies
-2. **Information Gathering**: Collect relevant, current data
-3. **Source Evaluation**: Assess credibility and relevance
-4. **Synthesis**: Combine findings into coherent insights
-5. **Verification**: Cross-reference important facts
+CORE EXPERTISE:
+- **Market Research**: Industry analysis, competitive intelligence, trend identification
+- **Information Synthesis**: Combining multiple sources into coherent insights
+- **Data Analysis**: Statistical interpretation, pattern recognition, forecasting
+- **Strategic Research**: Business intelligence, opportunity assessment, risk analysis
+- **Fact Verification**: Source credibility assessment, cross-referencing, accuracy validation
+- **Trend Analysis**: Emerging patterns, future projections, market dynamics
 
-OUTPUT FORMAT:
-- Use **bold** for key findings and section headers
-- Use bullet points (-) for research findings
-- Use numbered lists (1. 2. 3.) for sequential information
-- Cite sources and provide context
-- Highlight important data with `backticks`
+RESEARCH SPECIALIZATIONS:
+- **Industry Analysis**: Market size, growth trends, key players, competitive landscape
+- **Technology Research**: Innovation trends, emerging technologies, adoption patterns
+- **Business Intelligence**: Company analysis, financial performance, strategic positioning
+- **Consumer Insights**: Behavior patterns, preferences, demographic analysis
+- **Regulatory Research**: Compliance requirements, policy changes, legal implications
+- **Academic Research**: Scientific studies, research papers, expert opinions
 
-RESEARCH STRUCTURE:
-1. **Executive Summary**: Brief overview of findings
-2. **Key Findings**: Main research results
-3. **Detailed Analysis**: In-depth information
-4. **Sources & References**: Information sources
-5. **Recommendations**: Actionable insights
+RESPONSE STRUCTURE:
+## Research Overview
+Brief summary of research scope and methodology
+
+## Key Findings
+Primary insights and discoveries
+
+## Market Analysis
+Industry trends, competitive landscape, opportunities
+
+## Strategic Implications
+Business impact and strategic considerations
+
+## Data & Evidence
+Supporting statistics, studies, and sources
+
+## Recommendations
+Actionable next steps and strategic advice
+
+Always provide comprehensive, well-researched analysis with professional insights that demonstrate deep research expertise and strategic thinking.
 
 RESEARCH FOCUS AREAS:
 - Current events and news
@@ -109,7 +127,7 @@ Always provide accurate, well-sourced, and actionable research results."""
             })
             
             # Add metadata and structure
-            enhanced_results = f"""## 🔍 **Research Results**
+            enhanced_results = f"""## Research Results
 
 **Query**: {research_query}
 **Focus Area**: {focus_area}
@@ -222,33 +240,48 @@ Always provide accurate, well-sourced, and actionable research results."""
     
     def process_task(self, task_description: str) -> Dict[str, Any]:
         """Main method to process search and research tasks."""
-        try:
-            # Determine the type of research task
-            task_lower = task_description.lower()
-            
-            if "fact check" in task_lower or "verify" in task_lower:
-                # Extract the claim to fact-check
-                claim = task_description.replace("fact check", "").replace("verify", "").strip()
-                return self.fact_check(claim)
-            elif "trend" in task_lower or "trends" in task_lower:
-                # Extract the topic for trend analysis
-                topic = task_description.replace("trend", "").replace("trends", "").strip()
-                return self.trend_analysis(topic)
-            elif "market" in task_lower:
-                # Extract the market for research
-                market = task_description.replace("market", "").replace("research", "").strip()
-                return self.market_research(market)
-            else:
-                # Default to general research
-                return self.conduct_research(task_description)
+        from langsmith import traceable
+        
+        @traceable(
+            run_type="chain",
+            name="SearchAgent - Process Task",
+            metadata={
+                "agent": "SearchAgent",
+                "task": task_description[:100],
+                "task_type": "research"
+            },
+            tags=["sub_agent", "search", "execution"]
+        )
+        def execute_search(task_input: str):  # ← Parameter shows in Input tab
+            try:
+                # Determine the type of research task
+                task_lower = task_input.lower()
                 
-        except Exception as e:
-            return {
-                "success": False,
-                "error": str(e),
-                "result": f"Search Agent Error: {str(e)}",
-                "agent_type": self.agent_type
-            }
+                if "fact check" in task_lower or "verify" in task_lower:
+                    # Extract the claim to fact-check
+                    claim = task_input.replace("fact check", "").replace("verify", "").strip()
+                    return self.fact_check(claim)
+                elif "trend" in task_lower or "trends" in task_lower:
+                    # Extract the topic for trend analysis
+                    topic = task_input.replace("trend", "").replace("trends", "").strip()
+                    return self.trend_analysis(topic)
+                elif "market" in task_lower:
+                    # Extract the market for research
+                    market = task_input.replace("market", "").replace("research", "").strip()
+                    return self.market_research(market)
+                else:
+                    # Default to general research
+                    return self.conduct_research(task_input)
+                    
+            except Exception as e:
+                return {
+                    "success": False,
+                    "error": str(e),
+                    "result": f"Search Agent Error: {str(e)}",
+                    "agent_type": self.agent_type
+                }
+        
+        return execute_search(task_description)  # ← Pass task_description as parameter
     
     def get_capabilities(self) -> Dict[str, Any]:
         """Get the capabilities of the search agent."""

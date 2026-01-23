@@ -1,4 +1,4 @@
-# 🏗️ Multi-Agent Workflow Automation Architecture
+# Multi-Agent Workflow Automation Architecture
 
 ## System Overview
 
@@ -15,10 +15,10 @@ The Autonomous Cognitive Engine implements a sophisticated multi-agent workflow 
 
 ```python
 class SupervisorAgent:
-    def analyze_task(self, user_input: str) -> Dict[str, Any]
-    def plan_execution(self, user_input: str, analysis: Dict[str, Any]) -> List[str]
-    def execute_task(self, user_input: str) -> Dict[str, Any]
-    def run(self, user_input: str) -> Dict[str, Any]
+ def analyze_task(self, user_input: str) -> Dict[str, Any]
+ def plan_execution(self, user_input: str, analysis: Dict[str, Any]) -> List[str]
+ def execute_task(self, user_input: str) -> Dict[str, Any]
+ def run(self, user_input: str) -> Dict[str, Any]
 ```
 
 ### 2. Specialized Sub-Agents (`src/agents/`)
@@ -42,10 +42,10 @@ class SupervisorAgent:
 
 ```python
 class VirtualFileSystem:
-    def write_file(self, filename: str, content: str) -> Dict[str, Any]
-    def read_file(self, filename: str) -> Dict[str, Any]
-    def list_files(self, path: str = "/") -> Dict[str, Any]
-    def edit_file(self, filename: str, operation: str, content: str) -> Dict[str, Any]
+ def write_file(self, filename: str, content: str) -> Dict[str, Any]
+ def read_file(self, filename: str) -> Dict[str, Any]
+ def list_files(self, path: str = "/") -> Dict[str, Any]
+ def edit_file(self, filename: str, operation: str, content: str) -> Dict[str, Any]
 ```
 
 ### 4. Tool Ecosystem (`src/tools/`)
@@ -70,10 +70,10 @@ class VirtualFileSystem:
 
 ```python
 class MultiAgentWorkflow:
-    def _build_workflow(self) -> StateGraph
-    def _supervisor_node(self, state: AgentState) -> AgentState
-    def _executor_node(self, state: AgentState) -> AgentState
-    def _synthesizer_node(self, state: AgentState) -> AgentState
+ def _build_workflow(self) -> StateGraph
+ def _supervisor_node(self, state: AgentState) -> AgentState
+ def _executor_node(self, state: AgentState) -> AgentState
+ def _synthesizer_node(self, state: AgentState) -> AgentState
 ```
 
 ## Workflow Execution Flow
@@ -108,26 +108,26 @@ All Results → Final Synthesis → Structured Response
 ### Agent State Structure
 ```python
 class AgentState(TypedDict):
-    messages: List[BaseMessage]
-    user_input: str
-    current_agent: str
-    task_analysis: Dict[str, Any]
-    execution_plan: List[str]
-    intermediate_results: List[Dict[str, Any]]
-    final_response: str
-    tools_used: int
-    context: Dict[str, Any]
-    next_action: str
+ messages: List[BaseMessage]
+ user_input: str
+ current_agent: str
+ task_analysis: Dict[str, Any]
+ execution_plan: List[str]
+ intermediate_results: List[Dict[str, Any]]
+ final_response: str
+ tools_used: int
+ context: Dict[str, Any]
+ next_action: str
 ```
 
 ### VFS State Management
 ```python
 _current_agent_state = {
-    "virtual_files": {},      # File content storage
-    "todos": [],             # Task management
-    "current_todo_id": None, # Active task tracking
-    "step_count": 0,         # Execution progress
-    "max_steps": 10          # Safety limits
+ "virtual_files": {}, # File content storage
+ "todos": [], # Task management
+ "current_todo_id": None, # Active task tracking
+ "step_count": 0, # Execution progress
+ "max_steps": 10 # Safety limits
 }
 ```
 

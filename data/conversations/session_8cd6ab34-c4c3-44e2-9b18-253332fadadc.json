@@ -1,0 +1,32 @@
+{
+  "session_id": "8cd6ab34-c4c3-44e2-9b18-253332fadadc",
+  "created_at": "2026-01-23T01:59:41.751050",
+  "last_updated": "2026-01-23T01:59:45.891225",
+  "messages": [
+    {
+      "id": "c557745b-77c9-442a-9d48-354c46dc2c38",
+      "role": "user",
+      "content": "research on current trends in AI",
+      "timestamp": "2026-01-23T01:59:41.752795",
+      "session_id": "8cd6ab34-c4c3-44e2-9b18-253332fadadc",
+      "agent_used": null,
+      "tools_used": 0,
+      "metadata": {}
+    },
+    {
+      "id": "1e0960dd-5c87-4adf-974e-1f1fba2697d4",
+      "role": "assistant",
+      "content": "Task processed by SearchAgent\n\n---\n*Powered by SearchAgent*",
+      "timestamp": "2026-01-23T01:59:45.891169",
+      "session_id": "8cd6ab34-c4c3-44e2-9b18-253332fadadc",
+      "agent_used": "SearchAgent",
+      "tools_used": 2,
+      "metadata": {}
+    }
+  ],
+  "user_preferences": {},
+  "context_summary": "",
+  "conversation_title": "Research current trends",
+  "total_messages": 2,
+  "active": true
+}

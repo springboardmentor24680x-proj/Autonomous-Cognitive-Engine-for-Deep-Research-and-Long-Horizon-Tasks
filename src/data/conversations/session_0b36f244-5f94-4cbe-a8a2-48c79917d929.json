@@ -1,0 +1,32 @@
+{
+  "session_id": "0b36f244-5f94-4cbe-a8a2-48c79917d929",
+  "created_at": "2026-01-22T20:31:22.517750",
+  "last_updated": "2026-01-22T20:31:27.449814",
+  "messages": [
+    {
+      "id": "ee53eebb-1cfd-4fb7-a7ac-aa500aaa2d25",
+      "role": "user",
+      "content": "Translate this to Spanish: Hello, how are you today?",
+      "timestamp": "2026-01-22T20:31:22.519818",
+      "session_id": "0b36f244-5f94-4cbe-a8a2-48c79917d929",
+      "agent_used": null,
+      "tools_used": 0,
+      "metadata": {}
+    },
+    {
+      "id": "a1759d1e-ab8e-4dd7-9235-a0d4d4497f41",
+      "role": "assistant",
+      "content": "## Translation\nHola, ¿cómo estás hoy?\n\n## Cultural Notes\nIn Spanish-speaking cultures, it's common to ask \"¿cómo estás?\" (how are you?) without expecting a detailed response. The question is often used as a greeting or a way to show interest in the person's well-being, rather than seeking a specific answer.\n\n## Confidence Level\nHigh\n\n---\n*Powered by TranslationAgent*",
+      "timestamp": "2026-01-22T20:31:27.449780",
+      "session_id": "0b36f244-5f94-4cbe-a8a2-48c79917d929",
+      "agent_used": "TranslationAgent",
+      "tools_used": 2,
+      "metadata": {}
+    }
+  ],
+  "user_preferences": {},
+  "context_summary": "",
+  "conversation_title": "Translate this Spanish: how",
+  "total_messages": 2,
+  "active": true
+}

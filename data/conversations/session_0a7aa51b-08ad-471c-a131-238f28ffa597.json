@@ -1,0 +1,32 @@
+{
+  "session_id": "0a7aa51b-08ad-471c-a131-238f28ffa597",
+  "created_at": "2026-01-23T02:18:39.115028",
+  "last_updated": "2026-01-23T02:18:41.239029",
+  "messages": [
+    {
+      "id": "ce5e4c1b-6197-4016-b7c3-926b174dc9e1",
+      "role": "user",
+      "content": "plan a trip to ooty",
+      "timestamp": "2026-01-23T02:18:39.119000",
+      "session_id": "0a7aa51b-08ad-471c-a131-238f28ffa597",
+      "agent_used": null,
+      "tools_used": 0,
+      "metadata": {}
+    },
+    {
+      "id": "1edfaa9d-726a-4f4f-aa0e-d8374a13ec73",
+      "role": "assistant",
+      "content": "## Revisiting Ooty: A Refreshed Travel Plan\n\nGiven our previous conversation about planning a trip to Ooty, I'll provide a comprehensive and updated travel plan for you.\n\n### **When to Visit**\n\nOoty is a year-round destination, but the best time to visit is from **September to November** and **March to May**. These periods offer pleasant weather, making it ideal for sightseeing and outdoor activities.\n\n### **Getting There**\n\n1. **By Air**: The nearest airport is Coimbatore International Airport (CJB), which is about 100 km from Ooty. You can take a taxi or bus from the airport to Ooty.\n2. **By Train**: The nearest railway station is Mettupalayam, which is about 47 km from Ooty. You can take a toy train from Mettupalayam to Ooty.\n3. **By Bus**: Regular bus services are available from major cities like Bangalore, Mysore, and Coimbatore to Ooty.\n\n### **Accommodation**\n\nOoty offers a wide range of accommodations, from budget-friendly guesthouses to luxury resorts. Consider staying in the following areas:\n\n1. **Charring Cross**: The heart of Ooty, with easy access to major attractions.\n2. **Racing Course**: A quieter area with scenic views and a golf course nearby.\n3. **Ketti Valley**: A peaceful area with stunning views of the surrounding hills.\n\n### **Itinerary**\n\nHere's a suggested 4-day itinerary for your trip to Ooty:\n\nDay 1: Arrival and Exploration\n\n* Arrive in Ooty and check-in to your hotel\n* Visit the **Doddabetta Peak**, the highest point in Ooty\n* Explore the **Ooty Lake** and take a boat ride\n\nDay 2: Nature and Wildlife\n\n* Visit the **Rose Garden**, a beautiful garden with over 20,000 varieties of roses\n* Explore the **Mudumalai National Park**, a wildlife sanctuary with elephants, tigers, and other animals\n* Take a trek to the **Ketti Valley**, a scenic area with stunning views\n\nDay 3: History and Culture\n\n* Visit the **Ooty Botanical Gardens**, a beautiful garden with a variety of plants and flowers\n* Explore the **Government Museum**, which showcases the history and culture of the region\n* Visit the **St. Stephen's Church**, a beautiful church with stunning architecture\n\nDay 4: Adventure and Relaxation\n\n* Take a **tea plantation tour**, where you can learn about the tea-making process\n* Visit the **Ooty Golf Course**, a scenic golf course with stunning views\n* Relax at your hotel or explore the local market\n\n### **Tips and Essentials**\n\n* **Weather**: Ooty can be chilly, especially in the mornings and evenings. Pack warm clothing.\n* **Transportation**: Hire a taxi or rent a bike to explore the town.\n* **Food**: Try the local cuisine, including tea, coffee, and traditional dishes like idlis and dosas.\n* **Safety**: Be mindful of your belongings and avoid traveling alone at night.\n\nThis revised travel plan should help you make the most of your trip to Ooty. Enjoy your journey!",
+      "timestamp": "2026-01-23T02:18:41.239002",
+      "session_id": "0a7aa51b-08ad-471c-a131-238f28ffa597",
+      "agent_used": null,
+      "tools_used": 1,
+      "metadata": {}
+    }
+  ],
+  "user_preferences": {},
+  "context_summary": "",
+  "conversation_title": "Plan trip ooty",
+  "total_messages": 2,
+  "active": true
+}

@@ -1,57 +1,43 @@
 {
-  "test_persistent.txt": {
-    "created_at": "2025-12-29T17:14:22.598839",
-    "modified_at": "2025-12-29T17:14:22.598862",
-    "size": 54,
-    "type": "text",
-    "file_path": "data\\vfs_storage\\files\\test_persistent.txt"
+  "files": {},
+  "stats": {
+    "total_files": 0,
+    "total_size": 0,
+    "created_at": "2026-01-23T01:53:57.797498",
+    "last_updated": "2026-01-23T01:53:57.797633"
   },
-  "persistent_test.txt": {
-    "created_at": "2025-12-29T17:18:26.877083",
-    "modified_at": "2025-12-29T17:18:26.877095",
-    "size": 32,
-    "type": "text",
-    "file_path": "data\\vfs_storage\\files\\persistent_test.txt"
-  },
-  "user_notes.md": {
-    "created_at": "2025-12-29T17:18:26.878991",
-    "modified_at": "2025-12-29T17:18:26.879012",
-    "size": 49,
-    "type": "text",
-    "file_path": "data\\vfs_storage\\files\\user_notes.md"
-  },
-  "project_notes.md": {
-    "created_at": "2025-12-29T17:45:44.976573",
-    "modified_at": "2025-12-29T17:45:44.976583",
-    "size": 183,
+  "conversation_do_you_remember_20260123_021502.txt": {
+    "created_at": "2026-01-23T02:15:02.458233",
+    "modified_at": "2026-01-23T02:15:02.458238",
+    "size": 1160,
     "type": "text",
     "persistent": true
   },
-  "conversation_create_a_detailed_20251229_174549.txt": {
-    "created_at": "2025-12-29T17:45:49.814012",
-    "modified_at": "2025-12-29T17:45:49.814027",
-    "size": 4698,
+  "conversation_what_did_i_20260123_021503.txt": {
+    "created_at": "2026-01-23T02:15:03.903796",
+    "modified_at": "2026-01-23T02:15:03.903801",
+    "size": 1168,
     "type": "text",
     "persistent": true
   },
-  "conversation_plan_a_2_20251229_190743.txt": {
-    "created_at": "2025-12-29T19:07:43.943213",
-    "modified_at": "2025-12-29T19:07:43.943224",
-    "size": 3491,
+  "conversation_plan_a_trip_20260123_021841.txt": {
+    "created_at": "2026-01-23T02:18:41.199916",
+    "modified_at": "2026-01-23T02:18:41.199953",
+    "size": 2873,
     "type": "text",
     "persistent": true
   },
-  "conversation_heyyyy_20251229_190836.txt": {
-    "created_at": "2025-12-29T19:08:36.520956",
-    "modified_at": "2025-12-29T19:08:36.520967",
-    "size": 2077,
+  "conversation_plan_5_days_20260123_023004.txt": {
+    "created_at": "2026-01-23T02:30:04.307928",
+    "modified_at": "2026-01-23T02:30:04.307960",
+    "size": 2936,
     "type": "text",
     "persistent": true
   },
-  "conversation_reasearch_on_trendin_20251229_190905.txt": {
-    "created_at": "2025-12-29T19:09:05.187551",
-    "modified_at": "2025-12-29T19:09:05.187560",
-    "size": 2814,
+  "conversation_write_a_creative_20260123_023426.txt": {
+    "created_at": "2026-01-23T02:34:26.495939",
+    "modified_at": "2026-01-23T02:34:26.495954",
+    "size": 4414,
     "type": "text",
     "persistent": true
   }

@@ -1,0 +1,32 @@
+{
+  "session_id": "test-session-2",
+  "created_at": "2026-01-23T02:15:01.261743",
+  "last_updated": "2026-01-23T02:15:02.462587",
+  "messages": [
+    {
+      "id": "30196114-8de8-4a3a-ad56-adfe72d1d7ef",
+      "role": "user",
+      "content": "Do you remember our previous conversation?",
+      "timestamp": "2026-01-23T02:15:01.263805",
+      "session_id": "test-session-2",
+      "agent_used": null,
+      "tools_used": 0,
+      "metadata": {}
+    },
+    {
+      "id": "2ca3bb5a-bcb2-4f9d-bd56-3f8c11978334",
+      "role": "assistant",
+      "content": "## Previous Conversation Review\n\nUnfortunately, I'm a stateless AI model, which means I don't have the ability to retain information about previous conversations. Each time you interact with me, it's a new conversation, and I don't have any prior knowledge or context.\n\nHowever, I can suggest a few ways to help you recall or reference previous conversations:\n\n### Option 1: Review Our Current Conversation\n\nWe can review our current conversation and try to pick up where we left off. I can summarize our previous discussion and provide any relevant information or context.\n\n### Option 2: Provide Context\n\nIf you'd like to continue a previous conversation, please provide some context or details about what we were discussing. This will help me better understand the topic and provide more relevant information.\n\n### Option 3: Start Fresh\n\nIf you're starting a new conversation, we can begin from scratch. I'll do my best to provide helpful and accurate information to address your questions and concerns.\n\nLet me know which option works best for you, or if you have any other questions or concerns.",
+      "timestamp": "2026-01-23T02:15:02.462566",
+      "session_id": "test-session-2",
+      "agent_used": null,
+      "tools_used": 1,
+      "metadata": {}
+    }
+  ],
+  "user_preferences": {},
+  "context_summary": "",
+  "conversation_title": "You remember our previous",
+  "total_messages": 2,
+  "active": true
+}

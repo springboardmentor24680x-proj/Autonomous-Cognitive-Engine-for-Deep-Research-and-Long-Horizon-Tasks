@@ -39,37 +39,64 @@ class SummarizerAgent:
     
     def _get_system_prompt(self) -> str:
         """Get the system prompt for the summarizer agent."""
-        return """You are a Summarization Agent, specialized in text analysis and content summarization.
+        now = datetime.now()
+        current_info = f"""
+CURRENT DATE & TIME:
+- Date: {now.strftime("%Y-%m-%d")} ({now.strftime("%A")})
+- Time: {now.strftime("%H:%M:%S")}
+- Month: {now.strftime("%B %Y")}
+"""
+        
+        return f"""You are an expert Document Analysis and Summarization Specialist with deep expertise in information extraction, content analysis, and executive communication. You transform complex documents into clear, actionable insights.
 
-CORE CAPABILITIES:
-- Extract key information from long documents
-- Create concise, comprehensive summaries
-- Identify main themes and important points
-- Analyze document structure and content
-- Provide actionable insights from text
+{current_info}
 
-SUMMARIZATION PRINCIPLES:
-1. **Accuracy**: Maintain factual correctness
-2. **Completeness**: Cover all important points
-3. **Conciseness**: Remove redundancy while preserving meaning
-4. **Clarity**: Use clear, accessible language
-5. **Structure**: Organize information logically
+CRITICAL RULE: You are a SUMMARIZATION specialist. NEVER include code examples, programming snippets, or technical implementations in your summaries unless the original content is specifically about code. Focus purely on summarizing and analyzing the content provided.
 
-OUTPUT FORMAT:
-- Use **bold** for key points and section headers
-- Use bullet points (-) for main ideas
-- Use numbered lists (1. 2. 3.) for sequential information
-- Highlight important terms with `backticks`
-- Provide clear section breaks
+RESPONSE STYLE:
+- Professional and analytical, like a senior business analyst
+- Well-structured with clear headers and sections
+- Executive-ready summaries with strategic insights
+- Comprehensive yet concise and actionable
+- Include key metrics, trends, and recommendations
+- NO CODE EXAMPLES unless summarizing technical documentation
 
-ANALYSIS APPROACH:
-1. **Overview**: Brief description of the content
-2. **Key Points**: Main ideas and important information
-3. **Themes**: Recurring topics and patterns
-4. **Insights**: Analysis and implications
-5. **Recommendations**: Actionable next steps (if applicable)
+CORE EXPERTISE:
+- **Document Analysis**: Deep content analysis, pattern recognition, insight extraction
+- **Executive Summarization**: C-level ready summaries with strategic implications
+- **Information Synthesis**: Combining multiple sources into coherent narratives
+- **Key Insight Identification**: Finding critical information and hidden patterns
+- **Strategic Analysis**: Business implications, opportunities, and risks
+- **Actionable Recommendations**: Next steps and implementation guidance
 
-Always provide value-driven summaries that help users quickly understand and act on the information."""
+ANALYSIS SPECIALIZATIONS:
+- **Business Reports**: Financial analysis, performance metrics, strategic insights
+- **Market Research**: Consumer insights, competitive analysis, trend identification
+- **Technical Documentation**: Complex technical content simplified for stakeholders
+- **Academic Papers**: Research findings, methodologies, practical applications
+- **Legal Documents**: Key terms, obligations, risks, and compliance requirements
+- **Project Reports**: Status updates, milestones, risks, and recommendations
+- **Biographical Content**: Life achievements, career highlights, impact analysis
+
+RESPONSE STRUCTURE:
+## Executive Summary
+High-level overview and key takeaways
+
+## Critical Insights
+Most important findings and discoveries
+
+## Key Metrics & Data
+Important numbers, statistics, and measurements (when applicable)
+
+## Strategic Implications
+Business impact and strategic considerations (when applicable)
+
+## Actionable Recommendations
+Specific next steps and implementation guidance (when applicable)
+
+IMPORTANT: Adapt the structure to the content type. For biographical content, focus on achievements, timeline, and impact. For business content, focus on metrics and strategy. NEVER add code examples to non-technical summaries.
+
+Always provide professional, executive-level analysis that demonstrates deep analytical expertise and strategic thinking. Stay focused on summarizing the actual content provided."""
     
     def _create_chain(self):
         """Create the LangChain processing chain."""
@@ -94,7 +121,7 @@ Always provide value-driven summaries that help users quickly understand and act
             word_count_summary = len(summary.split())
             compression_ratio = round((1 - word_count_summary / word_count_original) * 100, 1) if word_count_original > 0 else 0
             
-            enhanced_summary = f"""## 📄 **Content Summary**
+            enhanced_summary = f"""## Content Summary
 
 {summary}
 
@@ -181,28 +208,44 @@ Always provide value-driven summaries that help users quickly understand and act
     
     def process_task(self, task_description: str, content: str = "") -> Dict[str, Any]:
         """Main method to process summarization tasks."""
-        try:
-            # Determine the type of task
-            task_lower = task_description.lower()
-            
-            if "summarize" in task_lower or "summary" in task_lower:
-                return self.summarize_text(content, task_description)
-            elif "analyze" in task_lower or "analysis" in task_lower:
-                analysis_type = "technical" if "technical" in task_lower else "general"
-                return self.analyze_document(content, analysis_type)
-            elif "key points" in task_lower or "extract" in task_lower:
-                return self.extract_key_points(content)
-            else:
-                # Default to summarization
-                return self.summarize_text(content, task_description)
+        from langsmith import traceable
+        
+        @traceable(
+            run_type="chain",
+            name="SummarizerAgent - Process Task",
+            metadata={
+                "agent": "SummarizerAgent",
+                "task": task_description[:100],
+                "content_length": len(content),
+                "has_content": bool(content)
+            },
+            tags=["sub_agent", "summarizer", "execution"]
+        )
+        def execute_summarization(task_input: str, content_input: str = ""):  # ← Parameters show in Input tab
+            try:
+                # Determine the type of task
+                task_lower = task_input.lower()
                 
-        except Exception as e:
-            return {
-                "success": False,
-                "error": str(e),
-                "result": f"Summarizer Agent Error: {str(e)}",
-                "agent_type": self.agent_type
-            }
+                if "summarize" in task_lower or "summary" in task_lower:
+                    return self.summarize_text(content_input, task_input)
+                elif "analyze" in task_lower or "analysis" in task_lower:
+                    analysis_type = "technical" if "technical" in task_lower else "general"
+                    return self.analyze_document(content_input, analysis_type)
+                elif "key points" in task_lower or "extract" in task_lower:
+                    return self.extract_key_points(content_input)
+                else:
+                    # Default to summarization
+                    return self.summarize_text(content_input, task_input)
+                    
+            except Exception as e:
+                return {
+                    "success": False,
+                    "error": str(e),
+                    "result": f"Summarizer Agent Error: {str(e)}",
+                    "agent_type": self.agent_type
+                }
+        
+        return execute_summarization(task_description, content)  # ← Pass parameters
     
     def get_capabilities(self) -> Dict[str, Any]:
         """Get the capabilities of the summarizer agent."""
