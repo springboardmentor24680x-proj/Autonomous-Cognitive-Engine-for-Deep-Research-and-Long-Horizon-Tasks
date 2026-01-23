@@ -20,6 +20,10 @@ This project implements an **autonomous multi-agent cognitive engine** that inte
 - 🌐 **Real-Time Web Interface** - Modern chat UI with Socket.IO
 - 📝 **Professional Output** - Clean markdown formatting with proper attribution
 
+## 📊 Project Presentation
+
+🎨 **[View Interactive Presentation](https://www.canva.com/design/DAG_O1x7c-0/8WrNnqafjj7sjWJp1PyGKQ/edit?utm_content=DAG_O1x7c-0&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)** - Complete project overview with visual demonstrations and system architecture
+
 ## 🏗️ Architecture
 
 ```
