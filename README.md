@@ -269,12 +269,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Groq** for fast LLM inference
 - **Tavily** for web search capabilities
 
-## 📞 Support
 
-For questions, issues, or contributions:
-- 📧 Email: [your-email@example.com]
-- 🐛 Issues: [GitHub Issues](https://github.com/your-username/repo/issues)
-- 📖 Docs: [Technical Documentation](PROJECT_DOCUMENTATION.md)
 
 ---
 
