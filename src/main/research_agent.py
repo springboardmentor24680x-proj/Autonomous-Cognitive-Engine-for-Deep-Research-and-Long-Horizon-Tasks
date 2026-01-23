@@ -205,18 +205,14 @@ def setup_agent():
 
         # 2. Invoke the sub-agent
         result = research_agent.invoke(
-            {"input": description}, 
+            {"messages": [{"role": "user", "content": description}]},
             config={
                 "run_name": "ResearchSubAgent",
                 "tags": ["research"]
             }
         )
-        
-        if isinstance(result, str):
-            research_output = result
-        else:
-            research_output = result["messages"][-1].content
-    
+        research_output = result["messages"][-1].content
+
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
         entry = (
@@ -233,7 +229,9 @@ def setup_agent():
         else:
             write_file(target_file, entry)
 
-        return f"Research completed. Data saved to {target_file}."
+        # summary_text = (research_output[:500] + "...") if len(research_output) > 500 else research_output
+        return f"Research completed. Data saved to {target_file}"
+    
 
     
     @tool
@@ -421,7 +419,6 @@ def setup_agent():
     # Create main agent
     agent = create_deep_agent(
         tools=[
-            web_search,
             write_file,
             read_file,
             ls,
@@ -486,11 +483,8 @@ def main():
 
         try:
             # Execute agent logic
-            # result = agent.invoke({
-            #     "messages": [{"role": "user", "content": user_input}]
-            # })
             result = agent.invoke([
-            HumanMessage(content=user_input)
+                HumanMessage(content=user_input)
             ])
             print("\nAgent:\n")
             print(result["messages"][-1].content)
