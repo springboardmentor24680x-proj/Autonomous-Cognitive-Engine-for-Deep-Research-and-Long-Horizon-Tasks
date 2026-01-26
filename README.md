@@ -1,8 +1,5 @@
 # Autonomous Cognitive Engine for Deep Research and Long-Horizon Tasks
 
-**A Springboard – Infosys Internship Project**
-
----
 
 ## Overview
 
@@ -22,20 +19,45 @@ The **Autonomous Cognitive Engine** is an LLM-driven system designed to autonomo
 
 ---
 
-## Architecture
+## System Architecture
 
 ```
-User
-  ↓
-Supervisor Agent
-  ↓
-Virtual File System (Persistent Memory)
-  ↓
-Sub-Agents (Research / Summarization)
-  ↓
-Tools (Web / Files / Calendar / Visualization)
-  ↓
-Verified Structured Output
+┌─────────────────────────────────────────────────────┐
+│  User Request (Complex Multi-Step Task)             │
+└────────────────┬────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────┐
+│  Supervisor Agent                                   │
+│  • Plans execution (write_todos)                    │
+│  • Routes to specialized agents                     │
+│  • Enforces one-tool-per-turn                       │
+└────┬─────────────────┬──────────────────┬───────────┘
+     │                 │                  │
+     ▼                 ▼                  ▼
+┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+│ Research     │ │Summarization │ │ Visualization│
+│ Sub-Agent    │ │ Sub-Agent    │ │    Tools     │
+└──────────────┘ └──────────────┘ └──────────────┘
+     │                 │                  │
+     └─────────────────┼──────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────┐
+│  Virtual File System (Persistent Memory)            │
+│  • research_notes.txt                               │
+│  • strategy_summary.txt                             │
+│  • charts.png                                       │
+│  • todos_work.txt                                   │
+└─────────────────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────┐
+│  Verified Structured Output                         │
+│  • Artifacts stored in VFS                          │
+│  • All decisions logged for audit                   │
+│  • Ready for downstream systems                     │
+└─────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -102,15 +124,24 @@ All generated charts are saved back into the Virtual File System.
 
 ## Execution Flow
 
-1. User submits a complex request
-2. Supervisor analyzes intent
-3. Tasks are delegated to tools or sub-agents
-4. Sub-agents perform isolated work
-5. Outputs are stored in the VFS
-6. Supervisor verifies results
-7. Final response is returned
-
----
+```
+Step 1: User submits complex request
+   ↓
+Step 2: Supervisor calls write_todos (explicit planning)
+   ↓
+Step 3: Supervisor analyzes intent and routes task
+   ↓
+Step 4: Sub-agent or tool executes (one per turn)
+   ├─ IF Tool: Result returned, VFS updated
+   ├─ IF Sub-agent: Isolated execution, results verified
+   └─ IF Dependencies not met: Graceful failure with actionable error
+   ↓
+Step 5: Output stored in VFS (persistent memory)
+   ↓
+Step 6: For multi-step tasks: Return to Step 2 for next task
+   ↓
+Step 7: All tasks complete: Return verified output to user
+```
 
 ## Observability & Debugging
 
@@ -127,24 +158,31 @@ Enables efficient debugging and performance analysis.
 
 ## Safety & Constraints
 
-* Supervisor cannot perform research or summarization
-* Only one tool call allowed per turn
-* All file operations require verification
-* No assumptions about file existence
-* Visualization allowed only from validated data blocks
-* Any constraint violation is treated as a system failure
+| Constraint | Purpose | Violation Handling |
+|-----------|---------|-------------------|
+| No research by Supervisor | Prevents hallucination | Uses research_task sub-agent |
+| One tool call per turn | Maintains clarity | Explicit error if violated |
+| File existence verified | Prevents assumptions | Graceful failure with actionable error |
+| Visualization requires data | No fabricated charts | Explicit data validation |
+| Constraint violation = failure | Enterprise compliance | Stops immediately, clear error |
+
+**Design Philosophy**: Fail explicitly and loudly rather than silently proceeding with wrong assumptions.
 
 ---
 
 ## Tech Stack
 
-* Python
-* LangChain
-* DeepAgents
-* Groq LLM
-* Matplotlib (Visualization)
-* LangSmith (Tracing)
-
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **LLM** | Groq (Kimi-K2) | Fast, cost-effective inference |
+| **Orchestration** | LangChain | Tool calling and message handling |
+| **Sub-Agents** | DeepAgents | Modular, specialized agents |
+| **Memory** | Virtual File System | Persistent, queryable storage |
+| **Web Search** | Tavily API | Real-time research data |
+| **Visualization** | Matplotlib | Publication-quality charts |
+| **Observability** | LangSmith | Execution tracing and debugging |
+| **UI** | Streamlit | Interactive web interface |
+| **Language** | Python 3.9+ | Core implementation |
 ---
 
 ## Project Structure
@@ -164,45 +202,75 @@ Autonomous-Cognitive-Engine-for-Deep-Research/
 
 ---
 
-## Setup (Project Initialization)
+## Quick Start
 
-### 1. Clone the Repository
+### Prerequisites
+- Python 3.9+
+- pip or conda
+- GROQ API key (free at [groq.com](https://groq.com))
+- Tavily API key (optional, for web search)
 
-```
+### Installation
+
+**Step 1: Clone Repository**
+```bash
 git clone https://github.com/your-username/Autonomous-Cognitive-Engine-for-Deep-Research.git
 cd Autonomous-Cognitive-Engine-for-Deep-Research
 ```
 
-### 2. Create Virtual Environment
-
-```
+**Step 2: Create Virtual Environment**
+```bash
+# Windows
 python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
+venv\Scripts\activate
+
+# macOS/Linux
+python3 -m venv venv
+source venv/bin/activate
 ```
 
-### 3. Install Dependencies
-
-```
+**Step 3: Install Dependencies**
+```bash
 pip install -r requirements.txt
 ```
 
-### 4. Set Environment Variables
+**Step 4: Configure Environment Variables**
+```bash
+# Create .env file
+cp .env.example .env
 
-Create a `.env` file:
-
-```
+# Edit .env with your API keys
 GROQ_API_KEY=your_groq_api_key_here
+TAVILY_API_KEY=your_tavily_api_key_here  # Optional
+```
+
+**Step 5: Run the Application**
+
+Option A - Interactive UI:
+```bash
+$env:PYTHONPATH="."
+streamlit run src/main/app.py
+```
+
+Option B - Automated Demo:
+```bash
+$env:PYTHONPATH="."
+python tests/scenarios/comprehensive_demo.py
 ```
 
 ---
 
-## Usage
+## Usage Examples
 
-### Start the Agent
 
-```
-python src/main/app.py
-```
+## Use Cases & Examples
+
+### Enterprise Applications
+1. **Market Intelligence**: Research competitors, synthesize findings, generate reports
+2. **Strategic Planning**: Long-horizon business planning with dependency tracking
+3. **Executive Reporting**: Auto-generate summaries and visualizations
+4. **Operational Planning**: Create todos and schedule reviews
+5. **Data Analysis**: Multi-source synthesis with visual output
 
 ---
 
@@ -249,3 +317,7 @@ All agent and sub-agent interactions are observable through tracing and UI state
 * Advanced Planning
 * Dynamic Agent Scaling
 * Multi-Modal Cognition
+
+## License
+
+This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
