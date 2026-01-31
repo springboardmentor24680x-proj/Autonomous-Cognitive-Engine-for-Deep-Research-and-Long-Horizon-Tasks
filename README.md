@@ -44,6 +44,7 @@ This separation ensures:- Safer execution Cleaner agent logic Easier debugging I
 
 ### Supervisor Agent:
 The Supervisor Agent acts as the central decision-maker and coordinator of the system.
+![image alt](https://github.com/springboardmentor24680x-proj/Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks/blob/042d46c8339a65c0764da3417ed626fb6d807b74/Screenshot%20(199).png)
 
 #### Key Responsibilities:
  Understand user intent Convert requests into structured execution plans Delegate tasks to specialized agents Maintain shared memory and conversation state Combine agent outputs into a final response Handle errors and execution failures
@@ -96,3 +97,4 @@ User submits input Supervisor generates a task plan Search Agent retrieves infor
 ## Conclusion:-
 
  This project successfully demonstrates a modular, scalable, and memory-aware autonomous cognitive agent system. By integrating planning, delegation, tool usage, persistent memory, and summarization, the system provides a strong foundation for advanced AI applications such as autonomous research assistants and long-horizon reasoning systems.
+
