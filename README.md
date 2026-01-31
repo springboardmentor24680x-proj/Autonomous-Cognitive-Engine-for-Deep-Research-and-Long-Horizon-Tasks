@@ -21,7 +21,7 @@ This project implements an Autonomous Cognitive Agent System using Python, LangC
   - **Design Principles**- Clear separation between reasoning and execution, Tool-mediated access to memory and external resources , Modular and reusable agent components , Persistent system state across interactions , This design ensures clarity, scalability, and maintainability as system complexity increases.
   - **Base Agent**: AI Task Manager Agent - The AI Task Manager (To-Do) Agent is the initial component of the system. It is used to verify environment setup, confirm LLM communication, and test fundamental agent behaviors.
   - **Purpose** - This agent provides a controlled environment to understand how an LLM-based agent processes user input, reasons about tasks, and manages information before introducing additional agents.
-
+![image alt](https://github.com/springboardmentor24680x-proj/Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks/blob/df80d8ac92070a0e78947b080e60f0f4555a8a6f/Screenshot%20(198).png)
 ## Core Features -
  - Command-line interaction
  - Continuous input handling
@@ -94,4 +94,5 @@ User submits input Supervisor generates a task plan Search Agent retrieves infor
 -  Managed using LangGraph workflows
 
 ## Conclusion:-
+
  This project successfully demonstrates a modular, scalable, and memory-aware autonomous cognitive agent system. By integrating planning, delegation, tool usage, persistent memory, and summarization, the system provides a strong foundation for advanced AI applications such as autonomous research assistants and long-horizon reasoning systems.
