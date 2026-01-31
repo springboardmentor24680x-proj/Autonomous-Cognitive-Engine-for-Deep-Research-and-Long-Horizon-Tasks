@@ -27,12 +27,17 @@ from subagents.research_subagent import build_research_agent
 
 #Summarization sub-agent
 from subagents.summarization_subagent import build_summarization_agent
+from src.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 def setup_agent():
     # Clear the virtual file system on startup
     clear_vfs()
+    logger.info("VFS cleared on startup")
 
     if not os.getenv("GROQ_API_KEY"):
+        logger.error("GROQ_API_KEY not found in environment variables")
         raise ValueError("GROQ_API_KEY not found in environment variables. Check your .env file.")
 
     # Keeping your specific model name as requested
@@ -40,6 +45,7 @@ def setup_agent():
         api_key=os.getenv("GROQ_API_KEY"),
         model="moonshotai/kimi-k2-instruct-0905"
     )
+    logger.info("ChatGroq client initialized")
 
     current_date = datetime.date.today().strftime("%Y-%m-%d")
 
@@ -183,8 +189,10 @@ def setup_agent():
     # Build research sub-agent
     # research_agent = build_research_agent(tool_free_client)
     research_agent = build_research_agent(tool_free_client, tools=[web_search])
-    #Build summarize sub_agent
+    logger.info("Research sub-agent built")
+    # Build summarize sub_agent
     summarization_agent = build_summarization_agent(tool_free_client)
+    logger.info("Summarization sub-agent built")
 
     # TASK DELEGATION TOOL
     @tool
@@ -201,7 +209,7 @@ def setup_agent():
         if not target_file.endswith(".txt"):
             target_file += ".txt"
 
-        print(f"\n--- DEBUG: Researching: {description} -> Saving to: {target_file} ---")
+        logger.info("research_task: querying '%s' -> %s", description, target_file)
 
         # 2. Invoke the sub-agent
         result = research_agent.invoke(
@@ -212,6 +220,7 @@ def setup_agent():
             }
         )
         research_output = result["messages"][-1].content
+        logger.debug("research_task: obtained output length=%d", len(research_output))
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -228,6 +237,8 @@ def setup_agent():
             edit_file(target_file, existing + entry)
         else:
             write_file(target_file, entry)
+
+        logger.info("research_task: saved results to %s", target_file)
 
         # summary_text = (research_output[:500] + "...") if len(research_output) > 500 else research_output
         return f"Research completed. Data saved to {target_file}"
@@ -250,6 +261,7 @@ def setup_agent():
         )
 
 
+        logger.debug("summarization_task: result type=%s", type(result))
         if isinstance(result, str):
             return result
         return result["messages"][-1].content
@@ -261,6 +273,7 @@ def setup_agent():
         and saves the output to a new file.
         """
         clean_filename = filename.lstrip('/')
+        logger.info("summarize_file: reading %s", clean_filename)
         content = read_file(clean_filename)
         
         if isinstance(content, str) and content.startswith("File"):
@@ -280,6 +293,7 @@ def setup_agent():
         summary = summary_result if isinstance(summary_result, str) else summary_result.content
         summary_file = clean_filename.replace(".txt", "_summary.txt")
         write_file(summary_file, summary)
+        logger.info("summarize_file: saved summary to %s", summary_file)
 
         return f"SUCCESS: Summary of {clean_filename} saved to {summary_file}"
 
@@ -315,6 +329,7 @@ def setup_agent():
         import matplotlib.pyplot as plt
 
         # ---------- FILE READ ----------
+        logger.info("create_visualization: source_file=%s chart_type=%s", source_file, chart_type)
         content = read_file(source_file)
 
         if isinstance(content, str) and content.startswith("File"):
@@ -409,11 +424,13 @@ def setup_agent():
 
             output_name = source_file.replace(".txt", f"_{chart_type}.png").lstrip("/")
             VFS[output_name] = buf.getvalue()
+            logger.info("create_visualization: saved %s", output_name)
 
             return f"SUCCESS: {chart_type} chart saved as {output_name}"
 
         except Exception as e:
             plt.close()
+            logger.exception("create_visualization error for %s", source_file)
             return f"Visualization logic error: {str(e)}"
 
     # Create main agent
@@ -443,6 +460,7 @@ def setup_agent():
 
         def invoke(self, input_messages, **kwargs):
             user_text = input_messages[-1].content.lower()
+            logger.debug("AgentWrapper.invoke received: %s", user_text)
             
             # Logic Gate: Is a chart actually requested?
             trigger_verbs = ["create", "generate", "draw", "visualize"]
@@ -451,6 +469,7 @@ def setup_agent():
 
             # If not requested, we tell the agent the tool is currently locked
             if not is_requested and "create_visualization" in user_text:
+                logger.warning("Visualization locked but requested without type: %s", user_text)
                 return {"messages": [HumanMessage(content="System: Visualization tool is locked unless explicitly requested with chart type.")]}
 
             return self.agent.invoke(

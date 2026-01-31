@@ -1,5 +1,8 @@
 from langchain_core.tools import tool
 import streamlit as st
+from src.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 # Use session_state so the files don't disappear when the app refreshes
 if "VFS" not in st.session_state:
@@ -27,6 +30,7 @@ def write_file(filename: str, content: str) -> str:
     Appends content to a file in the VFS.
     """
     filename = normalize_filename(filename)
+    logger.info("write_file: %s (size=%d)", filename, len(str(content)))
     if filename in VFS:
         VFS[filename] += "\n" + content
     else:
@@ -38,7 +42,9 @@ def read_file(filename: str) -> str:
     """Reads and returns the content of the file from the VFS. Input: filename (str)."""
     filename = normalize_filename(filename)
     if filename in VFS:
+        logger.debug("read_file: %s (found)", filename)
         return VFS[filename]
+    logger.debug("read_file: %s (not found)", filename)
     return f"File '{filename}' not found."
 
 def edit_file(filename: str, new_content: str) -> str:
@@ -58,5 +64,6 @@ def delete_file(filename: str) -> str:
     clean_name = filename.lstrip('/')
     if clean_name in VFS:
         del VFS[clean_name]
+        logger.info("delete_file: %s deleted", clean_name)
         return f"SUCCESS: {clean_name} has been deleted."
     return f"ERROR: File {clean_name} not found."

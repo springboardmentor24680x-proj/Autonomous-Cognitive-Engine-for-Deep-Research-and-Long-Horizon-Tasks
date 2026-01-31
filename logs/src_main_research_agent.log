@@ -1,0 +1,24 @@
+2026-01-31 12:54:12,162 INFO src.main.research_agent: VFS cleared on startup
+2026-01-31 12:54:13,813 INFO src.main.research_agent: ChatGroq client initialized
+2026-01-31 12:54:15,029 INFO src.main.research_agent: Research sub-agent built
+2026-01-31 12:54:15,038 INFO src.main.research_agent: Summarization sub-agent built
+2026-01-31 12:54:48,670 INFO src.main.research_agent: research_task: querying 'Research the top three competitors in the Indian specialty coffee market: Blue Tokai, Third Wave Coffee, and Starbucks India. For each competitor, provide their unique selling points, market positioning, and current store count. Include information about their business model, target audience, and key differentiators in the Indian specialty coffee space.' -> research_notes.txt
+2026-01-31 12:55:05,422 INFO src.main.research_agent: research_task: saved results to research_notes.txt
+2026-01-31 12:55:48,543 INFO src.main.research_agent: create_visualization: source_file=research_notes.txt chart_type=bar
+2026-01-31 12:55:49,055 INFO src.main.research_agent: create_visualization: saved research_notes_bar.png
+2026-01-31 13:01:40,927 INFO src.main.research_agent: research_task: querying 'Research the most effective distribution channels for specialty coffee: Online direct-to-consumer sales, B2B wholesale to cafes/restaurants, and subscription services. For each channel, analyze: effectiveness, market share, profit margins, growth trends, customer acquisition costs, and customer lifetime value. Include specific data on market split percentages and numerical values for graphing purposes.' -> coffee_business_strategy.txt
+2026-01-31 13:01:46,603 INFO src.main.research_agent: research_task: saved results to coffee_business_strategy.txt
+2026-01-31 13:02:44,573 INFO src.main.research_agent: create_visualization: source_file=coffee_business_strategy.txt chart_type=pie
+2026-01-31 13:02:44,751 INFO src.main.research_agent: create_visualization: saved coffee_business_strategy_pie.png
+2026-01-31 13:06:36,605 INFO src.main.research_agent: create_visualization: source_file=deadline_analysis.txt chart_type=scatter
+2026-01-31 13:06:36,916 INFO src.main.research_agent: create_visualization: saved deadline_analysis_scatter.png
+2026-01-31 13:07:53,940 INFO src.main.research_agent: create_visualization: source_file=deadline_analysis.txt chart_type=scatter
+2026-01-31 13:07:54,289 INFO src.main.research_agent: create_visualization: saved deadline_analysis_scatter.png
+2026-01-31 13:23:14,722 INFO src.main.research_agent: VFS cleared on startup
+2026-01-31 13:23:16,120 INFO src.main.research_agent: ChatGroq client initialized
+2026-01-31 13:23:17,534 INFO src.main.research_agent: Research sub-agent built
+2026-01-31 13:23:17,543 INFO src.main.research_agent: Summarization sub-agent built
+2026-01-31 13:23:24,890 INFO src.main.research_agent: research_task: querying 'Research the top three competitors in the Indian specialty coffee market (Blue Tokai, Third Wave Coffee, Starbucks India) and their unique selling points. Include information about their business model, target audience, store locations, and key differentiators. Also gather data on their approximate store counts across India.' -> research_notes.txt
+2026-01-31 13:23:31,523 INFO src.main.research_agent: research_task: saved results to research_notes.txt
+2026-01-31 13:23:33,547 INFO src.main.research_agent: create_visualization: source_file=research_notes.txt chart_type=bar
+2026-01-31 13:23:33,811 INFO src.main.research_agent: create_visualization: saved research_notes_bar.png

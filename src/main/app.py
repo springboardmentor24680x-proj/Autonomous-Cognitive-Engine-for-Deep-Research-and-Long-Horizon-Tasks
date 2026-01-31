@@ -4,6 +4,9 @@ from src.memory.vfs import VFS
 from src.tools.calendar_tools import EVENTS
 from src.main import research_agent as ra
 from src.main.research_agent import setup_agent
+from src.logging_config import get_logger
+
+logger = get_logger(__name__)
 import io
 import base64
 from pathlib import Path
@@ -17,6 +20,7 @@ st.set_page_config(page_title="Deep Agent UI", layout="wide")
 # --------------------------------------------------
 @st.cache_resource
 def load_agent():
+    logger.info("load_agent: initializing agent (cached)")
     return ra.setup_agent()
 
 agent = load_agent()
@@ -108,6 +112,7 @@ for msg in st.session_state.messages:
 # User Input
 if user_input := st.chat_input("What should I do?"):
     st.session_state.messages.append(HumanMessage(content=user_input))
+    logger.info("User input received via Streamlit UI")
 
     with st.spinner("Processing..."):
         try:
@@ -122,6 +127,7 @@ if user_input := st.chat_input("What should I do?"):
 
             #  2. RUN ACTUAL AGENT LOGIC
             history = st.session_state.messages[-5:]
+            logger.debug("Invoking agent with history length=%d", len(history))
             result = agent.invoke(history)
 
             ans = result["messages"][-1].content
@@ -129,4 +135,5 @@ if user_input := st.chat_input("What should I do?"):
             st.rerun()
             
         except Exception as e:
+            logger.exception("Exception while processing user input")
             st.error(f"Error: {e}")

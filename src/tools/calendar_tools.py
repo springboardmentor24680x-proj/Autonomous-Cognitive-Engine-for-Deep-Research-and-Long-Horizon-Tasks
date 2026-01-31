@@ -1,4 +1,7 @@
 import streamlit as st
+from src.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 # ----------------------------
@@ -11,6 +14,7 @@ EVENTS = st.session_state["EVENTS"]
 
 def add_event(title: str, date: str, time: str) -> str:
     """Adds a new calendar event. Inputs: title (str), date (YYYY-MM-DD), time (str)."""
+    logger.info("Adding event: %s on %s at %s", title, date, time)
     for event in EVENTS:
         if event["title"] == title and event["date"] == date and event["time"] == time:
             return "Event already exists. Skipping duplicate."
