@@ -334,7 +334,7 @@ The Supervisor Agent:
 Step 3: Langsmith Trace
 A LangSmith trace is a recording of the end-to-end execution of an AI application, capturing every step from input to final output. It is the core observability feature of the LangSmith platform, used to debug, monitor, and evaluate Large Language Model (LLM) workflows.
 
-![alt text](image-3.png)
+![alt text](image-2.png)
 
 ## 6. Functionality
 
