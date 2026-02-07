@@ -114,18 +114,13 @@ if user_input := st.chat_input("What should I do?"):
     st.session_state.messages.append(HumanMessage(content=user_input))
     logger.info("User input received via Streamlit UI")
 
+    # IMMEDIATELY show user message
+    with st.chat_message("user"):
+        st.markdown(user_input)
+        
     with st.spinner("Processing..."):
         try:
-            #  1. FORCE TODO CREATION FIRST
-            # res=agent.agent.invoke({
-            #     "messages": [
-            #         HumanMessage(
-            #             content=f"Create todo: {user_input}",
-            #         )
-            #     ]
-            # })
-
-            #  2. RUN ACTUAL AGENT LOGIC
+            # RUN ACTUAL AGENT LOGIC
             history = st.session_state.messages[-5:]
             logger.debug("Invoking agent with history length=%d", len(history))
             result = agent.invoke(history)
