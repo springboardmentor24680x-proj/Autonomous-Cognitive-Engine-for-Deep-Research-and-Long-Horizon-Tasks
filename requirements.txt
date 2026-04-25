@@ -1,0 +1,8 @@
+langgraph
+langchain
+langchain-community
+groq
+python-dotenv
+tavily-python
+pydantic
+typing-extensions
