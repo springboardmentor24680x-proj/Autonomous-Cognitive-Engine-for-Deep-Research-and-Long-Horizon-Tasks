@@ -675,6 +675,9 @@
         let socket;
         let currentSessionId = generateSessionId();
         let isTyping = false;
+        let currentSessionMessages = []; // Track messages for current session
+        let sessionTitle = 'New Conversation';
+        let allSessions = {}; // Store all sessions: { sessionId: { title, messages: [] } }
 
         function generateSessionId() {
             return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -685,15 +688,23 @@
             
             socket.on('connect', () => {
                 console.log('Connected to server');
+                isTyping = false; // Reset on reconnect
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Disconnected - will reconnect');
+                isTyping = false;
+            });
+
+            socket.on('thinking', (data) => {
+                console.log('Agent thinking...');
             });
 
             socket.on('response', (data) => {
                 hideTypingIndicator();
                 addMessage('assistant', data.message, data.delegated_to);
                 isTyping = false;
-                
-                // Refresh conversation list to show updated title
-                loadConversationList();
+                updateSidebarWithCurrentSession();
             });
 
             socket.on('error', (data) => {
@@ -709,6 +720,22 @@
             
             if (welcomeScreen) {
                 welcomeScreen.remove();
+            }
+
+            // Track message in current session
+            currentSessionMessages.push({ role, content, agent });
+
+            // Save to allSessions map
+            if (!allSessions[currentSessionId]) {
+                allSessions[currentSessionId] = { title: sessionTitle, messages: [] };
+            }
+            allSessions[currentSessionId].messages.push({ role, content, agent });
+
+            // Set session title from first user message
+            if (role === 'user' && currentSessionMessages.filter(m => m.role === 'user').length === 1) {
+                sessionTitle = content.length > 40 ? content.substring(0, 40) + '...' : content;
+                allSessions[currentSessionId].title = sessionTitle;
+                updateSidebarWithCurrentSession();
             }
 
             const messageDiv = document.createElement('div');
@@ -865,6 +892,15 @@
             isTyping = true;
             showTypingIndicator();
             
+            // Safety timeout - reset isTyping after 60s if no response
+            setTimeout(() => {
+                if (isTyping) {
+                    isTyping = false;
+                    hideTypingIndicator();
+                    console.warn('Response timeout - resetting state');
+                }
+            }, 60000);
+            
             socket.emit('chat_message', {
                 message: message,
                 session_id: currentSessionId
@@ -889,7 +925,13 @@
         }
 
         function startNewChat() {
+            // Save current session before starting new one
+            if (currentSessionMessages.length > 0) {
+                allSessions[currentSessionId] = { title: sessionTitle, messages: [...currentSessionMessages] };
+            }
             currentSessionId = generateSessionId();
+            currentSessionMessages = [];
+            sessionTitle = 'New Conversation';
             document.getElementById('messagesContainer').innerHTML = `
                 <div class="welcome-screen" id="welcomeScreen">
                     <h1 class="welcome-title">How can I help you today?</h1>
@@ -920,44 +962,36 @@
             loadConversationList();
         }
         
+        function updateSidebarWithCurrentSession() {
+            const chatHistory = document.getElementById('chatHistory');
+            let existing = chatHistory.querySelector(`[data-session-id="${currentSessionId}"]`);
+            if (!existing) {
+                const chatItem = document.createElement('div');
+                chatItem.className = 'chat-item active';
+                chatItem.dataset.sessionId = currentSessionId;
+                chatItem.innerHTML = `
+                    <div class="chat-item-title" onclick="loadConversation('${currentSessionId}')">
+                        <i class="fas fa-message" style="margin-right: 8px;"></i>
+                        ${sessionTitle}
+                    </div>
+                `;
+                chatHistory.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
+                chatHistory.prepend(chatItem);
+            } else {
+                existing.querySelector('.chat-item-title').innerHTML = `
+                    <i class="fas fa-message" style="margin-right: 8px;"></i>
+                    ${sessionTitle}
+                `;
+                existing.querySelector('.chat-item-title').onclick = () => loadConversation(currentSessionId);
+            }
+        }
+
         function loadConversationList() {
-            // Load all conversation sessions from backend
-            fetch('/api/conversation/sessions')
-                .then(response => response.json())
-                .then(data => {
-                    const chatHistory = document.getElementById('chatHistory');
-                    chatHistory.innerHTML = '';
-                    
-                    if (data.sessions && data.sessions.length > 0) {
-                        data.sessions.forEach(session => {
-                            const chatItem = document.createElement('div');
-                            chatItem.className = 'chat-item';
-                            chatItem.dataset.sessionId = session.session_id;
-                            if (session.session_id === currentSessionId) {
-                                chatItem.classList.add('active');
-                            }
-                            
-                            chatItem.innerHTML = `
-                                <div class="chat-item-title" onclick="loadConversation('${session.session_id}')">
-                                    <i class="fas fa-message" style="margin-right: 8px;"></i>
-                                    ${session.conversation_title || 'New Conversation'}
-                                </div>
-                                <div class="chat-item-actions">
-                                    <button class="chat-item-btn" onclick="renameConversation('${session.session_id}', event)" title="Rename">
-                                        <i class="fas fa-pen"></i>
-                                    </button>
-                                </div>
-                            `;
-                            
-                            chatHistory.appendChild(chatItem);
-                        });
-                    } else {
-                        chatHistory.innerHTML = '<div style="padding: 12px; text-align: center; color: var(--text-muted); font-size: 13px;">No conversations yet</div>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading conversations:', error);
-                });
+            // Sessions are fresh per page load - sidebar managed client-side
+            const chatHistory = document.getElementById('chatHistory');
+            if (chatHistory.children.length === 0) {
+                chatHistory.innerHTML = '<div style="padding: 12px; text-align: center; color: var(--text-muted); font-size: 13px;">No conversations yet</div>';
+            }
         }
         
         function renameConversation(sessionId, event) {
@@ -986,33 +1020,30 @@
         }
         
         function loadConversation(sessionId) {
-            // Load a specific conversation
-            fetch(`/api/conversation/history/${sessionId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.messages) {
-                        // Clear current messages
-                        const container = document.getElementById('messagesContainer');
-                        container.innerHTML = '';
-                        
-                        // Set current session
-                        currentSessionId = sessionId;
-                        
-                        // Load all messages
-                        data.messages.forEach(msg => {
-                            addMessage(msg.role, msg.content, msg.agent_used);
-                        });
-                        
-                        // Update active state in sidebar
-                        document.querySelectorAll('.chat-item').forEach(item => {
-                            item.classList.remove('active');
-                        });
-                        event.target.closest('.chat-item').classList.add('active');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading conversation:', error);
-                });
+            const session = allSessions[sessionId];
+            if (!session || session.messages.length === 0) return;
+
+            // Save current session first
+            if (currentSessionMessages.length > 0) {
+                allSessions[currentSessionId] = { title: sessionTitle, messages: [...currentSessionMessages] };
+            }
+
+            // Switch to selected session
+            currentSessionId = sessionId;
+            currentSessionMessages = [...session.messages];
+            sessionTitle = session.title;
+
+            // Render messages
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = '';
+            session.messages.forEach(msg => {
+                addMessage(msg.role, msg.content, msg.agent);
+            });
+
+            // Update active state in sidebar
+            document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('active'));
+            const activeItem = document.querySelector(`[data-session-id="${sessionId}"]`);
+            if (activeItem) activeItem.classList.add('active');
         }
 
         function regenerateResponse() {

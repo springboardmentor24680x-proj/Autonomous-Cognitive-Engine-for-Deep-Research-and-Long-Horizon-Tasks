@@ -37,3 +37,16 @@ reports/*.json
 build/
 dist/
 *.egg-info/
+
+# Generated files
+*.pdf
+PROJECT_DOCUMENTATION_*.html
+PROJECT_DOCUMENTATION_CLEAN.md
+
+# Data directories
+data/conversations/
+data/vfs_storage/
+
+# Pycache
+__pycache__/
+*.pyc

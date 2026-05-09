@@ -40,5 +40,47 @@
     "size": 4414,
     "type": "text",
     "persistent": true
+  },
+  "conversation_plan_a_trip_20260228_130814.txt": {
+    "created_at": "2026-02-28T13:08:14.476706",
+    "modified_at": "2026-02-28T13:08:14.476759",
+    "size": 2675,
+    "type": "text",
+    "persistent": true
+  },
+  "test_file.txt": {
+    "created_at": "2026-05-09T17:45:00.176430",
+    "modified_at": "2026-05-09T17:45:00.176460",
+    "size": 20,
+    "type": "text",
+    "persistent": true
+  },
+  "conversation_give_best_cvpr_20260509_232942.txt": {
+    "created_at": "2026-05-09T23:29:42.694513",
+    "modified_at": "2026-05-09T23:29:42.694546",
+    "size": 2980,
+    "type": "text",
+    "persistent": true
+  },
+  "conversation_write_a_code_20260509_233840.txt": {
+    "created_at": "2026-05-09T23:38:40.166718",
+    "modified_at": "2026-05-09T23:38:40.166733",
+    "size": 2094,
+    "type": "text",
+    "persistent": true
+  },
+  "conversation_plan_a_trip_20260509_233908.txt": {
+    "created_at": "2026-05-09T23:39:08.188465",
+    "modified_at": "2026-05-09T23:39:08.188475",
+    "size": 2811,
+    "type": "text",
+    "persistent": true
+  },
+  "conversation_plan_5_days_20260509_234733.txt": {
+    "created_at": "2026-05-09T23:47:33.717051",
+    "modified_at": "2026-05-09T23:47:33.717081",
+    "size": 2933,
+    "type": "text",
+    "persistent": true
   }
 }

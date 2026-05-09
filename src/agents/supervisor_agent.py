@@ -509,7 +509,7 @@ Always strive to be genuinely helpful while maintaining a professional, knowledg
                     # Store TODO in trace metadata for LangSmith visibility
                     todo_breakdown = [todo_item]
                     
-                    print(f"[TODO CREATED] {todo_item['id']}: {user_input[:50]}... → {recommended_agent}")
+                    print(f"[TODO CREATED] {todo_item['id']}: {user_input[:50]}... -> {recommended_agent}")
                     
                     # STEP 2: Delegate to the appropriate agent
                     # First analyze the delegation need with tracing
@@ -686,7 +686,7 @@ Always strive to be genuinely helpful while maintaining a professional, knowledg
                 "created_at": datetime.now().isoformat()
             }
             
-            print(f"[TODO CREATED] {todo_item['id']}: {user_input[:50]}... → SupervisorAgent (Direct)")
+            print(f"[TODO CREATED] {todo_item['id']}: {user_input[:50]}... -> SupervisorAgent (Direct)")
             
             # Mark as in progress
             todo_item["status"] = "in_progress"

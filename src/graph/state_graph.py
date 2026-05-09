@@ -89,7 +89,7 @@ class MultiAgentWorkflow:
         self.workflow = self._build_workflow()
     
     def _tools_wrapper_node(self, state: AgentState) -> AgentState:
-        """Wrapper for tools node to handle TODO completion."""
+        """Wrapper for direct execution when no agent delegation matches."""
         try:
             current_todo_id = state.get("current_todo_id")
             todos = state.get("todos", [])
@@ -99,25 +99,44 @@ class MultiAgentWorkflow:
                 state["next_action"] = "continue"
                 return state
             
-            # Execute tool (simplified - just mark as complete for now)
-            # In real implementation, this would call the actual tool
+            # Actually execute the task using the supervisor's LLM directly
+            task = current_todo["task"]
+            print(f"[DirectExecution] Processing: {task[:60]}...")
             
-            # Mark TODO as complete
+            response = self.supervisor.chain.invoke({"input": task})
+            
+            # Store the real result
             current_todo["status"] = "completed"
-            current_todo["result"] = {"success": True, "message": "Tool executed"}
+            current_todo["result"] = {
+                "success": True,
+                "result": response,
+                "agent": "DirectExecution"
+            }
+            
+            # Save to VFS
+            result_file = f"result_{current_todo_id}.txt"
+            vfs_write_file.invoke({"filename": result_file, "content": response})
+            current_todo["result_file"] = result_file
             
             state["tools_used"] += 1
+            state["intermediate_results"].append({
+                "todo_id": current_todo_id,
+                "agent": "DirectExecution",
+                "result": {"result": response},
+                "timestamp": datetime.now().isoformat()
+            })
             state["messages"].append(AIMessage(
-                content=f"TODO {current_todo_id} completed with tools"
+                content=f"TODO {current_todo_id} completed via direct execution"
             ))
             
             state["next_action"] = "continue"
             return state
             
         except Exception as e:
-            state["messages"].append(AIMessage(content=f"Tools error: {str(e)}"))
+            state["messages"].append(AIMessage(content=f"Direct execution error: {str(e)}"))
             if current_todo:
                 current_todo["status"] = "completed"
+                current_todo["result"] = {"success": False, "error": str(e)}
             state["next_action"] = "continue"
             return state
     
