@@ -1,7 +1,7 @@
 # Autonomous-Cognitive-Engine-for-Deep-Research-and-Long-Horizon-Tasks
 An advanced AI-powered engine designed to autonomously conduct deep research, handle complex workflows, and execute long-horizon tasks with minimal supervision. Powered by LangGraph, LangSmith, Groq, and Tavily APIs, it can plan tasks, delegate subtasks, and summarize results effectively.
 
-Features:
+# Features:
 
 -Autonomous task management and delegation
 
